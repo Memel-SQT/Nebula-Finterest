@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title>Finterest</title>
+  <defs>
+    <linearGradient id="finterest-gradient" x1="16" y1="16" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#41d9ff"/>
+      <stop offset="0.52" stop-color="#5267ff"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="#101225"/>
+  <path d="M35 91V37h55M35 61h39" fill="none" stroke="url(#finterest-gradient)" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"/>
+  <circle cx="94" cy="91" r="6" fill="#8b7cff"/>
+</svg>

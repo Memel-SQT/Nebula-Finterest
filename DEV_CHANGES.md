@@ -1,0 +1,210 @@
+## [2026-08-22] - Finterest Change Session #27
+- Files modified: `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Improved responsive behavior for desktop, tablet, and narrow mobile-like windows.
+- Added fluid workspace spacing, compact navigation behavior, stacked forms, responsive calendar sizing, and wrapping action rows.
+- Preserved the account flow, budget semantics, and desktop layout.
+- Validation: `npm run build:renderer`, `npm run typecheck`, `npm run lint`, and renderer diagnostics pass.
+
+## [2026-08-22] - Finterest Change Session #26
+- Files modified: `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Restyled the local account selection and login surface with a dark anthracite treatment, warm ivory typography, subdued fields, and copper accents.
+- Kept the main budget workflow minimal and readable while making the account gate visually distinct.
+- No account, budget, persistence, IPC, or backup behavior changed.
+- Validation: `npm run build:renderer` passes without CSS warnings. Full checks follow.
+
+## [2026-08-22] - Finterest Change Session #25
+- Files modified: `package.json`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Verified that Electron Builder 24.13.3 does not support the `uninstallerName` option. The standard generated `Uninstall Finterest.exe` remains the supported uninstaller and is registered with Windows during installation.
+- The attempted unsupported option was removed before the final rebuild.
+
+## [2026-08-22] - Finterest Change Session #24
+- Files modified: `src/renderer/App.tsx`, `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Added a short fade-and-rise transition when changing application pages or calculation modes.
+- Added a subtle scale fade when the account access card appears.
+- Added reduced-motion overrides so users who request less motion see no entrance animations.
+- No budget, account, IPC, persistence, or backup behavior changed.
+- Validation: `npm run build:renderer` passes without CSS warnings. Full checks follow.
+
+## [2026-08-22] - Finterest Change Session #23
+- Files modified: `src/renderer/App.tsx`, `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Added direct subscription creation from the calendar by selecting a day and completing a focused form.
+- Subscription payment day is now selected from the calendar rather than entered manually in that workflow.
+- Reworked the visual theme with a deep charcoal navigation area, warmer paper surfaces, clearer spacing, and distinct calendar states.
+- Preserved existing account, budget, persistence, and backup behavior.
+- Validation: `npm run build:renderer` passes without CSS warnings; full typecheck, lint, and tests follow.
+
+## [2026-08-22] - Finterest Change Session #22
+- Files modified: `src/renderer/styles.css`, `src/renderer/App.tsx`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Refined the subscription calendar presentation and ensured category icons are visible in calendar entries and lists.
+- Added predefined category selection with icons, calendar month navigation, responsive sizing, and visible select focus states.
+- No persistence or data model migration was required.
+- Validation: `npm run typecheck`, `npm run lint`, `npm test -- --runInBand`, and `npm run build:renderer` pass.
+
+## [2026-08-22] - Finterest Change Session #21
+- Files modified: `src/renderer/App.tsx`, `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Added a dedicated monthly calendar page showing active subscriptions on their payment days.
+- Added predefined subscription categories with associated icons and displayed those icons in subscription and planned-purchase lists.
+- Added previous/next month navigation and responsive calendar sizing.
+- Validation: `npm run typecheck`, `npm run lint`, `npm test -- --runInBand`, and `npm run build:renderer` pass. Windows packaging follows.
+
+## [2026-08-22] - Finterest Change Session #20
+- Files modified: `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Rebalanced the light theme toward deeper ivory and greige surfaces so the application no longer reads as overly bright.
+- Strengthened borders and shadows while preserving the dark secondary theme.
+- No renderer behavior, account handling, budget calculation, or persistence behavior changed.
+- Validation: `npm run build:renderer`, `npm run typecheck`, and `npm run lint` pass. Windows packaging follows.
+
+## [2026-08-22] - Finterest Change Session #19
+- Files modified: `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Darkened the overly bright light-theme surfaces and strengthened borders across the full UI.
+- Rebuilt the Windows installer after closing stale development instances that had locked the unpacked Electron files.
+- Validation: `npm run build:renderer`, `npm run typecheck`, `npm run lint`, and `npm run dist:win` pass.
+- Windows installer refreshed at `install/windows/Finterest Setup 0.1.0.exe`.
+
+## [2026-08-22] - Finterest Change Session #18
+- Files modified: `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Reduced the brightness of the light theme across the page background, sidebar, cards, fields, account screen, selectors, and list items.
+- Increased border contrast and shadow depth so grouped surfaces are easier to distinguish without switching to a dark theme.
+- Preserved the existing dark theme variant and all application behavior.
+- Validation: `npm run build:renderer` passes without CSS warnings. Full validation and Windows packaging follow.
+
+## [2026-08-22] - Finterest Change Session #17
+- Files modified: `src/renderer/App.tsx`, `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Added separate account selection, welcome, and login screens. Selecting an account now displays `Bonjour <nom>` before requesting its code.
+- Reduced the sidebar width and refined account choices, controls, surfaces, contrast, and responsive behavior.
+- Validation: `npm run typecheck`, `npm run lint`, and `npm run dist:win` pass.
+- Windows installer rebuilt at `install/windows/Finterest Setup 0.1.0.exe`.
+
+## [2026-08-22] - Finterest Change Session #16
+- Files added: `src/shared/accounts.ts`, `src/electron/accounts.ts`.
+- Files modified: `src/electron/main.ts`, `src/electron/store.ts`, `src/electron/preload.ts`, `src/shared/global.d.ts`, `src/renderer/App.tsx`, `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Added local account creation, account selection, PIN verification using scrypt, separate SQLite-compatible budget files per account, and a locked entry screen.
+- Added active-account backup metadata so the current account identity and budget are included in its export.
+- Refined the account gate UI and completed the French UX pass.
+- Important limitation: the current implementation protects access through Electron and stores account PINs as salted hashes, but the per-account SQLite files are not yet encrypted at rest. A later migration is required for full disk-level database protection and account recreation during import.
+- Validation: `npm run typecheck`, `npm run lint`, `npm test -- --runInBand`, `npm run build`, and `npm run dist:win` pass.
+- Windows installer rebuilt at `install/windows/Finterest Setup 0.1.0.exe`.
+
+## [2026-08-22] - Finterest Change Session #15
+- Files modified: `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Recorded the selected account migration contract: a complete export contains only the active local account and all of its budget data.
+- The future account export must preserve profile settings and protected credential metadata without exporting other local accounts or a reversible plaintext code.
+- No account storage or export implementation was added because local accounts and encrypted per-account storage are not yet present in the current application.
+- No application data changed.
+## [2026-08-22] - Finterest Change Session #14
+- Files modified: `src/renderer/App.tsx`, `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Translated the renderer interface into French and changed displayed amounts to French euro formatting.
+- Reframed the primary workflow as a simple budget calculator with monthly income, recurring subscriptions, and planned purchases.
+- Added a separate advanced calculator mode for compound-interest estimates, kept independent from saved budget data.
+- Preserved existing IPC, SQLite-compatible storage, backup/restore, and budget calculation behavior.
+- Validation: `npm run typecheck`, `npm run lint`, and `npm run build` pass. `npm run dist:win` successfully rebuilt the Windows installer. `dist:mac` requires macOS; `dist:linux` reached AppImage packaging but was blocked by Windows symlink privileges.
+
+## [2026-08-22] - Finterest Change Session #13
+- Files modified: `src/renderer/styles.css`, `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Replaced two conflicting CSS generations with one variable-driven theme applied consistently across the entire renderer.
+- Unified the sidebar, workspace, summary cards, budget ring, forms, expense lists, settings panel, error state, controls, focus states, and responsive breakpoints.
+- Kept warm light as the primary theme and retained a scoped dark blue/violet variant through `prefers-color-scheme: dark`.
+- Added reduced-motion handling and stronger visible keyboard focus treatment without changing application behavior.
+- No data model, IPC, persistence, backup, or calculation changes.
+- Validation: `npm run build:renderer` passes without CSS warnings. Full typecheck and lint are pending final verification.
+
+## [2026-08-22] - Finterest Change Session #12
+- Files added: `.github/agents/finterest-styling.agent.md`.
+- Files modified: `README.txt`, `DEV_CHANGES.md`, `PATCH_NOTES.md`, `USER_UPDATE_SUMMARY.txt`.
+- Added a workspace custom agent for Finterest visual styling, responsive layout, accessibility, and renderer UI polish.
+- The agent is limited to styling-oriented work, documents warm light as the primary direction, and preserves the existing dark blue/violet declarations as an intentional secondary theme.
+- No application code, data model, persistence, backup behavior, or user data changed.
+- No new tests were added. Validation is limited to checking the customization file structure because Node.js/npm is unavailable on this environment.
+
+## [2026-08-22] - Finterest Change Session #11
+- Files added: install/README.txt.
+- Files modified: README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Cleaned install/windows by removing generated win-unpacked files and Electron Builder diagnostic configuration files; the installer and blockmap remain available.
+- Added a root distribution guide describing the Windows, macOS, and Linux folders and their corresponding build commands.
+- The platform output configuration remains unchanged: dist:win, dist:mac, and dist:linux write directly to their dedicated folders.
+- No application data, backup, or migration behavior changed.
+
+## [2026-08-22] - Finterest Change Session #10
+- Files added: assets/finterest-logo.svg, src/shared/assets.d.ts.
+- Files modified: src/renderer/App.tsx, src/renderer/styles.css, package.json, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Replaced the initial light prototype with an original dark premium dashboard focused on budget clarity rather than investment tracking.
+- Added sidebar navigation for Overview, Fixed expenses, Variable expenses, and Settings & backup.
+- Added KPI cards, a budget-health ring, monthly spending snapshot, local data status, and a dedicated backup/settings panel.
+- Added the Finterest F monogram asset using the requested deep blue, violet, and neon gradient identity. The asset is imported through Vite and included in packaged files.
+- The original provided icon was not present in the repository assets folder, so the added SVG is a faithful identity placeholder based on the supplied visual requirements rather than a claim to use an unavailable source file.
+- No budget calculations, application data, backup format, or migration behavior changed.
+- Validation: npm run typecheck, npm test -- --runInBand, npm run lint, and npm run build all pass. The build completes without the prior CSS warning.
+
+## [2026-08-22] - Finterest Change Session #9
+- Files modified: package.json, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Fixed the packaged application startup error by marking electron as external in both the production and watch tsup commands.
+- Previously, tsup bundled the npm electron launcher into main.js; the packaged runtime then executed getElectronPath and reported that Electron was not installed correctly.
+- The main process now keeps require('electron') for Electron's built-in runtime API.
+- No application data, backup, or migration behavior changed.
+
+## [2026-08-22] - Finterest Change Session #8
+- Files added: install/windows/README.txt, install/mac/README.txt, install/linux/README.txt.
+- Files modified: package.json, .github/workflows/build-installers.yml, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Routed dist:win, dist:mac, and dist:linux output to dedicated platform folders under install/.
+- Updated CI artifact collection to upload from the matching platform folder.
+- The generated Windows installer is now stored under install/windows/; macOS and Linux folders are ready for their native builds.
+- No application data, backup, or migration behavior changed.
+
+## [2026-08-22] - Finterest Change Session #7
+- Files added: .github/workflows/build-installers.yml.
+- Files modified: package.json, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Added platform-specific scripts: dist:win, dist:mac, and dist:linux.
+- Added a native-runner CI matrix that builds a Windows NSIS installer, a macOS DMG, and a Linux AppImage, then uploads each result as a workflow artifact.
+- CI uses Node.js 20 and npm ci for reproducible dependency installation.
+- Unsigned packaging remains intentional for this initial release. macOS signing/notarization and Windows certificate signing can be added later through CI secrets.
+- No application data, backup, or migration behavior changed.
+
+## [2026-08-22] - Finterest Change Session #6
+- Files modified: package.json, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Added cross-env to the dist script so unsigned Windows packaging automatically disables certificate discovery on PowerShell, cmd.exe, and other shells.
+- Confirmed the Windows NSIS installer was generated in release/Finterest Setup 0.1.0.exe.
+- No application data model or backup format changes were introduced.
+
+## [2026-08-22] - Finterest Change Session #5
+- Files modified: package.json, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Removed the unsupported sign: false property from the Windows Electron Builder configuration.
+- Kept signAndEditExecutable: false and documented CSC_IDENTITY_AUTO_DISCOVERY=false for unsigned packaging.
+- This avoids the undefined certificate object that caused Electron Builder to fail after NSIS packaging began.
+- No application data model or backup format changes were introduced.
+
+## [2026-08-22] - Finterest Change Session #4
+- Files modified: package.json, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Updated the Windows Electron Builder configuration with signAndEditExecutable: false in addition to sign: false.
+- This prevents unsigned development packaging from downloading and unpacking winCodeSign, which was failing because the current Windows shell cannot create symbolic links.
+- No application data model or backup format changes were introduced.
+- The next validation step is npm run dist.
+
+## [2026-08-22] - Finterest Change Session #3
+- Files modified: package.json, eslint.config.js, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Added @typescript-eslint/parser and replaced the placeholder ESLint ignore-only config with a real flat config that parses src and tests as TypeScript.
+- Confirmed npm run lint now completes successfully against the current source tree.
+- Validation status: npm run typecheck, npm test -- --runInBand, npm run build, and npm run lint all pass.
+- Packaging status: npm run dist still fails in this Windows shell because Electron Builder tries to unpack winCodeSign and cannot create the symbolic links required by that archive extraction.
+- Documented the lint command and the remaining packaging caveat in README.txt and the user-facing notes.
+
+## [2026-08-22] - Finterest Change Session #2
+- Files modified: package.json, vite.config.ts, src/renderer/App.tsx, src/electron/main.ts, README.txt, DEV_CHANGES.md, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt.
+- Fixed the renderer type usage by importing ReactNode directly instead of relying on a React namespace symbol that was not imported.
+- Added Vite resolve aliases so @shared, @renderer, and @electron imports work in the renderer build path as well as in TypeScript.
+- Adjusted the Electron main process to fall back to the local Vite dev server URL during development when VITE_DEV_SERVER_URL is not injected.
+- Updated the development scripts so npm run dev now watches the Electron build and starts the desktop shell after both the renderer server and rebuilt main bundle are available.
+- Updated README.txt to describe the watched dev flow and the alias-based project structure.
+- Validation note: the environment still does not expose Node.js/npm on PATH, so I could only perform static diagnostics on the edited files.
+
+## [2026-08-22] - Finterest Change Session #1
+- Files added: package.json, tsconfig.json, vite.config.ts, jest.config.ts, eslint.config.js, index.html, .gitignore, src/electron/main.ts, src/electron/preload.ts, src/electron/store.ts, src/renderer/main.tsx, src/renderer/App.tsx, src/renderer/styles.css, src/shared/types.ts, src/shared/budget.ts, src/shared/global.d.ts, src/shared/budget.test.ts, tests/setup.ts, README.txt, PATCH_NOTES.md, USER_UPDATE_SUMMARY.txt, DEV_CHANGES.md.
+- Files modified: .github/copilot-instructions.md was read as the governing project instruction file; no code changes were made there.
+- Implemented a new Electron + React + TypeScript scaffold for Finterest with separate main, preload, renderer, and shared layers.
+- Added shared budget data models and a dedicated calculation module for fixed expenses, variable expenses, total expenses, and remaining income.
+- Added a local SQLite-compatible persistence layer using SQL.js that stores data in the Electron user data folder as finterest.sqlite.
+- Added IPC endpoints for loading the snapshot, saving income, saving the active month key, editing fixed and variable expenses, and exporting or importing a JSON backup.
+- Added a single-screen renderer dashboard with income input, expense entry forms, summary cards, item lists, and backup export/import actions.
+- Added Jest coverage for the core budget calculations in src/shared/budget.test.ts.
+- Documented the current project structure, setup commands, storage location, and backup workflow in README.txt.
+- Validation note: the workspace shell does not currently have Node.js or npm on PATH, so dependency installation and build execution could not be completed here.
+- Recommended next step for a developer machine: run npm install, then npm run test, npm run typecheck, and npm run build.

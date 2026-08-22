@@ -1,0 +1,372 @@
+Finterest update summary - 2026-08-22 (responsive layout)
+
+What changed
+- Finterest now adapts better to desktop, tablet, and narrow windows.
+- Forms stack cleanly, actions wrap, and the calendar stays readable.
+- Navigation remains usable when the window is small.
+
+Data impact
+- No accounts, budget data, or backup files changed.
+
+Finterest update summary - 2026-08-22 (account screen redesign)
+
+What changed
+- The account selection and login screens now use a darker, more refined visual style.
+- Account choices and fields have clearer contrast and a simpler hierarchy.
+- The main budget workflow remains unchanged.
+
+Data impact
+- No accounts, budget data, or backup files changed.
+
+Finterest update summary - 2026-08-22 (Windows uninstaller name)
+
+What changed
+- The Windows installation creates `Uninstall Finterest.exe` in the installed Finterest folder.
+- Finterest also remains available in the normal Windows installed-apps list.
+
+How to use it
+1. Run the new Windows installer.
+2. Open the Finterest installation folder if you need the direct uninstaller.
+3. Run `Uninstall Finterest.exe`, or uninstall Finterest from Windows settings.
+
+Data impact
+- Uninstalling the application does not change the documented account backup workflow. Export your data before removing the application.
+
+Finterest update summary - 2026-08-22 (page transitions)
+
+What changed
+- Pages now appear with a short fade and slide transition.
+- The account screen uses a subtle entrance effect.
+- Motion is disabled automatically when reduced motion is enabled in the system.
+
+Data impact
+- No accounts, budget data, or backups changed.
+
+Finterest update summary - 2026-08-22 (calendar entry and visual refresh)
+
+What changed
+- You can add a subscription directly from the Calendar page.
+- Selecting a day opens a smaller form for the name, monthly price, and category.
+- The selected day becomes the payment day automatically.
+- The application theme was refreshed with clearer contrast and spacing.
+
+How to use it
+1. Open `Calendrier`.
+2. Click the day on which the subscription is charged.
+3. Fill in the three fields and choose `Ajouter à cette date`.
+
+Data impact
+- Existing subscriptions and budget data are preserved.
+
+Finterest update summary - 2026-08-22 (subscription calendar and categories)
+
+What changed
+- Added a monthly calendar for active subscriptions.
+- Subscription payment days are shown directly on the calendar.
+- Added category selection with associated icons.
+- Added previous and next month navigation.
+
+How to use it
+1. Open `Abonnements` and select a category when adding an item.
+2. Enter its payment day.
+3. Open `Calendrier` to see when it is due.
+
+Data impact
+- No existing data was migrated or removed.
+
+Finterest update summary - 2026-08-22 (subscription calendar)
+
+What changed
+- A new Calendar page shows active subscriptions on their payment days.
+- You can move to the previous or next month.
+- Subscription categories can now be selected from a list with associated icons.
+- Category icons are also shown in the lists.
+
+How to use it
+1. Open `Calendrier` to see the month view.
+2. Open `Abonnements`, choose a category, and enter the payment day.
+3. Return to `Calendrier` to see the subscription on its scheduled day.
+
+Data impact
+- Existing subscriptions remain unchanged. Categories without a predefined icon use a neutral icon.
+
+Finterest update summary - 2026-08-22 (visual refinement)
+
+What changed
+- The interface now uses deeper ivory and greige surfaces instead of bright white panels.
+- Borders and shadows were strengthened to make each area easier to read.
+- The dark theme remains available.
+
+Data impact
+- No accounts, budget data, or backups changed.
+
+Finterest update summary - 2026-08-22 (contrast refinement)
+
+What changed
+- The light theme is now less bright across the full application.
+- Cards, fields, navigation, account screens, and list areas have stronger visual separation.
+- The Windows installer was rebuilt with the corrected styling.
+
+Data impact
+- No budget data, accounts, or backup files changed.
+
+Finterest update summary - 2026-08-22 (softer contrast)
+
+What changed
+- The light interface is now less bright and more subdued.
+- Cards, form fields, lists, the sidebar, and the account screen have stronger separation.
+- The dark theme and application behavior remain unchanged.
+
+Data impact
+- No budget data, accounts, or backup files changed.
+
+Finterest update summary - 2026-08-22 (account entry UX)
+
+What changed
+- When several accounts exist, Finterest now shows a dedicated account selection screen.
+- Clicking an account opens a welcome screen with the account name, followed by a separate login screen.
+- The sidebar is smaller and the interface contrast has been refined.
+
+Data impact
+- No existing budget data or backup files were changed.
+- The Windows installer was rebuilt with these changes.
+
+Finterest update summary - 2026-08-22 (local accounts)
+
+What changed
+- You can now create several local Finterest accounts.
+- Each account has its own budget file and a 4-to-8 digit code.
+- Finterest asks you to choose and unlock an account before showing its budget.
+- Account codes are stored as protected hashes, never as plain text.
+
+How to use it
+1. On first launch, enter a name and a 4-to-8 digit code.
+2. Use `Créer un autre compte` to add another local account.
+3. Select an account and enter its code to open it.
+
+Data impact
+- Existing data is not automatically migrated into a new account yet.
+- Database encryption at rest and full account restoration from an export remain pending.
+
+Finterest update summary - 2026-08-22 (account export rule)
+
+What changed
+- The complete account export rule has been defined.
+- An export will contain only the account currently in use, its settings, and its complete budget.
+- Other local accounts will remain excluded from that file.
+
+Data impact
+- No application data or export files changed in this step.
+- The account feature and its secure export workflow still need to be implemented.
+
+Finterest update summary - 2026-08-22 (French simple and advanced modes)
+
+What changed
+- Finterest is now displayed in French and amounts use euros.
+- The simple mode focuses on monthly income, recurring subscriptions, and planned purchases.
+- A separate advanced mode estimates compound interest without changing the saved budget.
+
+How to use it
+1. Choose `Budget simple` for your monthly budget.
+2. Enter your income, add subscriptions with their payment day, and add planned purchases with a date.
+3. Choose `Calcul avancé` only when you want to estimate compound interest.
+
+Data impact
+- Existing budget data and backups remain unchanged.
+- A new Windows installer was generated. macOS and Linux installers were not regenerated here because macOS builds require macOS and the Linux AppImage build requires symlink privileges.
+
+Finterest update summary - 2026-08-22 (complete interface theme)
+
+What changed
+- The Finterest theme now applies to the entire application instead of only selected areas.
+- Navigation, summary figures, forms, expense lists, settings, alerts, and controls now share the same visual language.
+- The interface adapts more cleanly to narrow windows and respects reduced-motion preferences.
+
+How to use it
+1. Open Finterest as usual.
+2. Move between Overview, Fixed expenses, Variable expenses, and Settings & backup to see the consistent styling.
+3. Resize the window to use the compact responsive layout.
+
+Data impact
+- No application data, backup files, or workflows changed.
+
+Finterest update summary - 2026-08-22 (styling agent)
+
+What changed
+- Added a workspace agent named `Finterest Styling` for future visual improvements to the Finterest interface.
+- The agent keeps styling work focused on the warm, light interface direction, preserves the dark theme, and protects budget calculations and saved data.
+
+How to use it
+1. Open Copilot's agent picker in this workspace.
+2. Select `Finterest Styling`.
+3. Describe the renderer visual change you want, such as improving the overview layout or making a form responsive.
+
+Data impact
+- No application data, backup files, or workflows changed.
+
+Finterest update summary - 2026-08-22 (clean distribution folders)
+
+What changed
+- The install folder is now organized with one folder per operating system.
+- Temporary build files were removed from the Windows distribution folder.
+- A guide was added at `install/README.txt`.
+
+How to use it
+1. Open `install/windows` for the Windows installer.
+2. Open `install/mac` for the macOS DMG after a macOS build.
+3. Open `install/linux` for the Linux AppImage after a Linux build.
+
+Data impact
+- No data or backup format changes were introduced.
+
+Finterest update summary - 2026-08-22 (dashboard redesign)
+
+What changed
+- Finterest now has a darker, calmer, more premium interface based on its blue and violet identity.
+- A sidebar makes it easier to move between the overview, fixed expenses, variable expenses, and settings/backup areas.
+- The overview includes a budget-health ring and a clearer monthly spending snapshot.
+- The Finterest monogram is now visible in the application interface.
+
+How to use it
+1. Open the Overview section to see your income, expenses, remaining budget, and monthly health indicator.
+2. Use Fixed expenses or Variable expenses in the sidebar to focus on one kind of spending.
+3. Use Settings & backup to export or restore your local budget data.
+
+Data impact
+- No data or backup format changes were introduced.
+- Existing local data remains available.
+
+Finterest update summary - 2026-08-22 (Windows startup fix)
+
+What changed
+- Fixed the packaged Windows application so it uses the Electron runtime correctly when starting.
+
+How to use it
+1. Generate a fresh installer with `npm run dist:win`.
+2. Install the newly generated application from `install/windows`.
+3. Launch Finterest normally from the Windows Start menu or shortcut.
+
+Data impact
+- No data or backup format changes were introduced.
+- Existing data remains stored in the local Finterest user data folder.
+
+Finterest update summary - 2026-08-22 (dedicated installer folders)
+
+What changed
+- Added separate folders for Windows, macOS, and Linux installers.
+- Each platform build now places its output in the matching folder.
+
+How to use it
+1. Run `npm run dist:win` on Windows. The installer appears in `install/windows`.
+2. Run `npm run dist:mac` on macOS. The DMG appears in `install/mac`.
+3. Run `npm run dist:linux` on Linux. The AppImage appears in `install/linux`.
+
+Data impact
+- No data or backup format changes were introduced.
+
+Finterest update summary - 2026-08-22 (macOS and Linux installers)
+
+What changed
+- Finterest now includes dedicated packaging commands for Windows, macOS, and Linux.
+- An automated build workflow can create all three packages on their native systems.
+
+How to use it
+1. On Windows, run `npm run dist:win` to create an `.exe` installer.
+2. On macOS, run `npm run dist:mac` to create a `.dmg` file.
+3. On Linux, run `npm run dist:linux` to create an `.AppImage` file.
+4. The files are placed in the `release` folder.
+
+Data impact
+- No data or backup format changes were introduced.
+- macOS and Windows packages are unsigned in this initial version and may show an operating-system security warning.
+
+Finterest update summary - 2026-08-22 (simplified Windows installer)
+
+What changed
+- Windows installer generation now configures its unsigned build automatically.
+
+How to use it
+1. Open a terminal in the Finterest folder.
+2. Run `npm run dist`.
+3. Find `Finterest Setup 0.1.0.exe` in the `release` folder.
+
+Data impact
+- No data or backup format changes were introduced.
+
+Finterest update summary - 2026-08-22 (installer configuration correction)
+
+What changed
+- Corrected the Windows unsigned-installer configuration so Electron Builder does not receive an incomplete signing configuration.
+
+How to use it
+1. In PowerShell, run `$env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'`.
+2. Run `npm run dist`.
+3. Find the generated installer in the release folder.
+
+Data impact
+- No data or backup format changes were introduced.
+
+Finterest update summary - 2026-08-22 (Windows packaging fix)
+
+What changed
+- The Windows packaging configuration no longer attempts to prepare code-signing tools for an unsigned development installer.
+
+How to use it
+1. Run npm run dist.
+2. Find the generated Windows installer in the release folder.
+3. Windows may still show a warning because the installer is unsigned. A commercial certificate is required to remove that warning.
+
+Data impact
+- No data or backup format changes were introduced.
+
+Finterest update summary - 2026-08-22 (validation follow-up)
+
+What changed
+- The project now has a working lint check for the TypeScript codebase.
+- The current code passes typecheck, tests, build, and lint in this workspace.
+- Packaging still needs a Windows environment that can create symbolic links during Electron Builder's winCodeSign step.
+
+How to use it
+1. Run npm run lint if you want a quick code-style check.
+2. Keep using npm run dev for development and npm run build for production bundles.
+3. If you need a packaged Windows installer, run npm run dist on a machine or shell that allows Electron Builder to unpack its signing tools.
+
+Data impact
+- No data or backup format changes were introduced in this follow-up.
+- Existing local data and backup files remain valid.
+
+Finterest update summary - 2026-08-22 (follow-up)
+
+What changed
+- The app development workflow is now wired so the desktop shell rebuilds while you work.
+- Shared app code now resolves correctly in the renderer build.
+- The budget screen and backup workflow stay the same for users.
+
+How to use it
+1. Start the app with npm run dev.
+2. Make your changes and the renderer plus Electron shell will update during development.
+3. Continue using the app the same way: enter income, manage expenses, and export or import a backup file.
+
+Data impact
+- No data format changes were introduced in this follow-up update.
+- Existing local data and backup files remain valid.
+
+Finterest update summary - 2026-08-22
+
+What changed
+- Finterest now has a first working desktop shell with a budget overview screen.
+- You can enter monthly income, add fixed expenses, add variable expenses, and see the totals update.
+- You can export all of your data to one JSON backup file and import that file later on the same or another computer.
+- Your data is stored locally on your machine and is not sent anywhere.
+
+How to use it
+1. Start the app.
+2. Enter your monthly income.
+3. Add fixed expenses like rent or subscriptions.
+4. Add variable expenses like groceries or transport.
+5. Use Export backup to save a copy of everything.
+6. On another computer, install Finterest and use Import backup to restore the saved file.
+
+Data impact
+- New installs start with local sample entries so the dashboard is not empty.
+- Existing backup files from this update can be imported again later as long as they were created by Finterest.
