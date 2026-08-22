@@ -1,3 +1,25 @@
+Finterest update summary - 2026-08-23 (loans, subscription types, language switch, account management)
+
+What changed
+- A new "Prêts" section lets you track bank loans: amount borrowed, monthly payment, annual rate, and remaining term. Active loan payments now count toward your "reste à vivre" (what's left to live on).
+- "Abonnements" is now "Abonnements / Prélèvements": each item has a Type (Abonnement or Prélèvement) shown as a small badge, selectable when you add or edit one.
+- You can switch the app's language between French and English from the account screens or the Settings panel; your choice is remembered on this computer.
+- A new "Gérer les comptes" screen (from account selection) lets you create or delete local accounts. Deleting an account asks for that account's PIN first, since it permanently removes its budget data.
+- Subscription category icons no longer use color emoji; they use plain symbols matching the rest of the app.
+- On Windows, Finterest now checks for updates automatically when it starts and lets you install one once it has downloaded.
+- On Windows, uninstalling Finterest now automatically saves a backup of every local account to your Documents\Finterest folder before removing them.
+
+How to use it
+1. Open the "Prêts" tab from the sidebar to add a loan; it appears in your monthly totals immediately.
+2. When adding an abonnement/prélèvement, choose its Type from the new dropdown.
+3. Use the language selector on the login screen or in Settings to switch between French and English.
+4. From the account selection screen, choose "Gérer les comptes" to add or remove local accounts.
+5. If you ever uninstall Finterest on Windows, check Documents\Finterest for the automatic backup file afterward — you can re-import it into a fresh install using "Importer une sauvegarde" (for the account it corresponds to).
+
+Data impact
+- Existing subscriptions are automatically set to "Abonnement" the first time you open the app after this update; you can change any of them to "Prélèvement" afterward.
+- No existing accounts, budgets, or backup files are altered by this update.
+
 Finterest update summary - 2026-08-22 (responsive layout)
 
 What changed

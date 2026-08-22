@@ -1,3 +1,12 @@
+## Finterest v0.1.27
+- Ajout d'une section « Prêts » pour suivre vos crédits bancaires (montant, mensualité, taux, durée restante). Les mensualités actives sont désormais comptées dans votre reste à vivre.
+- Les abonnements sont renommés « Abonnements / Prélèvements » : chaque élément a maintenant un type (Abonnement ou Prélèvement) affiché en badge.
+- L'application peut maintenant s'afficher en français ou en anglais, au choix, depuis l'écran de connexion ou les réglages.
+- Nouvel écran « Gérer les comptes » pour créer ou supprimer des comptes locaux (la suppression demande le code secret du compte concerné).
+- Les icônes des catégories d'abonnement n'utilisent plus d'emojis colorés, remplacés par des symboles sobres cohérents avec le reste de l'interface.
+- Finterest vérifie désormais automatiquement les mises à jour au démarrage (build Windows) et propose de les installer.
+- Sur Windows, la désinstallation sauvegarde désormais automatiquement tous vos comptes locaux dans Documents\Finterest avant de les supprimer.
+
 ## Finterest v0.1.26
 - L’application s’adapte maintenant mieux aux petites fenêtres.
 - Les formulaires, le calendrier et les actions se réorganisent automatiquement.

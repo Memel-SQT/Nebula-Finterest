@@ -1,10 +1,14 @@
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import { AccountManager } from './accounts';
-import type { BackupFile } from '../shared/types';
+import type { BackupFile, UpdateStatus } from '../shared/types';
 
 let mainWindow: BrowserWindow | null = null;
 const accountManager = new AccountManager();
+
+const BACKUP_BEFORE_UNINSTALL_FLAG = '--backup-before-uninstall=';
 
 async function createWindow(): Promise<void> {
   mainWindow = new BrowserWindow({
@@ -36,9 +40,18 @@ async function createWindow(): Promise<void> {
 }
 
 app.whenReady().then(async () => {
+  const backupFlag = process.argv.find((arg) => arg.startsWith(BACKUP_BEFORE_UNINSTALL_FLAG));
+  if (backupFlag) {
+    const backupPath = backupFlag.slice(BACKUP_BEFORE_UNINSTALL_FLAG.length);
+    await runPreUninstallBackup(backupPath);
+    app.exit(0);
+    return;
+  }
+
   registerIpcHandlers();
   await accountManager.initialize();
   await createWindow();
+  setUpAutoUpdater();
 
   app.on('activate', async () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -53,10 +66,47 @@ app.on('window-all-closed', () => {
   }
 });
 
+/** Invoked by the Windows NSIS uninstaller (build/installer.nsh) before it deletes the userData folder, so local accounts are not lost silently. */
+async function runPreUninstallBackup(backupPath: string): Promise<void> {
+  try {
+    await accountManager.initialize();
+    const backup = await accountManager.exportAllForBackup();
+    await fs.mkdir(path.dirname(backupPath), { recursive: true });
+    await fs.writeFile(backupPath, JSON.stringify(backup, null, 2), 'utf8');
+  } catch {
+    // Best-effort safety net: never block or fail the uninstall over a backup error.
+  }
+}
+
+function setUpAutoUpdater(): void {
+  if (!app.isPackaged) {
+    return;
+  }
+
+  const sendStatus = (status: UpdateStatus): void => {
+    mainWindow?.webContents.send('update:status', status);
+  };
+
+  autoUpdater.on('checking-for-update', () => sendStatus({ state: 'checking' }));
+  autoUpdater.on('update-available', (info) => sendStatus({ state: 'available', version: info.version }));
+  autoUpdater.on('update-not-available', () => sendStatus({ state: 'not-available' }));
+  autoUpdater.on('update-downloaded', (info) => sendStatus({ state: 'downloaded', version: info.version }));
+  autoUpdater.on('error', (error) => sendStatus({ state: 'error', message: error.message }));
+
+  if (process.platform === 'win32') {
+    autoUpdater.checkForUpdatesAndNotify().catch(() => undefined);
+  } else {
+    // dmg/AppImage targets are not configured for a silent quitAndInstall cycle; only surface availability.
+    autoUpdater.autoDownload = false;
+    autoUpdater.checkForUpdates().catch(() => undefined);
+  }
+}
+
 function registerIpcHandlers(): void {
   ipcMain.handle('account:list', () => accountManager.list());
   ipcMain.handle('account:create', async (_event, name: string, pin: string) => accountManager.create(name, pin));
   ipcMain.handle('account:unlock', async (_event, id: string, pin: string) => accountManager.unlock(id, pin));
+  ipcMain.handle('account:delete', async (_event, id: string, pin: string) => accountManager.delete(id, pin));
   ipcMain.handle('account:lock', () => accountManager.lock());
   ipcMain.handle('account:active', () => accountManager.getActive());
   ipcMain.handle('budget:getSnapshot', async () => accountManager.getStore().getSnapshot());
@@ -67,9 +117,15 @@ function registerIpcHandlers(): void {
   ipcMain.handle('budget:deleteFixedExpense', async (_event, id: string) => accountManager.getStore().deleteFixedExpense(id));
   ipcMain.handle('budget:addVariableExpense', async (_event, expense) => accountManager.getStore().addVariableExpense(expense));
   ipcMain.handle('budget:deleteVariableExpense', async (_event, id: string) => accountManager.getStore().deleteVariableExpense(id));
+  ipcMain.handle('budget:addLoan', async (_event, loan) => accountManager.getStore().addLoan(loan));
+  ipcMain.handle('budget:toggleLoan', async (_event, id: string, active: boolean) => accountManager.getStore().toggleLoan(id, active));
+  ipcMain.handle('budget:deleteLoan', async (_event, id: string) => accountManager.getStore().deleteLoan(id));
   ipcMain.handle('budget:exportBackup', async () => accountManager.exportActive());
   ipcMain.handle('budget:importBackup', async (_event, backup: BackupFile) => accountManager.getStore().importBackup(backup));
   ipcMain.handle('budget:getDatabasePath', async () => accountManager.getStore().getDatabasePath());
+  ipcMain.handle('app:installUpdate', () => {
+    autoUpdater.quitAndInstall();
+  });
   ipcMain.handle('budget:saveBackupToFile', async () => {
     const backup = await accountManager.exportActive();
     const result = await dialog.showSaveDialog({
@@ -82,9 +138,7 @@ function registerIpcHandlers(): void {
       return;
     }
 
-    await import('node:fs/promises').then(async (fs) => {
-      await fs.writeFile(result.filePath, JSON.stringify(backup, null, 2), 'utf8');
-    });
+    await fs.writeFile(result.filePath, JSON.stringify(backup, null, 2), 'utf8');
   });
   ipcMain.handle('budget:importBackupFromFile', async () => {
     const result = await dialog.showOpenDialog({
@@ -97,7 +151,7 @@ function registerIpcHandlers(): void {
       return null;
     }
 
-    const fileBuffer = await import('node:fs/promises').then((fs) => fs.readFile(result.filePaths[0], 'utf8'));
+    const fileBuffer = await fs.readFile(result.filePaths[0], 'utf8');
     const backup = JSON.parse(fileBuffer) as BackupFile;
     return accountManager.getStore().importBackup(backup);
   });
