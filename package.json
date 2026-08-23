@@ -1,6 +1,6 @@
 {
   "name": "finterest",
-  "version": "0.1.0",
+  "version": "0.1.32",
   "private": true,
   "author": "Finterest",
   "description": "Finterest is a local, offline desktop app that helps a single user visualize their monthly budget more clearly than with a simple calculator.",
