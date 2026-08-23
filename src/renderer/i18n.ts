@@ -47,13 +47,17 @@ export type TranslationKey =
   | 'profile.intro' | 'profile.changePhoto' | 'profile.pseudonym' | 'profile.save' | 'profile.switchAccount'
   | 'settings.title' | 'settings.description' | 'settings.export' | 'settings.import' | 'settings.path'
   | 'settings.loading' | 'settings.language'
+  | 'settings.appearance' | 'settings.data' | 'settings.account' | 'settings.theme' | 'settings.viewProfile'
+  | 'theme.light' | 'theme.dark' | 'theme.system'
   | 'advanced.title' | 'advanced.heading' | 'advanced.description' | 'advanced.capital' | 'advanced.rate'
   | 'advanced.years' | 'advanced.estimatedValue' | 'advanced.interestOf'
+  | 'advanced.monthlyInvestment' | 'advanced.contributedOf'
   | 'calendar.monthlyView' | 'calendar.hint' | 'calendar.prevMonth' | 'calendar.nextMonth'
   | 'calendar.newSubscription' | 'calendar.on' | 'calendar.name' | 'calendar.monthlyPrice'
   | 'calendar.category' | 'calendar.choose' | 'calendar.addOnDate'
   | 'calendar.mon' | 'calendar.tue' | 'calendar.wed' | 'calendar.thu' | 'calendar.fri' | 'calendar.sat' | 'calendar.sun'
   | 'update.available' | 'update.downloaded' | 'update.restartInstall'
+  | 'settings.updates' | 'update.check' | 'update.checking' | 'update.notAvailable' | 'update.error'
   | 'error.invalidAccountName' | 'error.invalidPin' | 'error.invalidCredentials' | 'error.accountLocked'
   | 'error.negativeAmount' | 'error.storeNotInitialized' | 'error.invalidBackup'
   | 'error.openAccount' | 'error.loadBudget' | 'error.saveIncome' | 'error.saveMonth'
@@ -193,13 +197,23 @@ export const fr: Record<TranslationKey, string> = {
   'settings.path': 'Emplacement : {path}',
   'settings.loading': 'Chargement...',
   'settings.language': 'Langue',
+  'settings.appearance': 'Apparence',
+  'settings.data': 'Données',
+  'settings.account': 'Compte',
+  'settings.theme': 'Thème',
+  'settings.viewProfile': 'Voir mon profil',
+  'theme.light': 'Clair',
+  'theme.dark': 'Sombre',
+  'theme.system': 'Système',
   'advanced.title': 'Outil économique',
   'advanced.heading': 'Intérêts composés',
   'advanced.description': 'Estimez la valeur future d’une somme placée. Ce calcul ne remplace pas un conseil financier.',
   'advanced.capital': 'Capital de départ',
+  'advanced.monthlyInvestment': 'Investissement mensuel',
   'advanced.rate': 'Taux annuel (%)',
   'advanced.years': 'Durée (années)',
   'advanced.estimatedValue': 'Valeur estimée',
+  'advanced.contributedOf': 'Dont {amount} versés',
   'advanced.interestOf': 'Dont {amount} d’intérêts',
   'calendar.monthlyView': 'Vue mensuelle',
   'calendar.hint': 'Sélectionnez un jour pour programmer un abonnement ou un prélèvement.',
@@ -217,6 +231,11 @@ export const fr: Record<TranslationKey, string> = {
   'update.available': 'Une mise à jour est disponible et se télécharge.',
   'update.downloaded': 'Mise à jour prête à installer.',
   'update.restartInstall': 'Redémarrer et installer',
+  'settings.updates': 'Mises à jour',
+  'update.check': 'Vérifier les mises à jour',
+  'update.checking': 'Vérification en cours...',
+  'update.notAvailable': "Vous utilisez la dernière version.",
+  'update.error': 'Impossible de vérifier les mises à jour.',
   'error.invalidAccountName': 'Le nom du compte doit contenir au moins 2 caractères.',
   'error.invalidPin': 'Le code doit contenir entre 4 et 8 chiffres.',
   'error.invalidCredentials': 'Nom de compte ou code incorrect.',
@@ -371,13 +390,23 @@ export const en: Record<TranslationKey, string> = {
   'settings.path': 'Location: {path}',
   'settings.loading': 'Loading...',
   'settings.language': 'Language',
+  'settings.appearance': 'Appearance',
+  'settings.data': 'Data',
+  'settings.account': 'Account',
+  'settings.theme': 'Theme',
+  'settings.viewProfile': 'View my profile',
+  'theme.light': 'Light',
+  'theme.dark': 'Dark',
+  'theme.system': 'System',
   'advanced.title': 'Economic tool',
   'advanced.heading': 'Compound interest',
   'advanced.description': 'Estimate the future value of an invested sum. This calculation does not replace financial advice.',
   'advanced.capital': 'Starting capital',
+  'advanced.monthlyInvestment': 'Monthly investment',
   'advanced.rate': 'Annual rate (%)',
   'advanced.years': 'Duration (years)',
   'advanced.estimatedValue': 'Estimated value',
+  'advanced.contributedOf': 'Including {amount} contributed',
   'advanced.interestOf': 'Including {amount} in interest',
   'calendar.monthlyView': 'Monthly view',
   'calendar.hint': 'Select a day to schedule a subscription or direct debit.',
@@ -395,6 +424,11 @@ export const en: Record<TranslationKey, string> = {
   'update.available': 'An update is available and downloading.',
   'update.downloaded': 'Update ready to install.',
   'update.restartInstall': 'Restart and install',
+  'settings.updates': 'Updates',
+  'update.check': 'Check for updates',
+  'update.checking': 'Checking...',
+  'update.notAvailable': 'You are using the latest version.',
+  'update.error': 'Unable to check for updates.',
   'error.invalidAccountName': 'The account name must be at least 2 characters.',
   'error.invalidPin': 'The PIN must be 4 to 8 digits.',
   'error.invalidCredentials': 'Incorrect account name or PIN.',

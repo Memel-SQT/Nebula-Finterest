@@ -40,11 +40,11 @@ Export produces a single JSON `BackupFile`/`AccountBackup` (app name + version +
 
 ### Security posture (current, not final)
 
-Local accounts use salted scrypt for PIN verification (`accounts.ts`) — this protects in-app access only. Database-at-rest encryption and full account recreation on import are explicitly noted as pending work (see `README.txt`).
+Local accounts use salted scrypt for PIN verification (`accounts.ts`) — this protects in-app access only. Database-at-rest encryption and full account recreation on import are explicitly noted as pending work (see `README.md`).
 
 ## Repo-specific conventions
 
-- **Mandatory documentation updates**: `.github/agents/finterest-styling.agent.md` and repo convention require that non-trivial changes update `README.txt`, `DEV_CHANGES.md` (new dated section at the top), `PATCH_NOTES.md` (new version section at the top, user-facing), and `USER_UPDATE_SUMMARY.txt` (new section at the top, plain-language) — check these files' existing structure before adding to them.
+- **Mandatory documentation updates**: `.github/copilot-instructions.md` and repo convention require that non-trivial changes update `README.md` (project overview, user guide, and light technical reference — this is what GitHub renders as the repo's landing page; there is no separate README.txt), `DEV_CHANGES.md` (new dated section at the top), `PATCH_NOTES.md` (new version section at the top, user-facing), and `USER_UPDATE_SUMMARY.txt` (new section at the top, plain-language) — check these files' existing structure before adding to them.
 - **Styling work**: for renderer visual/layout/accessibility changes, follow `.github/agents/finterest-styling.agent.md` — preserve the warm/light theme as primary and the dark blue/violet declarations as an intentional secondary theme (do not delete them), keep IPC behavior and budget semantics untouched, define repeated colors/spacing as CSS variables, and validate with `npm run typecheck` / `npm run lint` / `npm run build` after changes.
 - **Electron kept external**: the main-process bundle (tsup) marks `electron` external so packaged builds use Electron's built-in runtime instead of bundling it.
 - Windows builds set `CSC_IDENTITY_AUTO_DISCOVERY=false` (unsigned code signing disabled) automatically via `npm run dist`; `.github/workflows/build-installers.yml` builds Windows/macOS/Linux artifacts on their native runners.

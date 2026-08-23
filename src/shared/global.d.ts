@@ -30,6 +30,7 @@ declare global {
       getDatabasePath(): Promise<string>;
       onUpdateStatus(callback: (status: UpdateStatus) => void): () => void;
       installUpdate(): Promise<void>;
+      checkForUpdates(): Promise<void>;
     };
   }
 }

@@ -1,3 +1,26 @@
+## Finterest v0.1.32
+- Nouveau thème clair, en plus du thème sombre, avec une option « Système » qui suit automatiquement les préférences de Windows.
+- Interface visuellement épurée : moins de dégradés décoratifs, ombres plus discrètes.
+- Réglages réorganisés en sections claires : Apparence, Données, Mises à jour, Compte.
+- Le calcul avancé propose maintenant un investissement mensuel régulier, en plus du capital de départ, pour estimer une épargne programmée.
+- Nettoyage du dépôt : suppression d'un fichier icône inutilisé, README du projet réécrit avec toutes les fonctionnalités actuelles.
+
+## Finterest v0.1.31
+- Nouvelle animation de démarrage : le logo se dessine à l'ouverture de l'application, puis laisse place à l'écran de connexion.
+- Après cette animation, l'écran de sélection de compte reste bien la page par défaut.
+- Ajout d'un bouton « Vérifier les mises à jour » dans les réglages (Sauvegarde), avec un statut affiché et un bouton pour installer une mise à jour téléchargée.
+
+## Finterest v0.1.30
+- Corrigé : le sélecteur de comptes en photos apparaît maintenant même avec un seul compte (avant, il ne s'affichait qu'à partir de 2 comptes).
+- Plus d'animations sur l'écran de connexion : transitions entre écrans, apparition en cascade des avatars, effet plus marqué au survol.
+- L'icône de l'application s'affiche maintenant correctement dans la fenêtre et la barre des tâches pendant l'utilisation.
+- L'icône du raccourci bureau reste celle d'Electron par défaut pour l'instant — une limitation technique liée aux droits Windows sur cette machine, corrigeable en activant le mode développeur Windows (voir DEV_CHANGES.md).
+
+## Finterest v0.1.29
+- L'écran de sélection de compte affiche maintenant les photos des comptes sous forme de cercles ; le pseudonyme apparaît au survol de la souris (ou au focus clavier).
+- Un bouton « + » dans la même grille permet de créer un nouveau compte.
+- Le lien « Gérer les comptes » (créer/supprimer) est plus visible, juste en dessous.
+
 ## Finterest v0.1.28
 - Nouveau thème visuel sombre et premium : fonds quasi noirs, accent émeraude, touches dorées discrètes — remplace l'ancien thème cuivré.
 - Nouveau logo et nouvelle icône de l'application.

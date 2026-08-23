@@ -1,3 +1,60 @@
+Finterest update summary - 2026-08-23 (light theme, cleaner look, reorganized settings, investment calculator)
+
+What changed
+- Finterest now has a light theme in addition to dark, plus a "Système" option that automatically follows your Windows light/dark setting.
+- The interface looks cleaner and more minimal overall — fewer decorative gradients, softer shadows.
+- Settings are now organized into clear sections: Apparence (theme, language), Données (backup), Mises à jour, Compte.
+- The "Calcul avancé" tool can now include a monthly investment amount, not just a one-time starting capital, when estimating compound interest.
+
+How to use it
+1. Go to Settings > Apparence to choose Clair, Sombre, or Système for the app's look.
+2. In "Calcul avancé", fill in "Investissement mensuel" alongside your starting capital to see how regular monthly saving grows over time.
+3. From Settings > Compte, click "Voir mon profil" as a shortcut to your profile screen.
+
+Data impact
+- No accounts, budgets, or backup files are changed by this update.
+
+Finterest update summary - 2026-08-23 (startup animation, update check button)
+
+What changed
+- Finterest now opens with a short animated intro: the logo draws itself in, then fades into the login screen. The account picker (with your photos) is still what you land on right after.
+- You can now manually check for app updates from Settings ("Sauvegarde" tab): a new "Vérifier les mises à jour" button shows the current status and lets you install an update once it's downloaded.
+
+How to use it
+1. Open Finterest and watch the short intro animation on launch — no action needed, it's automatic.
+2. Go to the "Sauvegarde" tab and scroll to "Mises à jour" to check for a new version at any time.
+
+Data impact
+- No accounts, budgets, or backup files are changed by this update.
+
+Finterest update summary - 2026-08-23 (account picker fix, more animation, icon fix)
+
+What changed
+- Fixed a bug: the new photo-based account picker only showed up with 2+ accounts. It now shows up whenever you have at least one account, which is the common case.
+- Added more animation throughout the login screens: smoother transitions between screens, avatars animate in one after another, and hovering an avatar now has a clearer effect (glow, lift, name sliding into view).
+- The app's window and taskbar icon now show the real Finterest logo while the app is running (it was still showing Electron's generic icon).
+
+Known limitation
+- The desktop shortcut icon (and the icon shown in File Explorer before you open the app) still shows the generic Electron icon. This is a Windows permissions limitation on this development machine, not a bug in Finterest's code — it can be fixed by turning on Windows Developer Mode (Settings > Privacy & security > For developers) before the next build, or by running the build as Administrator. See DEV_CHANGES.md for the technical detail.
+
+Data impact
+- No accounts, budgets, or backup files are changed by this update.
+
+Finterest update summary - 2026-08-23 (account picker redesign)
+
+What changed
+- The account selection screen now shows each account's photo as a circle. Hover your mouse over one (or tab to it with the keyboard) to see that account's pseudonym.
+- A "+" tile in the same row lets you create another account directly.
+- The "Gérer les comptes" link, for creating or deleting accounts, is now directly below the account picker.
+
+How to use it
+1. On startup with multiple accounts, hover over any avatar to confirm which account it is before clicking it.
+2. Click the dashed "+" circle to create a new account.
+3. Click "Gérer les comptes" below the picker to delete an account (you'll need that account's PIN).
+
+Data impact
+- No accounts, budgets, or backup files are changed by this update.
+
 Finterest update summary - 2026-08-23 (premium dark redesign, profiles, account switching)
 
 What changed

@@ -32,4 +32,5 @@ contextBridge.exposeInMainWorld('finterest', {
     return () => ipcRenderer.removeListener('update:status', listener);
   },
   installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
+  checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
 } as const satisfies Window['finterest']);

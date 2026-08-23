@@ -109,18 +109,18 @@ On every task, think in terms of:
 
 For **every request** and **every non-trivial change** you make to the repository, you MUST update or create the following files:
 
-1. `README.txt`
+1. `README.md`
 2. `DEV_CHANGES.md`
 3. `PATCH_NOTES.md`
 4. `USER_UPDATE_SUMMARY.txt`
 
 This is **not optional**. It is a hard requirement.
 
-### 5.1 README.txt
+### 5.1 README.md
 
-Purpose: global project overview and up-to-date technical documentation.
+Purpose: project overview, user guide, and light technical reference — this is the file GitHub renders as the repository's landing page. (A previous `README.txt` split user and technical content into two files; it was removed and merged into this single `README.md`.)
 
-You MUST ensure that `README.txt` always contains, and keeps updated:
+You MUST ensure that `README.md` always contains, and keeps updated:
 
 - Project name: **Finterest**.
 - Short description:
@@ -138,7 +138,7 @@ You MUST ensure that `README.txt` always contains, and keeps updated:
   - How to export/import data.
 - Version and change history overview (high-level, referencing `PATCH_NOTES.md`).
 
-Every time you modify code or project structure, you MUST update `README.txt` accordingly.
+Every time you modify code or project structure, you MUST update `README.md` accordingly.
 
 ### 5.2 DEV_CHANGES.md
 
@@ -202,7 +202,7 @@ For **every** instruction or request you receive:
    - Runs without obvious errors.
    - Keeps existing data safe, or provides migrations if necessary.
 4. Update all four documentation files:
-   - `README.txt`
+   - `README.md`
    - `DEV_CHANGES.md`
    - `PATCH_NOTES.md`
    - `USER_UPDATE_SUMMARY.txt`
@@ -282,7 +282,7 @@ Requirements:
 - The preferred backup format for full migration is a single structured file (JSON-based backup with metadata, or a full validated app backup format).
 - The app must validate the imported file before replacing current data.
 - The restore process must be transactional or otherwise safe against corruption.
-- The README.txt and USER_UPDATE_SUMMARY.txt must explain exactly how to export and restore data on another machine.
+- The README.md and USER_UPDATE_SUMMARY.txt must explain exactly how to export and restore data on another machine.
 - The app should also support optional CSV export for spreadsheet use, but CSV alone is NOT sufficient for full machine-to-machine migration.
 
 Goal:
