@@ -53,6 +53,7 @@ export function AccountGate({
     <main className="account-gate">
       <section className={`account-card ${stage === 'select' || stage === 'manage' ? 'account-card-wide' : ''}`}>
         <img src={logoUrl} alt="Finterest logo" />
+        <div key={stage} className="account-stage">
         {stage === 'select' ? (
           <>
             <p className="eyebrow">{t('gate.localSpace')}</p>
@@ -141,6 +142,7 @@ export function AccountGate({
             {accounts.length > 1 ? <button className="ghost account-switch" onClick={onLogin}>{t('gate.chooseAnother')}</button> : null}
           </>
         )}
+        </div>
       </section>
     </main>
   );

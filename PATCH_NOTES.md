@@ -1,3 +1,9 @@
+## Finterest v0.1.30
+- Corrigé : le sélecteur de comptes en photos apparaît maintenant même avec un seul compte (avant, il ne s'affichait qu'à partir de 2 comptes).
+- Plus d'animations sur l'écran de connexion : transitions entre écrans, apparition en cascade des avatars, effet plus marqué au survol.
+- L'icône de l'application s'affiche maintenant correctement dans la fenêtre et la barre des tâches pendant l'utilisation.
+- L'icône du raccourci bureau reste celle d'Electron par défaut pour l'instant — une limitation technique liée aux droits Windows sur cette machine, corrigeable en activant le mode développeur Windows (voir DEV_CHANGES.md).
+
 ## Finterest v0.1.29
 - L'écran de sélection de compte affiche maintenant les photos des comptes sous forme de cercles ; le pseudonyme apparaît au survol de la souris (ou au focus clavier).
 - Un bouton « + » dans la même grille permet de créer un nouveau compte.

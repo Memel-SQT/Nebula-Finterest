@@ -63,7 +63,7 @@ export function App() {
     const nextAccounts = await window.finterest.listAccounts();
     setAccounts(nextAccounts);
     setSelectedAccountId(nextAccounts[0]?.id ?? '');
-    setAuthStage(nextAccounts.length > 1 ? 'select' : nextAccounts.length === 1 ? 'login' : 'create');
+    setAuthStage(nextAccounts.length > 0 ? 'select' : 'create');
   }
 
   async function handleAccountAccess(): Promise<void> {

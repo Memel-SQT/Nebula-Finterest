@@ -16,8 +16,9 @@ async function createWindow(): Promise<void> {
     height: 860,
     minWidth: 960,
     minHeight: 700,
-    backgroundColor: '#f4efe8',
+    backgroundColor: '#05070a',
     title: 'Finterest',
+    icon: path.join(__dirname, '../../assets/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
