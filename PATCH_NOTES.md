@@ -1,3 +1,8 @@
+## Finterest v0.1.31
+- Nouvelle animation de démarrage : le logo se dessine à l'ouverture de l'application, puis laisse place à l'écran de connexion.
+- Après cette animation, l'écran de sélection de compte reste bien la page par défaut.
+- Ajout d'un bouton « Vérifier les mises à jour » dans les réglages (Sauvegarde), avec un statut affiché et un bouton pour installer une mise à jour téléchargée.
+
 ## Finterest v0.1.30
 - Corrigé : le sélecteur de comptes en photos apparaît maintenant même avec un seul compte (avant, il ne s'affichait qu'à partir de 2 comptes).
 - Plus d'animations sur l'écran de connexion : transitions entre écrans, apparition en cascade des avatars, effet plus marqué au survol.

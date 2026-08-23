@@ -54,6 +54,7 @@ export type TranslationKey =
   | 'calendar.category' | 'calendar.choose' | 'calendar.addOnDate'
   | 'calendar.mon' | 'calendar.tue' | 'calendar.wed' | 'calendar.thu' | 'calendar.fri' | 'calendar.sat' | 'calendar.sun'
   | 'update.available' | 'update.downloaded' | 'update.restartInstall'
+  | 'settings.updates' | 'update.check' | 'update.checking' | 'update.notAvailable' | 'update.error'
   | 'error.invalidAccountName' | 'error.invalidPin' | 'error.invalidCredentials' | 'error.accountLocked'
   | 'error.negativeAmount' | 'error.storeNotInitialized' | 'error.invalidBackup'
   | 'error.openAccount' | 'error.loadBudget' | 'error.saveIncome' | 'error.saveMonth'
@@ -217,6 +218,11 @@ export const fr: Record<TranslationKey, string> = {
   'update.available': 'Une mise à jour est disponible et se télécharge.',
   'update.downloaded': 'Mise à jour prête à installer.',
   'update.restartInstall': 'Redémarrer et installer',
+  'settings.updates': 'Mises à jour',
+  'update.check': 'Vérifier les mises à jour',
+  'update.checking': 'Vérification en cours...',
+  'update.notAvailable': "Vous utilisez la dernière version.",
+  'update.error': 'Impossible de vérifier les mises à jour.',
   'error.invalidAccountName': 'Le nom du compte doit contenir au moins 2 caractères.',
   'error.invalidPin': 'Le code doit contenir entre 4 et 8 chiffres.',
   'error.invalidCredentials': 'Nom de compte ou code incorrect.',
@@ -395,6 +401,11 @@ export const en: Record<TranslationKey, string> = {
   'update.available': 'An update is available and downloading.',
   'update.downloaded': 'Update ready to install.',
   'update.restartInstall': 'Restart and install',
+  'settings.updates': 'Updates',
+  'update.check': 'Check for updates',
+  'update.checking': 'Checking...',
+  'update.notAvailable': 'You are using the latest version.',
+  'update.error': 'Unable to check for updates.',
   'error.invalidAccountName': 'The account name must be at least 2 characters.',
   'error.invalidPin': 'The PIN must be 4 to 8 digits.',
   'error.invalidCredentials': 'Incorrect account name or PIN.',

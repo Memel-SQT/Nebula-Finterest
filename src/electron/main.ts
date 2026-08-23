@@ -79,22 +79,23 @@ async function runPreUninstallBackup(backupPath: string): Promise<void> {
   }
 }
 
+function sendUpdateStatus(status: UpdateStatus): void {
+  mainWindow?.webContents.send('update:status', status);
+}
+
 function setUpAutoUpdater(): void {
   if (!app.isPackaged) {
     return;
   }
 
-  const sendStatus = (status: UpdateStatus): void => {
-    mainWindow?.webContents.send('update:status', status);
-  };
-
-  autoUpdater.on('checking-for-update', () => sendStatus({ state: 'checking' }));
-  autoUpdater.on('update-available', (info) => sendStatus({ state: 'available', version: info.version }));
-  autoUpdater.on('update-not-available', () => sendStatus({ state: 'not-available' }));
-  autoUpdater.on('update-downloaded', (info) => sendStatus({ state: 'downloaded', version: info.version }));
-  autoUpdater.on('error', (error) => sendStatus({ state: 'error', message: error.message }));
+  autoUpdater.on('checking-for-update', () => sendUpdateStatus({ state: 'checking' }));
+  autoUpdater.on('update-available', (info) => sendUpdateStatus({ state: 'available', version: info.version }));
+  autoUpdater.on('update-not-available', () => sendUpdateStatus({ state: 'not-available' }));
+  autoUpdater.on('update-downloaded', (info) => sendUpdateStatus({ state: 'downloaded', version: info.version }));
+  autoUpdater.on('error', (error) => sendUpdateStatus({ state: 'error', message: error.message }));
 
   if (process.platform === 'win32') {
+    autoUpdater.autoDownload = true;
     autoUpdater.checkForUpdatesAndNotify().catch(() => undefined);
   } else {
     // dmg/AppImage targets are not configured for a silent quitAndInstall cycle; only surface availability.
@@ -140,6 +141,16 @@ function registerIpcHandlers(): void {
   ipcMain.handle('budget:getDatabasePath', async () => accountManager.getStore().getDatabasePath());
   ipcMain.handle('app:installUpdate', () => {
     autoUpdater.quitAndInstall();
+  });
+  ipcMain.handle('app:checkForUpdates', () => {
+    if (!app.isPackaged) {
+      sendUpdateStatus({ state: 'not-available' });
+      return;
+    }
+
+    autoUpdater.checkForUpdates().catch((error) => {
+      sendUpdateStatus({ state: 'error', message: error instanceof Error ? error.message : String(error) });
+    });
   });
   ipcMain.handle('budget:saveBackupToFile', async () => {
     const backup = await accountManager.exportActive();

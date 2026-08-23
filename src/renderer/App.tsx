@@ -12,6 +12,7 @@ import { AdvancedCalculator } from './components/AdvancedCalculator';
 import { SettingsPanel } from './components/SettingsPanel';
 import { LoansPanel, type LoanFormState } from './components/LoansPanel';
 import { ProfileScreen } from './components/ProfileScreen';
+import { SplashScreen } from './components/SplashScreen';
 import logoUrl from '../../assets/finterest-logo.svg';
 
 const emptyExpense = { name: '', amount: 0, category: '' };
@@ -43,6 +44,7 @@ export function App() {
   const [authStage, setAuthStage] = useState<AuthStage>('create');
   const [calendarDay, setCalendarDay] = useState<number | null>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     void loadAccounts();
@@ -261,6 +263,10 @@ export function App() {
 
   const remainingPercent = summary && summary.income > 0 ? Math.max(0, Math.min(100, (summary.remainingIncome / summary.income) * 100)) : 0;
 
+  if (showSplash) {
+    return <SplashScreen language={language} onFinish={() => setShowSplash(false)} />;
+  }
+
   if (!snapshot) {
     return (
       <AccountGate
@@ -371,7 +377,16 @@ export function App() {
         ) : null}
 
         {activeMode === 'simple' && activeView === 'settings' ? (
-          <SettingsPanel databasePath={databasePath} language={language} onExport={handleExportBackup} onImport={handleImportBackup} onLanguageChange={setLanguage} />
+          <SettingsPanel
+            databasePath={databasePath}
+            language={language}
+            updateStatus={updateStatus}
+            onExport={handleExportBackup}
+            onImport={handleImportBackup}
+            onLanguageChange={setLanguage}
+            onCheckForUpdates={() => window.finterest.checkForUpdates()}
+            onInstallUpdate={() => window.finterest.installUpdate()}
+          />
         ) : null}
 
         {activeMode === 'simple' && activeView === 'profile' && activeAccount ? (
