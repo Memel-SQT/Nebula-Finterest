@@ -1,3 +1,6 @@
+/** Synthetic account id for the ephemeral guest session — never written to accounts.json or a .sqlite file. */
+export const GUEST_ACCOUNT_ID = 'guest';
+
 export interface LocalAccountSummary {
   id: string;
   name: string;

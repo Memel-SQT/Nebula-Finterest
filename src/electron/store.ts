@@ -17,13 +17,19 @@ const BACKUP_FILE_VERSION = 1;
 export class BudgetStore {
   private database: SqlJsDatabase | null = null;
   private readonly databasePath: string;
+  private readonly ephemeral: boolean;
   private readonly sqlJsPromise: Promise<Awaited<ReturnType<typeof initSqlJs>>>;
 
-  constructor(databasePath?: string) {
-    this.databasePath = databasePath ?? path.join(app.getPath('userData'), DATABASE_FILE_NAME);
+  constructor(databasePath?: string, options?: { ephemeral?: boolean }) {
+    this.ephemeral = options?.ephemeral ?? false;
+    this.databasePath = databasePath ?? (this.ephemeral ? ':memory:' : path.join(app.getPath('userData'), DATABASE_FILE_NAME));
     this.sqlJsPromise = initSqlJs({
       locateFile: (fileName: string) => path.join(path.dirname(require.resolve('sql.js/dist/sql-wasm.wasm')), fileName),
     });
+  }
+
+  isEphemeral(): boolean {
+    return this.ephemeral;
   }
 
   async initialize(): Promise<void> {
@@ -32,7 +38,7 @@ export class BudgetStore {
     }
 
     const sqlJs = await this.sqlJsPromise;
-    if (await this.fileExists(this.databasePath)) {
+    if (!this.ephemeral && (await this.fileExists(this.databasePath))) {
       const fileBuffer = await fs.readFile(this.databasePath);
       this.database = new sqlJs.Database(fileBuffer);
     } else {
@@ -349,6 +355,10 @@ export class BudgetStore {
   }
 
   private async persist(): Promise<void> {
+    if (this.ephemeral) {
+      return;
+    }
+
     const database = this.requireDatabase();
     const data = database.export();
     await fs.mkdir(path.dirname(this.databasePath), { recursive: true });

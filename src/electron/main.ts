@@ -108,6 +108,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('account:list', () => accountManager.list());
   ipcMain.handle('account:create', async (_event, name: string, pin: string) => accountManager.create(name, pin));
   ipcMain.handle('account:unlock', async (_event, id: string, pin: string) => accountManager.unlock(id, pin));
+  ipcMain.handle('account:guest', async (_event, name: string) => accountManager.enterGuestMode(name));
   ipcMain.handle('account:delete', async (_event, id: string, pin: string) => accountManager.delete(id, pin));
   ipcMain.handle('account:rename', async (_event, name: string) => accountManager.renameActive(name));
   ipcMain.handle('account:chooseAvatar', async () => {

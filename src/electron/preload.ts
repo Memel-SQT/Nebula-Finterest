@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('finterest', {
   listAccounts: () => ipcRenderer.invoke('account:list'),
   createAccount: (name: string, pin: string) => ipcRenderer.invoke('account:create', name, pin),
   unlockAccount: (id: string, pin: string) => ipcRenderer.invoke('account:unlock', id, pin),
+  enterGuestMode: (name: string) => ipcRenderer.invoke('account:guest', name),
   deleteAccount: (id: string, pin: string) => ipcRenderer.invoke('account:delete', id, pin),
   renameAccount: (name: string) => ipcRenderer.invoke('account:rename', name),
   chooseAvatar: () => ipcRenderer.invoke('account:chooseAvatar'),

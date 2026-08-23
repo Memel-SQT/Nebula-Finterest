@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { computeBudgetSummary, getMonthKey } from '@shared/budget';
 import type { BudgetSnapshot, FixedExpenseKind, UpdateStatus } from '@shared/types';
+import { GUEST_ACCOUNT_ID } from '@shared/accounts';
 import type { LocalAccountSummary } from '@shared/accounts';
 import { translate, translateError, useLanguage } from './i18n';
 import { useTheme } from './theme';
@@ -84,6 +85,17 @@ export function App() {
         setActiveAccount(await window.finterest.getActiveAccount());
       }
       setAccountPin('');
+    } catch (thrown) {
+      setError(translateError(language, thrown, 'error.openAccount'));
+    }
+  }
+
+  async function handleEnterGuest(): Promise<void> {
+    try {
+      setError(null);
+      const nextSnapshot = await window.finterest.enterGuestMode(t('gate.guestName'));
+      setActiveAccount(await window.finterest.getActiveAccount());
+      setSnapshot(nextSnapshot);
     } catch (thrown) {
       setError(translateError(language, thrown, 'error.openAccount'));
     }
@@ -288,6 +300,7 @@ export function App() {
         onBack={() => setAuthStage(accounts.length > 1 ? 'select' : 'login')}
         onSubmit={() => void handleAccountAccess()}
         onDeleteAccount={handleDeleteAccount}
+        onGuest={() => void handleEnterGuest()}
       />
     );
   }
@@ -379,6 +392,7 @@ export function App() {
         {activeMode === 'simple' && activeView === 'settings' ? (
           <SettingsPanel
             databasePath={databasePath}
+            isGuest={activeAccount?.id === GUEST_ACCOUNT_ID}
             language={language}
             theme={theme}
             updateStatus={updateStatus}

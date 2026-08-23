@@ -25,6 +25,7 @@ export function AccountGate({
   onBack,
   onSubmit,
   onDeleteAccount,
+  onGuest,
 }: {
   stage: AuthStage;
   accounts: LocalAccountSummary[];
@@ -43,6 +44,7 @@ export function AccountGate({
   onBack: () => void;
   onSubmit: () => void;
   onDeleteAccount: (id: string, pin: string) => Promise<void>;
+  onGuest: () => void;
 }) {
   const t = (key: Parameters<typeof translate>[1], params?: Record<string, string>) => translate(language, key, params);
   const selectedAccount = accounts.find((account) => account.id === selectedAccountId);
@@ -70,6 +72,7 @@ export function AccountGate({
               </button>
             </div>
             <button className="ghost account-switch" onClick={onManage}>{t('gate.manageAccounts')}</button>
+            <button className="ghost account-switch" onClick={onGuest}>{t('gate.guestMode')}</button>
           </>
         ) : stage === 'welcome' ? (
           <>
@@ -107,6 +110,7 @@ export function AccountGate({
             {error ? <div className="error-banner">{error}</div> : null}
             <button onClick={onSubmit}>{t('gate.createAndContinue')}</button>
             {accounts.length > 0 ? <button className="ghost account-switch" onClick={onBack}>{t('gate.openExisting')}</button> : null}
+            <button className="ghost account-switch" onClick={onGuest}>{t('gate.guestMode')}</button>
           </>
         ) : stage === 'manage' ? (
           <AccountManagement

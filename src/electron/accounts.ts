@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { app } from 'electron';
 import { BudgetStore } from './store';
 import type { BudgetSnapshot, FullBackupFile } from '../shared/types';
+import { GUEST_ACCOUNT_ID } from '../shared/accounts';
 import type { AccountBackup, LocalAccountSummary } from '../shared/accounts';
 
 interface AccountRecord extends LocalAccountSummary { pinHash: string; pinSalt: string; avatarFile?: string; }
@@ -58,17 +59,32 @@ export class AccountManager {
   lock(): void { this.active = null; }
   getActive(): LocalAccountSummary | null { return this.active ? this.toSummary(this.active.record) : null; }
   getStore(): BudgetStore { return this.requireActive().store; }
+  isActiveGuest(): boolean { return this.active?.record.id === GUEST_ACCOUNT_ID; }
+
+  /** Entirely in-memory: never touches accounts.json or a .sqlite file, so nothing survives the session. */
+  async enterGuestMode(name: string): Promise<BudgetSnapshot> {
+    const record: AccountRecord = { id: GUEST_ACCOUNT_ID, name: name.trim() || 'Invité', pinHash: '', pinSalt: '' };
+    const store = new BudgetStore(undefined, { ephemeral: true });
+    await store.initialize();
+    this.active = { record, store };
+    return store.getSnapshot();
+  }
 
   async renameActive(name: string): Promise<LocalAccountSummary> {
     const active = this.requireActive();
     if (name.trim().length < 2) throw new Error('ERR_INVALID_ACCOUNT_NAME');
     active.record.name = name.trim();
-    await this.saveRecords();
+    if (active.record.id !== GUEST_ACCOUNT_ID) {
+      await this.saveRecords();
+    }
     return this.toSummary(active.record);
   }
 
   async setActiveAvatar(sourceFilePath: string): Promise<LocalAccountSummary> {
     const active = this.requireActive();
+    if (active.record.id === GUEST_ACCOUNT_ID) {
+      throw new Error('ERR_GUEST_READONLY');
+    }
     await fs.mkdir(this.avatarsDir, { recursive: true });
 
     const extension = path.extname(sourceFilePath) || '.png';
