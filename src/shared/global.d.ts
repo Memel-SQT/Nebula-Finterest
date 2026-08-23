@@ -7,6 +7,7 @@ declare global {
       listAccounts(): Promise<LocalAccountSummary[]>;
       createAccount(name: string, pin: string): Promise<LocalAccountSummary>;
       unlockAccount(id: string, pin: string): Promise<BudgetSnapshot>;
+      enterGuestMode(name: string): Promise<BudgetSnapshot>;
       deleteAccount(id: string, pin: string): Promise<void>;
       renameAccount(name: string): Promise<LocalAccountSummary>;
       chooseAvatar(): Promise<LocalAccountSummary | null>;

@@ -6,6 +6,7 @@ import logoUrl from '../../../assets/finterest-logo.svg';
 
 export function SettingsPanel({
   databasePath,
+  isGuest,
   language,
   theme,
   updateStatus,
@@ -18,6 +19,7 @@ export function SettingsPanel({
   onOpenProfile,
 }: {
   databasePath: string;
+  isGuest: boolean;
   language: Language;
   theme: Theme;
   updateStatus: UpdateStatus | null;
@@ -73,11 +75,17 @@ export function SettingsPanel({
 
         <div className="settings-section">
           <h3>{t('settings.data')}</h3>
-          <div className="settings-actions">
-            <button onClick={onExport}>{t('settings.export')}</button>
-            <button className="secondary" onClick={onImport}>{t('settings.import')}</button>
-          </div>
-          <small className="path-note">{t('settings.path', { path: databasePath || t('settings.loading') })}</small>
+          {isGuest ? (
+            <small className="path-note">{t('profile.guestNotice')}</small>
+          ) : (
+            <>
+              <div className="settings-actions">
+                <button onClick={onExport}>{t('settings.export')}</button>
+                <button className="secondary" onClick={onImport}>{t('settings.import')}</button>
+              </div>
+              <small className="path-note">{t('settings.path', { path: databasePath || t('settings.loading') })}</small>
+            </>
+          )}
         </div>
 
         <div className="settings-section">

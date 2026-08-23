@@ -38,6 +38,7 @@ export type TranslationKey =
   | 'category.housing' | 'category.phoneInternet' | 'category.streaming' | 'category.transport'
   | 'category.insurance' | 'category.wellbeing' | 'category.other'
   | 'gate.localSpace' | 'gate.whoUses' | 'gate.chooseAccount' | 'gate.createAnother' | 'gate.manageAccounts'
+  | 'gate.guestMode' | 'gate.guestName' | 'gate.guestIntro'
   | 'gate.welcome' | 'gate.hello' | 'gate.spaceReady' | 'gate.continue' | 'gate.switchAccount'
   | 'gate.createAccount' | 'gate.createIntro' | 'gate.accountName' | 'gate.pinLabel' | 'gate.createAndContinue'
   | 'gate.openExisting' | 'gate.login' | 'gate.loginIntro' | 'gate.account' | 'gate.pinShort' | 'gate.signIn'
@@ -45,6 +46,7 @@ export type TranslationKey =
   | 'manage.title' | 'manage.intro' | 'manage.delete' | 'manage.deleteConfirmPin' | 'manage.deleteConfirmButton'
   | 'manage.cancel' | 'manage.addAccount' | 'manage.back'
   | 'profile.intro' | 'profile.changePhoto' | 'profile.pseudonym' | 'profile.save' | 'profile.switchAccount'
+  | 'profile.guestNotice' | 'profile.exitGuest'
   | 'settings.title' | 'settings.description' | 'settings.export' | 'settings.import' | 'settings.path'
   | 'settings.loading' | 'settings.language'
   | 'settings.appearance' | 'settings.data' | 'settings.account' | 'settings.theme' | 'settings.viewProfile'
@@ -62,7 +64,7 @@ export type TranslationKey =
   | 'error.negativeAmount' | 'error.storeNotInitialized' | 'error.invalidBackup'
   | 'error.openAccount' | 'error.loadBudget' | 'error.saveIncome' | 'error.saveMonth'
   | 'error.saveFixed' | 'error.saveVariable' | 'error.saveLoan' | 'error.exportBackup' | 'error.importBackup'
-  | 'error.deleteAccount' | 'error.renameAccount' | 'error.setAvatar';
+  | 'error.deleteAccount' | 'error.renameAccount' | 'error.setAvatar' | 'error.guestReadonly';
 
 export const fr: Record<TranslationKey, string> = {
   'app.name': 'Finterest',
@@ -160,6 +162,9 @@ export const fr: Record<TranslationKey, string> = {
   'gate.chooseAccount': 'Choisissez votre compte pour continuer.',
   'gate.createAnother': 'Créer un autre compte',
   'gate.manageAccounts': 'Gérer les comptes',
+  'gate.guestMode': 'Essayer sans compte',
+  'gate.guestName': 'Invité',
+  'gate.guestIntro': 'Parcourez Finterest avec des données d’exemple. Rien de ce que vous saisissez ne sera enregistré.',
   'gate.welcome': 'Bienvenue',
   'gate.hello': 'Bonjour {name}',
   'gate.spaceReady': 'Votre espace budget est prêt. Vous allez être invité à saisir votre code secret.',
@@ -190,6 +195,8 @@ export const fr: Record<TranslationKey, string> = {
   'profile.pseudonym': 'Pseudonyme',
   'profile.save': 'Enregistrer',
   'profile.switchAccount': 'Changer de compte',
+  'profile.guestNotice': 'Session invité : vos modifications ne sont pas enregistrées et disparaîtront à la fermeture.',
+  'profile.exitGuest': 'Quitter le mode invité',
   'settings.title': 'Données locales',
   'settings.description': 'Finterest conserve votre budget uniquement sur cet ordinateur. Utilisez une sauvegarde pour le transférer.',
   'settings.export': 'Exporter la sauvegarde',
@@ -255,6 +262,7 @@ export const fr: Record<TranslationKey, string> = {
   'error.deleteAccount': 'Impossible de supprimer ce compte.',
   'error.renameAccount': 'Impossible de renommer ce compte.',
   'error.setAvatar': "Impossible de changer la photo de profil.",
+  'error.guestReadonly': "Impossible en mode invité : rien n'est enregistré durant cette session.",
 };
 
 export const en: Record<TranslationKey, string> = {
@@ -353,6 +361,9 @@ export const en: Record<TranslationKey, string> = {
   'gate.chooseAccount': 'Choose your account to continue.',
   'gate.createAnother': 'Create another account',
   'gate.manageAccounts': 'Manage accounts',
+  'gate.guestMode': 'Try without an account',
+  'gate.guestName': 'Guest',
+  'gate.guestIntro': "Browse Finterest with sample data. Nothing you enter will be saved.",
   'gate.welcome': 'Welcome',
   'gate.hello': 'Hello {name}',
   'gate.spaceReady': 'Your budget space is ready. You will be asked for your PIN next.',
@@ -383,6 +394,8 @@ export const en: Record<TranslationKey, string> = {
   'profile.pseudonym': 'Nickname',
   'profile.save': 'Save',
   'profile.switchAccount': 'Switch account',
+  'profile.guestNotice': "Guest session: your changes are not saved and will disappear when you close the app.",
+  'profile.exitGuest': 'Exit guest mode',
   'settings.title': 'Local data',
   'settings.description': 'Finterest keeps your budget only on this computer. Use a backup to transfer it.',
   'settings.export': 'Export backup',
@@ -448,6 +461,7 @@ export const en: Record<TranslationKey, string> = {
   'error.deleteAccount': 'Unable to delete this account.',
   'error.renameAccount': 'Unable to rename this account.',
   'error.setAvatar': 'Unable to change the profile picture.',
+  'error.guestReadonly': "Not available in guest mode: nothing is saved during this session.",
 };
 
 const dictionaries: Record<Language, Record<TranslationKey, string>> = { fr, en };
@@ -460,6 +474,7 @@ const ERROR_CODE_TO_KEY: Record<string, TranslationKey> = {
   ERR_NEGATIVE_AMOUNT: 'error.negativeAmount',
   ERR_STORE_NOT_INITIALIZED: 'error.storeNotInitialized',
   ERR_INVALID_BACKUP: 'error.invalidBackup',
+  ERR_GUEST_READONLY: 'error.guestReadonly',
 };
 
 export function translate(language: Language, key: TranslationKey, params?: Record<string, string>): string {

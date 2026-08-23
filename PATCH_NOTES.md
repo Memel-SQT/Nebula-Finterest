@@ -1,3 +1,6 @@
+## Finterest v0.1.34
+- Nouveau : « Essayer sans compte » sur l'écran de connexion vous laisse parcourir Finterest avec un budget d'exemple, sans créer de compte. Rien n'est enregistré : tout disparaît en changeant de compte ou en fermant l'application.
+
 ## Finterest v0.1.33
 - Corrigé : certains boutons de l'écran de connexion étaient trop proches du texte au-dessus (largeur mal calculée).
 - Thème clair assombri pour un rendu moins éblouissant.
