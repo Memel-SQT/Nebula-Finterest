@@ -1,3 +1,10 @@
+## Finterest v0.1.32
+- Nouveau thème clair, en plus du thème sombre, avec une option « Système » qui suit automatiquement les préférences de Windows.
+- Interface visuellement épurée : moins de dégradés décoratifs, ombres plus discrètes.
+- Réglages réorganisés en sections claires : Apparence, Données, Mises à jour, Compte.
+- Le calcul avancé propose maintenant un investissement mensuel régulier, en plus du capital de départ, pour estimer une épargne programmée.
+- Nettoyage du dépôt : suppression d'un fichier icône inutilisé, README du projet réécrit avec toutes les fonctionnalités actuelles.
+
 ## Finterest v0.1.31
 - Nouvelle animation de démarrage : le logo se dessine à l'ouverture de l'application, puis laisse place à l'écran de connexion.
 - Après cette animation, l'écran de sélection de compte reste bien la page par défaut.

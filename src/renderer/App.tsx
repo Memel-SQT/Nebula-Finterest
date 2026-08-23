@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
 import { computeBudgetSummary, getMonthKey } from '@shared/budget';
 import type { BudgetSnapshot, FixedExpenseKind, UpdateStatus } from '@shared/types';
 import type { LocalAccountSummary } from '@shared/accounts';
 import { translate, translateError, useLanguage } from './i18n';
-import { formatMoney, subscriptionCategories } from './constants';
-import { Avatar, Card, FieldGroup, ListCard, NavButton } from './components/atoms';
+import { useTheme } from './theme';
+import { Avatar, NavButton } from './components/atoms';
 import { AccountGate, type AuthStage } from './components/AccountGate';
 import { SubscriptionCalendar } from './components/SubscriptionCalendar';
-import { AdvancedCalculator } from './components/AdvancedCalculator';
+import { AdvancedCalculator, type AdvancedCalculatorForm } from './components/AdvancedCalculator';
 import { SettingsPanel } from './components/SettingsPanel';
-import { LoansPanel, type LoanFormState } from './components/LoansPanel';
+import { Dashboard } from './components/Dashboard';
+import type { LoanFormState } from './components/LoansPanel';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SplashScreen } from './components/SplashScreen';
 import logoUrl from '../../assets/finterest-logo.svg';
@@ -22,6 +22,7 @@ type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'loans' | 'pr
 
 export function App() {
   const [language, setLanguage] = useLanguage();
+  const [theme, setTheme] = useTheme();
   const t = (key: Parameters<typeof translate>[1], params?: Record<string, string>) => translate(language, key, params);
 
   const [snapshot, setSnapshot] = useState<BudgetSnapshot | null>(null);
@@ -30,7 +31,7 @@ export function App() {
   const [databasePath, setDatabasePath] = useState('');
   const [activeView, setActiveView] = useState<ActiveView>('overview');
   const [activeMode, setActiveMode] = useState<'simple' | 'advanced'>('simple');
-  const [interestForm, setInterestForm] = useState({ capital: '1000', rate: '3', years: '5' });
+  const [interestForm, setInterestForm] = useState<AdvancedCalculatorForm>({ capital: '1000', rate: '3', years: '5', monthlyInvestment: '0' });
   const [fixedForm, setFixedForm] = useState({ ...emptyExpense, dayOfMonth: '', kind: 'subscription' as FixedExpenseKind });
   const [variableForm, setVariableForm] = useState({ ...emptyExpense, date: new Date().toISOString().slice(0, 10) });
   const [loanForm, setLoanForm] = useState<LoanFormState>(emptyLoanForm);
@@ -380,12 +381,15 @@ export function App() {
           <SettingsPanel
             databasePath={databasePath}
             language={language}
+            theme={theme}
             updateStatus={updateStatus}
             onExport={handleExportBackup}
             onImport={handleImportBackup}
             onLanguageChange={setLanguage}
+            onThemeChange={setTheme}
             onCheckForUpdates={() => window.finterest.checkForUpdates()}
             onInstallUpdate={() => window.finterest.installUpdate()}
+            onOpenProfile={() => setActiveView('profile')}
           />
         ) : null}
 
@@ -400,153 +404,31 @@ export function App() {
         ) : null}
 
         {showKpis ? (
-          <section className="summary-grid">
-            <Card label={t('card.income')} value={formatMoney(summary?.income ?? 0, language)} accent="income" icon="↗" />
-            <Card label={t('card.fixed')} value={formatMoney(summary?.totalFixedExpenses ?? 0, language)} accent="fixed" icon="▤" />
-            <Card label={t('card.variable')} value={formatMoney(summary?.totalVariableExpenses ?? 0, language)} accent="variable" icon="⌁" />
-            <Card label={t('card.loans')} value={formatMoney(summary?.totalLoanPayments ?? 0, language)} accent="loans" icon="▣" />
-            <Card label={t('card.remaining')} value={formatMoney(summary?.remainingIncome ?? 0, language)} accent="remaining" icon="◒" />
-          </section>
-        ) : null}
-
-        {activeMode === 'simple' && activeView === 'overview' ? (
-          <section className="insight-grid">
-            <article className="balance-panel">
-              <div className="section-heading">
-                <div><p className="eyebrow">{t('insight.status')}</p><h2>{t('insight.remainingTitle')}</h2></div>
-                <span className="health-label">{remainingPercent.toFixed(0)}{t('insight.percentRemaining')}</span>
-              </div>
-              <div className="ring-wrap">
-                <div className="balance-ring" style={{ '--progress': `${remainingPercent * 3.6}deg` } as CSSProperties}>
-                  <div><strong>{remainingPercent.toFixed(0)}%</strong><span>{t('insight.available')}</span></div>
-                </div>
-                <div className="ring-legend">
-                  <span><i className="dot income-dot" />{t('insight.income')} <b>{formatMoney(summary?.income ?? 0, language)}</b></span>
-                  <span><i className="dot spend-dot" />{t('insight.spent')} <b>{formatMoney(summary?.totalExpenses ?? 0, language)}</b></span>
-                </div>
-              </div>
-            </article>
-            <article className="snapshot-panel">
-              <div className="section-heading">
-                <div><p className="eyebrow">{t('insight.summary')}</p><h2>{t('insight.thisMonth')}</h2></div>
-                <span className="period-badge">{activeMonthKey}</span>
-              </div>
-              <div className="snapshot-row"><span>{t('insight.income')}</span><strong>{formatMoney(summary?.income ?? 0, language)}</strong></div>
-              <div className="snapshot-row"><span>{t('card.fixed')}</span><strong>{formatMoney(summary?.totalFixedExpenses ?? 0, language)}</strong></div>
-              <div className="snapshot-row"><span>{t('card.variable')}</span><strong>{formatMoney(summary?.totalVariableExpenses ?? 0, language)}</strong></div>
-              <div className="snapshot-row"><span>{t('card.loans')}</span><strong>{formatMoney(summary?.totalLoanPayments ?? 0, language)}</strong></div>
-              <div className="snapshot-total"><span>{t('insight.totalSpent')}</span><strong>{formatMoney(summary?.totalExpenses ?? 0, language)}</strong></div>
-            </article>
-          </section>
-        ) : null}
-
-        {activeMode === 'simple' && activeView === 'overview' ? (
-          <section className="input-panel">
-            <FieldGroup title={t('form.income.title')}>
-              <label>
-                {t('form.income.label')}
-                <input aria-label={t('form.income.label')} value={incomeInput} onChange={(event) => setIncomeInput(event.target.value)} inputMode="decimal" />
-              </label>
-              <button className="ghost" onClick={() => void handleSaveMonthKey(activeMonthKey)}>{t('form.income.saveMonth')}</button>
-              <button onClick={handleSaveIncome}>{t('form.income.saveIncome')}</button>
-            </FieldGroup>
-          </section>
-        ) : null}
-
-        {activeMode === 'simple' && activeView === 'fixed' ? (
-          <>
-            <section className="input-panel">
-              <FieldGroup title={t('form.fixed.title')}>
-                <label>
-                  {t('form.fixed.name')}
-                  <input value={fixedForm.name} onChange={(event) => setFixedForm((current) => ({ ...current, name: event.target.value }))} />
-                </label>
-                <label>
-                  {t('form.fixed.amount')}
-                  <input value={fixedForm.amount} onChange={(event) => setFixedForm((current) => ({ ...current, amount: Number(event.target.value) }))} inputMode="decimal" />
-                </label>
-                <label>
-                  {t('form.fixed.category')}
-                  <select value={fixedForm.category} onChange={(event) => setFixedForm((current) => ({ ...current, category: event.target.value }))}>
-                    <option value="">{t('form.fixed.categoryPlaceholder')}</option>
-                    {subscriptionCategories.map((category) => (
-                      <option key={category.labelKey} value={translate(language, category.labelKey)}>{category.icon} {translate(language, category.labelKey)}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  {t('form.fixed.dayOfMonth')}
-                  <input value={fixedForm.dayOfMonth} onChange={(event) => setFixedForm((current) => ({ ...current, dayOfMonth: event.target.value }))} inputMode="numeric" />
-                </label>
-                <label>
-                  {t('form.fixed.type')}
-                  <select value={fixedForm.kind} onChange={(event) => setFixedForm((current) => ({ ...current, kind: event.target.value as FixedExpenseKind }))}>
-                    <option value="subscription">{t('form.fixed.type.subscription')}</option>
-                    <option value="directDebit">{t('form.fixed.type.directDebit')}</option>
-                  </select>
-                </label>
-                <button onClick={handleAddFixedExpense}>{t('form.fixed.submit')}</button>
-              </FieldGroup>
-            </section>
-            <section className="lists-grid">
-              <ListCard
-                title={t('list.fixed.title')}
-                subtitle={t('list.fixed.subtitle')}
-                language={language}
-                items={snapshot.fixedExpenses.map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), kind: expense.kind, active: expense.active }))}
-                onToggle={handleToggleFixedExpense}
-                onDelete={handleDeleteFixedExpense}
-              />
-            </section>
-          </>
-        ) : null}
-
-        {activeMode === 'simple' && activeView === 'variable' ? (
-          <>
-            <section className="input-panel">
-              <FieldGroup title={t('form.variable.title')}>
-                <label>
-                  {t('form.variable.name')}
-                  <input value={variableForm.name} onChange={(event) => setVariableForm((current) => ({ ...current, name: event.target.value }))} />
-                </label>
-                <label>
-                  {t('form.variable.amount')}
-                  <input value={variableForm.amount} onChange={(event) => setVariableForm((current) => ({ ...current, amount: Number(event.target.value) }))} inputMode="decimal" />
-                </label>
-                <label>
-                  {t('form.variable.category')}
-                  <input value={variableForm.category} onChange={(event) => setVariableForm((current) => ({ ...current, category: event.target.value }))} />
-                </label>
-                <label>
-                  {t('form.variable.date')}
-                  <input type="date" value={variableForm.date} onChange={(event) => setVariableForm((current) => ({ ...current, date: event.target.value }))} />
-                </label>
-                <button onClick={handleAddVariableExpense}>{t('form.variable.submit')}</button>
-              </FieldGroup>
-            </section>
-            <section className="lists-grid">
-              <ListCard
-                title={t('list.variable.title')}
-                subtitle={t('list.variable.subtitle', { month: activeMonthKey })}
-                language={language}
-                items={snapshot.variableExpenses
-                  .filter((expense) => expense.monthKey === activeMonthKey)
-                  .map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language) }))}
-                onDelete={handleDeleteVariableExpense}
-              />
-            </section>
-          </>
-        ) : null}
-
-        {activeMode === 'simple' && activeView === 'loans' ? (
-          <LoansPanel
-            loans={snapshot.loans}
-            form={loanForm}
+          <Dashboard
+            activeView={activeView as 'overview' | 'fixed' | 'variable' | 'loans'}
             language={language}
-            onFormChange={setLoanForm}
-            onSubmit={handleAddLoan}
-            onToggle={handleToggleLoan}
-            onDelete={handleDeleteLoan}
+            snapshot={snapshot}
+            summary={summary}
+            activeMonthKey={activeMonthKey}
+            remainingPercent={remainingPercent}
+            incomeInput={incomeInput}
+            fixedForm={fixedForm}
+            variableForm={variableForm}
+            loanForm={loanForm}
+            onIncomeInputChange={setIncomeInput}
+            onSaveMonth={() => void handleSaveMonthKey(activeMonthKey)}
+            onSaveIncome={handleSaveIncome}
+            onFixedFormChange={setFixedForm}
+            onAddFixedExpense={handleAddFixedExpense}
+            onToggleFixedExpense={handleToggleFixedExpense}
+            onDeleteFixedExpense={handleDeleteFixedExpense}
+            onVariableFormChange={setVariableForm}
+            onAddVariableExpense={handleAddVariableExpense}
+            onDeleteVariableExpense={handleDeleteVariableExpense}
+            onLoanFormChange={setLoanForm}
+            onAddLoan={handleAddLoan}
+            onToggleLoan={handleToggleLoan}
+            onDeleteLoan={handleDeleteLoan}
           />
         ) : null}
       </section>

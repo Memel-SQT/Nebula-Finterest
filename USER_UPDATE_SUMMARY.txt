@@ -1,3 +1,19 @@
+Finterest update summary - 2026-08-23 (light theme, cleaner look, reorganized settings, investment calculator)
+
+What changed
+- Finterest now has a light theme in addition to dark, plus a "Système" option that automatically follows your Windows light/dark setting.
+- The interface looks cleaner and more minimal overall — fewer decorative gradients, softer shadows.
+- Settings are now organized into clear sections: Apparence (theme, language), Données (backup), Mises à jour, Compte.
+- The "Calcul avancé" tool can now include a monthly investment amount, not just a one-time starting capital, when estimating compound interest.
+
+How to use it
+1. Go to Settings > Apparence to choose Clair, Sombre, or Système for the app's look.
+2. In "Calcul avancé", fill in "Investissement mensuel" alongside your starting capital to see how regular monthly saving grows over time.
+3. From Settings > Compte, click "Voir mon profil" as a shortcut to your profile screen.
+
+Data impact
+- No accounts, budgets, or backup files are changed by this update.
+
 Finterest update summary - 2026-08-23 (startup animation, update check button)
 
 What changed
