@@ -14,7 +14,7 @@
     "build:renderer": "vite build",
     "build:electron": "tsup src/electron/main.ts src/electron/preload.ts --format cjs --external electron --out-dir dist/electron --sourcemap",
     "dist": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder",
-    "dist:win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis --config.directories.output=install/windows",
+    "dist:win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis --config.directories.output=install/windows && node scripts/fix-windows-icon.js",
     "dist:mac": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg --config.directories.output=install/mac",
     "dist:linux": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --linux AppImage --config.directories.output=install/linux",
     "test": "jest",
