@@ -3,7 +3,7 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import { categoryIcon } from '../constants';
 
-export function Avatar({ name, avatarUrl, size = 'md' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' }) {
+export function Avatar({ name, avatarUrl, size = 'md' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
   if (avatarUrl) {
     return <img className={`avatar avatar-${size}`} src={avatarUrl} alt="" />;
   }

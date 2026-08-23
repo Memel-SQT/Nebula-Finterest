@@ -51,23 +51,25 @@ export function AccountGate({
 
   return (
     <main className="account-gate">
-      <section className="account-card">
+      <section className={`account-card ${stage === 'select' || stage === 'manage' ? 'account-card-wide' : ''}`}>
         <img src={logoUrl} alt="Finterest logo" />
         {stage === 'select' ? (
           <>
             <p className="eyebrow">{t('gate.localSpace')}</p>
             <h1>{t('gate.whoUses')}</h1>
             <p className="account-intro">{t('gate.chooseAccount')}</p>
-            <div className="account-list">
+            <div className="account-grid">
               {accounts.map((account) => (
-                <button className="account-choice" key={account.id} onClick={() => onSelect(account.id)}>
-                  <Avatar name={account.name} avatarUrl={account.avatarUrl} />
-                  <strong>{account.name}</strong>
-                  <b>›</b>
+                <button className="account-tile" key={account.id} onClick={() => onSelect(account.id)}>
+                  <Avatar name={account.name} avatarUrl={account.avatarUrl} size="xl" />
+                  <span className="account-tile-label">{account.name}</span>
                 </button>
               ))}
+              <button className="account-tile account-tile-add" onClick={onCreate}>
+                <span className="account-tile-plus">+</span>
+                <span className="account-tile-label">{t('gate.createAnother')}</span>
+              </button>
             </div>
-            <button className="ghost account-switch" onClick={onCreate}>{t('gate.createAnother')}</button>
             <button className="ghost account-switch" onClick={onManage}>{t('gate.manageAccounts')}</button>
           </>
         ) : stage === 'welcome' ? (

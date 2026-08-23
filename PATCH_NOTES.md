@@ -1,3 +1,8 @@
+## Finterest v0.1.29
+- L'écran de sélection de compte affiche maintenant les photos des comptes sous forme de cercles ; le pseudonyme apparaît au survol de la souris (ou au focus clavier).
+- Un bouton « + » dans la même grille permet de créer un nouveau compte.
+- Le lien « Gérer les comptes » (créer/supprimer) est plus visible, juste en dessous.
+
 ## Finterest v0.1.28
 - Nouveau thème visuel sombre et premium : fonds quasi noirs, accent émeraude, touches dorées discrètes — remplace l'ancien thème cuivré.
 - Nouveau logo et nouvelle icône de l'application.

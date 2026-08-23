@@ -81,4 +81,5 @@ Current notes
 - The account selection and management screens show each account's avatar as a circle, falling back to a colored initial when no photo has been set.
 - The interface was fully re-themed to a darker, more premium palette (near-black surfaces, a single emerald accent, a muted gold secondary accent) in place of the previous copper/terracotta theme; component structure and behavior are unchanged.
 - Finterest has a new logo and application icon (assets/finterest-logo.svg, assets/app-icon.svg, build/icon.png), replacing the earlier blue/violet placeholder mark.
+- The account selection screen shows accounts as a grid of circular avatar tiles with no name shown by default; the pseudonym appears on hover or keyboard focus. A dashed "+" tile in the same grid is the primary way to create another account; "Gérer les comptes" (create/delete) sits directly below it.
 - See PATCH_NOTES.md for the latest user-facing changes.

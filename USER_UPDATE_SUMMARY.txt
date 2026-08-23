@@ -1,3 +1,18 @@
+Finterest update summary - 2026-08-23 (account picker redesign)
+
+What changed
+- The account selection screen now shows each account's photo as a circle. Hover your mouse over one (or tab to it with the keyboard) to see that account's pseudonym.
+- A "+" tile in the same row lets you create another account directly.
+- The "Gérer les comptes" link, for creating or deleting accounts, is now directly below the account picker.
+
+How to use it
+1. On startup with multiple accounts, hover over any avatar to confirm which account it is before clicking it.
+2. Click the dashed "+" circle to create a new account.
+3. Click "Gérer les comptes" below the picker to delete an account (you'll need that account's PIN).
+
+Data impact
+- No accounts, budgets, or backup files are changed by this update.
+
 Finterest update summary - 2026-08-23 (premium dark redesign, profiles, account switching)
 
 What changed
