@@ -9,14 +9,18 @@ Tech stack
 - SQL.js as the SQLite-compatible local persistence layer.
 - Jest and React Testing Library for tests.
 - Vite and tsup for build tooling.
+- electron-updater for checking and installing application updates via GitHub Releases.
 
 Project structure
 - src/electron/ - Electron main process, preload bridge, and local database store.
 - src/renderer/ - React UI, styles, and entry point.
+- src/renderer/components/ - Extracted screens and shared UI atoms (account gate, calendar, loans, settings).
+- src/renderer/i18n.ts - French/English translation dictionaries and the language switch.
 - src/shared/ - Shared types and budget calculations.
 - tests/ - Test setup.
 - assets/ - Reserved for future icons and static files.
 - assets/finterest-logo.svg - Finterest F monogram used by the dashboard and packaged renderer.
+- build/installer.nsh - Custom NSIS script that backs up local accounts before the Windows uninstaller removes them.
 - install/windows/ - Windows NSIS installers.
 - install/mac/ - macOS DMG installers.
 - install/linux/ - Linux AppImage installers.
@@ -67,4 +71,12 @@ Current notes
 - Windows packaging disables executable editing for unsigned builds, and npm run dist configures CSC_IDENTITY_AUTO_DISCOVERY=false automatically.
 - The CI workflow in .github/workflows/build-installers.yml builds Windows, macOS, and Linux artifacts on their native runners.
 - macOS production releases should be signed and notarized with Apple Developer credentials; the current CI output is unsigned.
+- The renderer is split into src/renderer/components/ (account gate, calendar, loans, settings, shared atoms) with App.tsx acting as a thin orchestrator; this replaced the previous single large component file without changing the visual design.
+- Fixed expenses (abonnements) now carry a Type distinguishing "Abonnement" (subscription) from "Prélèvement" (direct debit), shown as a badge and selectable when adding one; existing local databases gain this column automatically on first launch after the update.
+- A new "Prêts" section tracks bank loans (amount borrowed, monthly payment, rate, remaining term); active loan payments are included in the "reste à vivre" calculation alongside abonnements/prélèvements.
+- The interface language can be switched between French and English from the account screens and the Settings panel; the choice is stored locally per computer.
+- Local accounts can be created and deleted from a dedicated "Gérer les comptes" screen reachable from account selection; deleting an account requires re-entering its PIN.
+- Subscription category icons use the same monochrome symbol style as the sidebar navigation instead of color emoji.
+- The packaged Windows build checks GitHub Releases for updates on launch via electron-updater and can install a downloaded update on request; macOS/Linux builds only surface update availability, since the current dmg/AppImage targets are not configured for a full silent update cycle.
+- The Windows uninstaller (NSIS) writes a combined JSON backup of every local account to Documents\Finterest before deleting the app's local data folder (accounts.json and every account's SQLite file). This safety net is Windows-only; macOS and Linux packaging has no scripted uninstall step to hook into.
 - See PATCH_NOTES.md for the latest user-facing changes.

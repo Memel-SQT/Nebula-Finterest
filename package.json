@@ -22,6 +22,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\""
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sql.js": "^1.11.0"
@@ -34,12 +35,12 @@
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
     "@typescript-eslint/parser": "^8.18.1",
+    "@vitejs/plugin-react": "^4.3.3",
     "concurrently": "^9.1.0",
     "cross-env": "^7.0.3",
-    "electron-builder": "^24.13.3",
     "electron": "^32.2.2",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.17.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
@@ -63,15 +64,30 @@
     "directories": {
       "output": "release"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "Memel-SQT",
+      "repo": "Finterest"
+    },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "signAndEditExecutable": false
     },
+    "nsis": {
+      "deleteAppDataOnUninstall": true,
+      "include": "build/installer.nsh"
+    },
     "mac": {
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     },
     "linux": {
-      "target": ["AppImage"]
+      "target": [
+        "AppImage"
+      ]
     }
   }
 }

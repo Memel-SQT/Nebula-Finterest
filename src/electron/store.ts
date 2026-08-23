@@ -2,11 +2,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { app } from 'electron';
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
-import type { BackupFile, BudgetSnapshot, FixedExpense, VariableExpense } from '../shared/types';
+import type { BackupFile, BudgetSnapshot, FixedExpense, Loan, VariableExpense } from '../shared/types';
 import {
   createEmptySnapshot,
-  isValidBudgetSnapshot,
   sanitizeFixedExpense,
+  sanitizeLoan,
   sanitizeVariableExpense,
   validateBackupFile,
 } from '../shared/budget';
@@ -40,6 +40,7 @@ export class BudgetStore {
     }
 
     this.createSchema();
+    this.migrateSchema();
     await this.ensureSeedData();
     await this.persist();
   }
@@ -50,8 +51,9 @@ export class BudgetStore {
 
     const incomeRow = database.exec("SELECT value FROM settings WHERE key = 'income'");
     const monthKeyRow = database.exec("SELECT value FROM settings WHERE key = 'activeMonthKey'");
-    const fixedRows = database.exec('SELECT id, name, amount, category, dayOfMonth, active FROM fixed_expenses ORDER BY name');
+    const fixedRows = database.exec('SELECT id, name, amount, category, dayOfMonth, active, kind FROM fixed_expenses ORDER BY name');
     const variableRows = database.exec('SELECT id, name, amount, category, date, monthKey FROM variable_expenses ORDER BY date DESC, name');
+    const loanRows = database.exec('SELECT id, name, principal, monthlyPayment, interestRate, remainingMonths, active FROM loans ORDER BY name');
 
     return {
       settings: {
@@ -60,11 +62,12 @@ export class BudgetStore {
       },
       fixedExpenses: this.readFixedExpenses(fixedRows),
       variableExpenses: this.readVariableExpenses(variableRows),
+      loans: this.readLoans(loanRows),
     };
   }
 
   async saveIncome(income: number): Promise<BudgetSnapshot> {
-    this.assertNonNegative(income, 'income');
+    this.assertNonNegative(income);
     await this.upsertSetting('income', String(income));
     return this.getSnapshot();
   }
@@ -75,7 +78,7 @@ export class BudgetStore {
   }
 
   async addFixedExpense(expense: Partial<FixedExpense> & { name: string; amount: number; category: string; active?: boolean }): Promise<BudgetSnapshot> {
-    this.assertNonNegative(expense.amount, 'amount');
+    this.assertNonNegative(expense.amount);
     const fixedExpense: FixedExpense = sanitizeFixedExpense({
       id: expense.id ?? crypto.randomUUID(),
       name: expense.name.trim(),
@@ -83,12 +86,13 @@ export class BudgetStore {
       category: expense.category.trim(),
       dayOfMonth: expense.dayOfMonth ?? null,
       active: expense.active ?? true,
+      kind: expense.kind ?? 'subscription',
     });
 
     await this.runWithTransaction(() => {
       this.requireDatabase().run(
-        'INSERT OR REPLACE INTO fixed_expenses (id, name, amount, category, dayOfMonth, active) VALUES (?, ?, ?, ?, ?, ?)',
-        [fixedExpense.id, fixedExpense.name, fixedExpense.amount, fixedExpense.category, fixedExpense.dayOfMonth, fixedExpense.active ? 1 : 0],
+        'INSERT OR REPLACE INTO fixed_expenses (id, name, amount, category, dayOfMonth, active, kind) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [fixedExpense.id, fixedExpense.name, fixedExpense.amount, fixedExpense.category, fixedExpense.dayOfMonth, fixedExpense.active ? 1 : 0, fixedExpense.kind],
       );
     });
 
@@ -112,7 +116,7 @@ export class BudgetStore {
   }
 
   async addVariableExpense(expense: Partial<VariableExpense> & { name: string; amount: number; category: string; date: string; monthKey: string }): Promise<BudgetSnapshot> {
-    this.assertNonNegative(expense.amount, 'amount');
+    this.assertNonNegative(expense.amount);
     const variableExpense: VariableExpense = sanitizeVariableExpense({
       id: expense.id ?? crypto.randomUUID(),
       name: expense.name.trim(),
@@ -140,6 +144,45 @@ export class BudgetStore {
     return this.getSnapshot();
   }
 
+  async addLoan(loan: Partial<Loan> & { name: string; principal: number; monthlyPayment: number }): Promise<BudgetSnapshot> {
+    this.assertNonNegative(loan.principal);
+    this.assertNonNegative(loan.monthlyPayment);
+    const sanitized: Loan = sanitizeLoan({
+      id: loan.id ?? crypto.randomUUID(),
+      name: loan.name.trim(),
+      principal: Number(loan.principal),
+      monthlyPayment: Number(loan.monthlyPayment),
+      interestRate: Number(loan.interestRate ?? 0),
+      remainingMonths: loan.remainingMonths ?? null,
+      active: loan.active ?? true,
+    });
+
+    await this.runWithTransaction(() => {
+      this.requireDatabase().run(
+        'INSERT OR REPLACE INTO loans (id, name, principal, monthlyPayment, interestRate, remainingMonths, active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [sanitized.id, sanitized.name, sanitized.principal, sanitized.monthlyPayment, sanitized.interestRate, sanitized.remainingMonths, sanitized.active ? 1 : 0],
+      );
+    });
+
+    return this.getSnapshot();
+  }
+
+  async toggleLoan(id: string, active: boolean): Promise<BudgetSnapshot> {
+    await this.runWithTransaction(() => {
+      this.requireDatabase().run('UPDATE loans SET active = ? WHERE id = ?', [active ? 1 : 0, id]);
+    });
+
+    return this.getSnapshot();
+  }
+
+  async deleteLoan(id: string): Promise<BudgetSnapshot> {
+    await this.runWithTransaction(() => {
+      this.requireDatabase().run('DELETE FROM loans WHERE id = ?', [id]);
+    });
+
+    return this.getSnapshot();
+  }
+
   async exportBackup(): Promise<BackupFile> {
     const snapshot = await this.getSnapshot();
     return {
@@ -153,7 +196,7 @@ export class BudgetStore {
   async importBackup(backup: BackupFile): Promise<BudgetSnapshot> {
     const errors = validateBackupFile(backup);
     if (errors.length > 0) {
-      throw new Error(errors.join(' '));
+      throw new Error('ERR_INVALID_BACKUP');
     }
 
     await this.initialize();
@@ -162,6 +205,7 @@ export class BudgetStore {
       database.run('DELETE FROM settings');
       database.run('DELETE FROM fixed_expenses');
       database.run('DELETE FROM variable_expenses');
+      database.run('DELETE FROM loans');
 
       database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['income', String(backup.snapshot.settings.income)]);
       database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['activeMonthKey', backup.snapshot.settings.activeMonthKey]);
@@ -169,8 +213,8 @@ export class BudgetStore {
       for (const expense of backup.snapshot.fixedExpenses) {
         const fixedExpense = sanitizeFixedExpense(expense);
         database.run(
-          'INSERT INTO fixed_expenses (id, name, amount, category, dayOfMonth, active) VALUES (?, ?, ?, ?, ?, ?)',
-          [fixedExpense.id, fixedExpense.name, fixedExpense.amount, fixedExpense.category, fixedExpense.dayOfMonth, fixedExpense.active ? 1 : 0],
+          'INSERT INTO fixed_expenses (id, name, amount, category, dayOfMonth, active, kind) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [fixedExpense.id, fixedExpense.name, fixedExpense.amount, fixedExpense.category, fixedExpense.dayOfMonth, fixedExpense.active ? 1 : 0, fixedExpense.kind],
         );
       }
 
@@ -179,6 +223,14 @@ export class BudgetStore {
         database.run(
           'INSERT INTO variable_expenses (id, name, amount, category, date, monthKey) VALUES (?, ?, ?, ?, ?, ?)',
           [variableExpense.id, variableExpense.name, variableExpense.amount, variableExpense.category, variableExpense.date, variableExpense.monthKey],
+        );
+      }
+
+      for (const loan of backup.snapshot.loans ?? []) {
+        const sanitizedLoan = sanitizeLoan(loan);
+        database.run(
+          'INSERT INTO loans (id, name, principal, monthlyPayment, interestRate, remainingMonths, active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [sanitizedLoan.id, sanitizedLoan.name, sanitizedLoan.principal, sanitizedLoan.monthlyPayment, sanitizedLoan.interestRate, sanitizedLoan.remainingMonths, sanitizedLoan.active ? 1 : 0],
         );
       }
     });
@@ -215,7 +267,27 @@ export class BudgetStore {
         date TEXT NOT NULL,
         monthKey TEXT NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS loans (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        principal REAL NOT NULL,
+        monthlyPayment REAL NOT NULL,
+        interestRate REAL NOT NULL DEFAULT 0,
+        remainingMonths INTEGER,
+        active INTEGER NOT NULL DEFAULT 1
+      );
     `);
+  }
+
+  /** Adds columns introduced after a user's database was first created; CREATE TABLE IF NOT EXISTS above does not alter existing tables. */
+  private migrateSchema(): void {
+    const database = this.requireDatabase();
+    const columns = database.exec('PRAGMA table_info(fixed_expenses)');
+    const columnNames = (columns[0]?.values ?? []).map((row) => String(row[1]));
+    if (!columnNames.includes('kind')) {
+      database.run("ALTER TABLE fixed_expenses ADD COLUMN kind TEXT NOT NULL DEFAULT 'subscription'");
+    }
   }
 
   private async ensureSeedData(): Promise<void> {
@@ -229,21 +301,23 @@ export class BudgetStore {
     database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['income', String(emptySnapshot.settings.income)]);
     database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['activeMonthKey', emptySnapshot.settings.activeMonthKey]);
 
-    database.run('INSERT INTO fixed_expenses (id, name, amount, category, dayOfMonth, active) VALUES (?, ?, ?, ?, ?, ?)', [
+    database.run('INSERT INTO fixed_expenses (id, name, amount, category, dayOfMonth, active, kind) VALUES (?, ?, ?, ?, ?, ?, ?)', [
       crypto.randomUUID(),
       'Rent',
       850,
       'Housing',
       1,
       1,
+      'directDebit',
     ]);
-    database.run('INSERT INTO fixed_expenses (id, name, amount, category, dayOfMonth, active) VALUES (?, ?, ?, ?, ?, ?)', [
+    database.run('INSERT INTO fixed_expenses (id, name, amount, category, dayOfMonth, active, kind) VALUES (?, ?, ?, ?, ?, ?, ?)', [
       crypto.randomUUID(),
       'Internet',
       35,
       'Utilities',
       5,
       1,
+      'subscription',
     ]);
     database.run('INSERT INTO variable_expenses (id, name, amount, category, date, monthKey) VALUES (?, ?, ?, ?, ?, ?)', [
       crypto.randomUUID(),
@@ -283,7 +357,7 @@ export class BudgetStore {
 
   private requireDatabase(): SqlJsDatabase {
     if (!this.database) {
-      throw new Error('Budget store has not been initialized.');
+      throw new Error('ERR_STORE_NOT_INITIALIZED');
     }
 
     return this.database;
@@ -311,6 +385,7 @@ export class BudgetStore {
           category: String(row[3]),
           dayOfMonth: row[4] === null ? null : Number(row[4]),
           active: Boolean(row[5]),
+          kind: row[6] === 'directDebit' ? 'directDebit' : 'subscription',
         }),
       );
     }
@@ -335,9 +410,28 @@ export class BudgetStore {
     return result;
   }
 
-  private assertNonNegative(value: number, fieldName: string): void {
+  private readLoans(rows: ReturnType<SqlJsDatabase['exec']>): Loan[] {
+    const result: Loan[] = [];
+    const values = rows[0]?.values ?? [];
+    for (const row of values) {
+      result.push(
+        sanitizeLoan({
+          id: String(row[0]),
+          name: String(row[1]),
+          principal: Number(row[2]),
+          monthlyPayment: Number(row[3]),
+          interestRate: Number(row[4]),
+          remainingMonths: row[5] === null ? null : Number(row[5]),
+          active: Boolean(row[6]),
+        }),
+      );
+    }
+    return result;
+  }
+
+  private assertNonNegative(value: number): void {
     if (!Number.isFinite(value) || value < 0) {
-      throw new Error(`${fieldName} must be a non-negative number.`);
+      throw new Error('ERR_NEGATIVE_AMOUNT');
     }
   }
 

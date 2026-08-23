@@ -1,4 +1,4 @@
-import type { BackupFile, BudgetSnapshot } from './types';
+import type { BackupFile, BudgetSnapshot, Loan, UpdateStatus } from './types';
 import type { LocalAccountSummary } from './accounts';
 
 declare global {
@@ -7,6 +7,7 @@ declare global {
       listAccounts(): Promise<LocalAccountSummary[]>;
       createAccount(name: string, pin: string): Promise<LocalAccountSummary>;
       unlockAccount(id: string, pin: string): Promise<BudgetSnapshot>;
+      deleteAccount(id: string, pin: string): Promise<void>;
       lockAccount(): Promise<void>;
       getActiveAccount(): Promise<LocalAccountSummary | null>;
       getSnapshot(): Promise<BudgetSnapshot>;
@@ -17,11 +18,16 @@ declare global {
       deleteFixedExpense(id: string): Promise<BudgetSnapshot>;
       addVariableExpense(expense: Omit<BudgetSnapshot['variableExpenses'][number], 'id'> & { id?: string }): Promise<BudgetSnapshot>;
       deleteVariableExpense(id: string): Promise<BudgetSnapshot>;
+      addLoan(loan: Omit<Loan, 'id'> & { id?: string }): Promise<BudgetSnapshot>;
+      toggleLoan(id: string, active: boolean): Promise<BudgetSnapshot>;
+      deleteLoan(id: string): Promise<BudgetSnapshot>;
       exportBackup(): Promise<BackupFile>;
       importBackup(backup: BackupFile): Promise<BudgetSnapshot>;
       saveBackupToFile(): Promise<void>;
       importBackupFromFile(): Promise<BudgetSnapshot | null>;
       getDatabasePath(): Promise<string>;
+      onUpdateStatus(callback: (status: UpdateStatus) => void): () => void;
+      installUpdate(): Promise<void>;
     };
   }
 }

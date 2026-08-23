@@ -1,4 +1,4 @@
-import type { BackupFile, BudgetSnapshot, BudgetSummary, FixedExpense, VariableExpense } from './types';
+import type { BackupFile, BudgetSnapshot, BudgetSummary, FixedExpense, FixedExpenseKind, Loan, VariableExpense } from './types';
 
 export function getMonthKey(date: Date): string {
   const year = date.getFullYear();
@@ -14,6 +14,7 @@ export function createEmptySnapshot(): BudgetSnapshot {
     },
     fixedExpenses: [],
     variableExpenses: [],
+    loans: [],
   };
 }
 
@@ -26,12 +27,17 @@ export function computeBudgetSummary(snapshot: BudgetSnapshot, monthKey = snapsh
     .filter((expense) => expense.monthKey === monthKey)
     .reduce((sum, expense) => sum + expense.amount, 0);
 
-  const totalExpenses = totalFixedExpenses + totalVariableExpenses;
+  const totalLoanPayments = (snapshot.loans ?? [])
+    .filter((loan) => loan.active)
+    .reduce((sum, loan) => sum + loan.monthlyPayment, 0);
+
+  const totalExpenses = totalFixedExpenses + totalVariableExpenses + totalLoanPayments;
 
   return {
     income: snapshot.settings.income,
     totalFixedExpenses,
     totalVariableExpenses,
+    totalLoanPayments,
     totalExpenses,
     remainingIncome: snapshot.settings.income - totalExpenses,
     activeMonthKey: monthKey,
@@ -52,12 +58,15 @@ export function isValidBudgetSnapshot(value: unknown): value is BudgetSnapshot {
   );
 }
 
+const FIXED_EXPENSE_KINDS: FixedExpenseKind[] = ['subscription', 'directDebit'];
+
 export function sanitizeFixedExpense(expense: FixedExpense): FixedExpense {
   return {
     ...expense,
     amount: Number(expense.amount) || 0,
     dayOfMonth: expense.dayOfMonth === null ? null : Number(expense.dayOfMonth) || null,
     active: Boolean(expense.active),
+    kind: FIXED_EXPENSE_KINDS.includes(expense.kind) ? expense.kind : 'subscription',
   };
 }
 
@@ -65,6 +74,17 @@ export function sanitizeVariableExpense(expense: VariableExpense): VariableExpen
   return {
     ...expense,
     amount: Number(expense.amount) || 0,
+  };
+}
+
+export function sanitizeLoan(loan: Loan): Loan {
+  return {
+    ...loan,
+    principal: Number(loan.principal) || 0,
+    monthlyPayment: Number(loan.monthlyPayment) || 0,
+    interestRate: Number(loan.interestRate) || 0,
+    remainingMonths: loan.remainingMonths === null ? null : Number(loan.remainingMonths) || null,
+    active: Boolean(loan.active),
   };
 }
 
