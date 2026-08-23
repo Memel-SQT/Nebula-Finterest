@@ -279,7 +279,6 @@ export function App() {
         error={error}
         language={language}
         onSelect={(id) => { setSelectedAccountId(id); setAccountPin(''); setAuthStage('welcome'); }}
-        onAccountChange={setSelectedAccountId}
         onNameChange={setAccountName}
         onPinChange={setAccountPin}
         onContinue={() => setAuthStage('login')}

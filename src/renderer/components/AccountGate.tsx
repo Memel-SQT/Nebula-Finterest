@@ -16,7 +16,6 @@ export function AccountGate({
   error,
   language,
   onSelect,
-  onAccountChange,
   onNameChange,
   onPinChange,
   onContinue,
@@ -35,7 +34,6 @@ export function AccountGate({
   error: string | null;
   language: Language;
   onSelect: (id: string) => void;
-  onAccountChange: (value: string) => void;
   onNameChange: (value: string) => void;
   onPinChange: (value: string) => void;
   onContinue: () => void;
@@ -53,7 +51,7 @@ export function AccountGate({
     <main className="account-gate">
       <section className={`account-card ${stage === 'select' || stage === 'manage' ? 'account-card-wide' : ''}`}>
         <img src={logoUrl} alt="Finterest logo" />
-        <div key={stage} className="account-stage">
+        <div key={stage} className={`account-stage ${stage === 'welcome' || stage === 'login' ? 'account-stage-centered' : ''}`}>
         {stage === 'select' ? (
           <>
             <p className="eyebrow">{t('gate.localSpace')}</p>
@@ -75,8 +73,13 @@ export function AccountGate({
           </>
         ) : stage === 'welcome' ? (
           <>
-            <p className="eyebrow">{t('gate.welcome')}</p>
-            <h1>{t('gate.hello', { name: selectedAccount?.name ?? '' })}</h1>
+            <div className="account-identity">
+              <Avatar name={selectedAccount?.name ?? ''} avatarUrl={selectedAccount?.avatarUrl} size="lg" />
+              <div>
+                <p className="eyebrow">{t('gate.welcome')}</p>
+                <h1>{t('gate.hello', { name: selectedAccount?.name ?? '' })}</h1>
+              </div>
+            </div>
             <p className="account-intro">{t('gate.spaceReady')}</p>
             <button onClick={onContinue}>{t('gate.continue')}</button>
             <button className="ghost account-switch" onClick={onBack}>{t('gate.switchAccount')}</button>
@@ -116,15 +119,14 @@ export function AccountGate({
           />
         ) : (
           <>
-            <p className="eyebrow">{t('gate.login')}</p>
-            <h1>{t('gate.hello', { name: selectedAccount?.name ?? '' })}</h1>
+            <div className="account-identity">
+              <Avatar name={selectedAccount?.name ?? ''} avatarUrl={selectedAccount?.avatarUrl} size="lg" />
+              <div>
+                <p className="eyebrow">{t('gate.login')}</p>
+                <h1>{t('gate.hello', { name: selectedAccount?.name ?? '' })}</h1>
+              </div>
+            </div>
             <p className="account-intro">{t('gate.loginIntro')}</p>
-            <label>
-              {t('gate.account')}
-              <select value={selectedAccountId} onChange={(event) => onAccountChange(event.target.value)}>
-                {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
-              </select>
-            </label>
             <label>
               {t('gate.pinShort')}
               <input
