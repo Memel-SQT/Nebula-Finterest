@@ -8,6 +8,8 @@ declare global {
       createAccount(name: string, pin: string): Promise<LocalAccountSummary>;
       unlockAccount(id: string, pin: string): Promise<BudgetSnapshot>;
       deleteAccount(id: string, pin: string): Promise<void>;
+      renameAccount(name: string): Promise<LocalAccountSummary>;
+      chooseAvatar(): Promise<LocalAccountSummary | null>;
       lockAccount(): Promise<void>;
       getActiveAccount(): Promise<LocalAccountSummary | null>;
       getSnapshot(): Promise<BudgetSnapshot>;

@@ -7,7 +7,7 @@ const STORAGE_KEY = 'finterest-language';
 export type TranslationKey =
   | 'app.name' | 'app.tagline'
   | 'mode.simple' | 'mode.advanced' | 'mode.advancedNote'
-  | 'nav.overview' | 'nav.calendar' | 'nav.fixed' | 'nav.variable' | 'nav.loans' | 'nav.settings'
+  | 'nav.overview' | 'nav.calendar' | 'nav.fixed' | 'nav.variable' | 'nav.loans' | 'nav.settings' | 'nav.profile'
   | 'sidebar.localData' | 'sidebar.localDataNote'
   | 'view.overview.eyebrow' | 'view.overview.title'
   | 'view.calendar.eyebrow' | 'view.calendar.title'
@@ -15,6 +15,7 @@ export type TranslationKey =
   | 'view.variable.eyebrow' | 'view.variable.title'
   | 'view.loans.eyebrow' | 'view.loans.title'
   | 'view.settings.eyebrow' | 'view.settings.title'
+  | 'view.profile.eyebrow' | 'view.profile.title'
   | 'view.advanced.eyebrow' | 'view.advanced.title'
   | 'month.label'
   | 'card.income' | 'card.fixed' | 'card.variable' | 'card.loans' | 'card.remaining'
@@ -43,6 +44,7 @@ export type TranslationKey =
   | 'gate.chooseAnother'
   | 'manage.title' | 'manage.intro' | 'manage.delete' | 'manage.deleteConfirmPin' | 'manage.deleteConfirmButton'
   | 'manage.cancel' | 'manage.addAccount' | 'manage.back'
+  | 'profile.intro' | 'profile.changePhoto' | 'profile.pseudonym' | 'profile.save' | 'profile.switchAccount'
   | 'settings.title' | 'settings.description' | 'settings.export' | 'settings.import' | 'settings.path'
   | 'settings.loading' | 'settings.language'
   | 'advanced.title' | 'advanced.heading' | 'advanced.description' | 'advanced.capital' | 'advanced.rate'
@@ -56,7 +58,7 @@ export type TranslationKey =
   | 'error.negativeAmount' | 'error.storeNotInitialized' | 'error.invalidBackup'
   | 'error.openAccount' | 'error.loadBudget' | 'error.saveIncome' | 'error.saveMonth'
   | 'error.saveFixed' | 'error.saveVariable' | 'error.saveLoan' | 'error.exportBackup' | 'error.importBackup'
-  | 'error.deleteAccount';
+  | 'error.deleteAccount' | 'error.renameAccount' | 'error.setAvatar';
 
 export const fr: Record<TranslationKey, string> = {
   'app.name': 'Finterest',
@@ -70,6 +72,7 @@ export const fr: Record<TranslationKey, string> = {
   'nav.variable': 'Achats prévus',
   'nav.loans': 'Prêts',
   'nav.settings': 'Sauvegarde',
+  'nav.profile': 'Profil',
   'sidebar.localData': 'Données locales',
   'sidebar.localDataNote': 'Enregistrées sur cet ordinateur',
   'view.overview.eyebrow': 'Votre budget',
@@ -84,6 +87,8 @@ export const fr: Record<TranslationKey, string> = {
   'view.loans.title': 'Mes prêts bancaires',
   'view.settings.eyebrow': 'Données et sauvegarde',
   'view.settings.title': 'Sauvegarder mes données',
+  'view.profile.eyebrow': 'Mon compte',
+  'view.profile.title': 'Mon profil',
   'view.advanced.eyebrow': 'Outils économiques',
   'view.advanced.title': 'Calcul avancé',
   'month.label': 'Mois concerné',
@@ -176,6 +181,11 @@ export const fr: Record<TranslationKey, string> = {
   'manage.cancel': 'Annuler',
   'manage.addAccount': 'Ajouter un compte',
   'manage.back': 'Retour',
+  'profile.intro': 'Personnalisez votre profil sur cet ordinateur.',
+  'profile.changePhoto': 'Changer la photo',
+  'profile.pseudonym': 'Pseudonyme',
+  'profile.save': 'Enregistrer',
+  'profile.switchAccount': 'Changer de compte',
   'settings.title': 'Données locales',
   'settings.description': 'Finterest conserve votre budget uniquement sur cet ordinateur. Utilisez une sauvegarde pour le transférer.',
   'settings.export': 'Exporter la sauvegarde',
@@ -224,6 +234,8 @@ export const fr: Record<TranslationKey, string> = {
   'error.exportBackup': "Impossible d'exporter la sauvegarde.",
   'error.importBackup': "Impossible d'importer la sauvegarde.",
   'error.deleteAccount': 'Impossible de supprimer ce compte.',
+  'error.renameAccount': 'Impossible de renommer ce compte.',
+  'error.setAvatar': "Impossible de changer la photo de profil.",
 };
 
 export const en: Record<TranslationKey, string> = {
@@ -238,6 +250,7 @@ export const en: Record<TranslationKey, string> = {
   'nav.variable': 'Planned purchases',
   'nav.loans': 'Loans',
   'nav.settings': 'Backup',
+  'nav.profile': 'Profile',
   'sidebar.localData': 'Local data',
   'sidebar.localDataNote': 'Stored on this computer',
   'view.overview.eyebrow': 'Your budget',
@@ -252,6 +265,8 @@ export const en: Record<TranslationKey, string> = {
   'view.loans.title': 'My bank loans',
   'view.settings.eyebrow': 'Data and backup',
   'view.settings.title': 'Back up my data',
+  'view.profile.eyebrow': 'My account',
+  'view.profile.title': 'My profile',
   'view.advanced.eyebrow': 'Economic tools',
   'view.advanced.title': 'Advanced calculator',
   'month.label': 'Month',
@@ -344,6 +359,11 @@ export const en: Record<TranslationKey, string> = {
   'manage.cancel': 'Cancel',
   'manage.addAccount': 'Add an account',
   'manage.back': 'Back',
+  'profile.intro': 'Customize your profile on this computer.',
+  'profile.changePhoto': 'Change photo',
+  'profile.pseudonym': 'Nickname',
+  'profile.save': 'Save',
+  'profile.switchAccount': 'Switch account',
   'settings.title': 'Local data',
   'settings.description': 'Finterest keeps your budget only on this computer. Use a backup to transfer it.',
   'settings.export': 'Export backup',
@@ -392,6 +412,8 @@ export const en: Record<TranslationKey, string> = {
   'error.exportBackup': 'Unable to export the backup.',
   'error.importBackup': 'Unable to import the backup.',
   'error.deleteAccount': 'Unable to delete this account.',
+  'error.renameAccount': 'Unable to rename this account.',
+  'error.setAvatar': 'Unable to change the profile picture.',
 };
 
 const dictionaries: Record<Language, Record<TranslationKey, string>> = { fr, en };

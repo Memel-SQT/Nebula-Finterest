@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="finterest-gradient" x1="160" y1="160" x2="864" y2="864" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2ac98c"/>
+      <stop offset="1" stop-color="#1b8f5f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="#080b0d"/>
+  <path d="M304 736V288h400" fill="none" stroke="url(#finterest-gradient)" stroke-linecap="round" stroke-linejoin="round" stroke-width="88"/>
+  <path d="M304 496h264" fill="none" stroke="url(#finterest-gradient)" stroke-linecap="round" stroke-linejoin="round" stroke-width="88"/>
+  <circle cx="744" cy="736" r="56" fill="#cda75a"/>
+</svg>

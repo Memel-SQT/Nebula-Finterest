@@ -107,6 +107,20 @@ function registerIpcHandlers(): void {
   ipcMain.handle('account:create', async (_event, name: string, pin: string) => accountManager.create(name, pin));
   ipcMain.handle('account:unlock', async (_event, id: string, pin: string) => accountManager.unlock(id, pin));
   ipcMain.handle('account:delete', async (_event, id: string, pin: string) => accountManager.delete(id, pin));
+  ipcMain.handle('account:rename', async (_event, name: string) => accountManager.renameActive(name));
+  ipcMain.handle('account:chooseAvatar', async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Choisir une photo de profil',
+      properties: ['openFile'],
+      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }],
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return null;
+    }
+
+    return accountManager.setActiveAvatar(result.filePaths[0]);
+  });
   ipcMain.handle('account:lock', () => accountManager.lock());
   ipcMain.handle('account:active', () => accountManager.getActive());
   ipcMain.handle('budget:getSnapshot', async () => accountManager.getStore().getSnapshot());

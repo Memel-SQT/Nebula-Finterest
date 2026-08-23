@@ -3,6 +3,13 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import { categoryIcon } from '../constants';
 
+export function Avatar({ name, avatarUrl, size = 'md' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' }) {
+  if (avatarUrl) {
+    return <img className={`avatar avatar-${size}`} src={avatarUrl} alt="" />;
+  }
+  return <span className={`avatar avatar-${size} avatar-fallback`}>{name.slice(0, 1).toUpperCase()}</span>;
+}
+
 export function NavButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: string; onClick: () => void }) {
   return (
     <button className={`nav-button ${active ? 'active' : ''}`} onClick={onClick}>
