@@ -42,9 +42,14 @@ async function main() {
 
   execFileSync(rcedit, [APP_EXE, '--set-icon', ICON_PATH], { stdio: 'inherit' });
 
-  const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-  execFileSync(npxCommand, ['electron-builder', '--win', 'nsis', `--config.directories.output=${OUTPUT_DIR}`, '--prepackaged', UNPACKED_DIR], {
-    stdio: 'inherit',
+  // Use electron-builder's programmatic API rather than shelling out to `npx electron-builder`:
+  // spawning npx.cmd via execFileSync fails on Windows (EINVAL) without a shell, and adding
+  // shell:true would reintroduce the argument-escaping warning/risk this script avoids elsewhere.
+  const { build, createTargets, Platform } = require('electron-builder');
+  await build({
+    targets: createTargets([Platform.WINDOWS], 'nsis'),
+    prepackaged: UNPACKED_DIR,
+    config: { directories: { output: OUTPUT_DIR } },
   });
 
   console.log('[fix-windows-icon] Applied build/icon.ico to the packaged exe and rebuilt the installer.');
