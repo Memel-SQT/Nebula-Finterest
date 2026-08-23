@@ -13,7 +13,7 @@ Finterest est une application de bureau **locale et hors ligne** qui aide une se
 - Vue d'ensemble avec anneau de progression et résumé du mois.
 
 **Calcul avancé**
-- Simulateur d'intérêts composés indépendant du budget, avec capital de départ, investissement mensuel régulier, taux annuel et durée — pour estimer la valeur future d'une épargne. Ce calcul est fourni à titre indicatif et ne remplace pas un conseil financier.
+- Simulateur d'intérêts composés indépendant du budget, avec capital de départ, investissement mensuel régulier, taux annuel et durée — pour estimer la valeur future d'une épargne programmée. Ce calcul est fourni à titre indicatif et ne remplace pas un conseil financier.
 
 **Comptes et confidentialité**
 - Plusieurs comptes locaux sur le même ordinateur, chacun avec son propre budget et un code secret (PIN).
@@ -53,5 +53,28 @@ Votre budget est stocké uniquement sur votre ordinateur, dans le dossier de don
 
 - [`PATCH_NOTES.md`](PATCH_NOTES.md) — historique des versions, orienté utilisateur.
 - [`USER_UPDATE_SUMMARY.txt`](USER_UPDATE_SUMMARY.txt) — explication en langage simple de chaque mise à jour.
+- [`DEV_CHANGES.md`](DEV_CHANGES.md) — journal technique détaillé de chaque session de développement.
 
-Pour la documentation technique (architecture, développement, build), voir [`README.txt`](README.txt).
+## Pour les développeurs
+
+Stack : Electron, TypeScript, React, SQL.js (SQLite local), Vite + tsup, Jest, electron-updater/electron-builder.
+
+Prérequis : Node.js 20 ou plus récent.
+
+```
+npm install                 # installe les dépendances
+npm run dev                  # lance l'app en développement (Vite + Electron)
+npm run build                 # build de production (renderer + main process)
+npm run dist:win              # génère l'installeur Windows (install/windows/)
+npm run typecheck              # vérification TypeScript
+npm run lint                    # ESLint
+npm test                         # tests Jest
+```
+
+Architecture en bref :
+- `src/electron/` — process principal Electron, pont preload, et couche de persistance locale (SQLite via sql.js).
+- `src/renderer/` — interface React ; `src/renderer/components/` contient les écrans (compte, calendrier, prêts, réglages, profil, tableau de bord) ; `i18n.ts` et `theme.ts` gèrent respectivement la langue et le thème clair/sombre/système.
+- `src/shared/` — types et calculs de budget partagés entre les deux processus.
+- `assets/` et `build/` — logo, icônes source, et icône packagée pour Windows/macOS/Linux.
+
+Le journal technique complet de chaque changement se trouve dans [`DEV_CHANGES.md`](DEV_CHANGES.md).

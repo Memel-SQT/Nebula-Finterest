@@ -1,3 +1,12 @@
+## [2026-08-23] - Finterest Change Session #34
+- Files removed: `README.txt`.
+- Files modified: `README.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, `DEV_CHANGES.md`.
+- Per explicit user request, removed `README.txt` and consolidated its still-relevant content into `README.md` (tech stack, setup/build commands, a short architecture overview) under a new "Pour les développeurs" section, on top of the user-facing content already there from Session #33. `README.txt`'s long history of session-by-session "Current notes" bullets was not migrated verbatim — that level of detail already lives in this file (`DEV_CHANGES.md`); `README.md` now carries only the durable facts a developer needs today.
+- Updated the mandatory-documentation contract itself: `.github/copilot-instructions.md` section 5.1 (previously "README.txt") now names `README.md` as the required file, and its two other `README.txt` references (in the request-workflow checklist and the backup-requirements section) were updated to match. `CLAUDE.md`'s two references were updated the same way.
+- No entry was added to `PATCH_NOTES.md`/`USER_UPDATE_SUMMARY.txt` for this change — it's a repository documentation reshuffle with zero effect on the packaged app's behavior, so there is nothing user-facing to report there.
+- Rebuilt `install/windows/Finterest Setup 0.1.0.exe` at the top of this session (before the README work) to pick up all of Session #33's changes; no source code changed since, so that build is still current and was not rebuilt again.
+- Validation: `npm run typecheck`, `npm run lint`, and `npm test -- --runInBand` all pass (no source files changed, confirms nothing was broken by the doc-only edits).
+
 ## [2026-08-23] - Finterest Change Session #33
 - Files added: `src/renderer/theme.ts`, `src/renderer/components/Dashboard.tsx`.
 - Files removed: `icon.png` (root, 1.3 MB, orphaned since the new logo was created).
