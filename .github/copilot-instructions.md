@@ -112,9 +112,8 @@ For **every request** and **every non-trivial change** you make to the repositor
 1. `README.md`
 2. `DEV_CHANGES.md`
 3. `PATCH_NOTES.md`
-4. `USER_UPDATE_SUMMARY.txt`
 
-This is **not optional**. It is a hard requirement.
+This is **not optional**. It is a hard requirement. (A previous `USER_UPDATE_SUMMARY.txt` duplicated `PATCH_NOTES.md` for end users; it was removed so there is exactly one clear, user-facing changelog.)
 
 ### 5.1 README.md
 
@@ -161,35 +160,19 @@ This file is for **you and other developers**. It must be explicit and exhaustiv
 
 ### 5.3 PATCH_NOTES.md
 
-Purpose: patch notes intended for Gitea users and project contributors.
+Purpose: the single, clear, user-facing changelog — both what changed and, where relevant, how to use it.
 
 For each change session, append a new section at the top of `PATCH_NOTES.md` with:
 
 - A version label (e.g., `## Finterest v0.1.0`, `## Finterest v0.1.1`, etc.) or a human-readable tag.
-- Short summary in bullet points, focusing on **what changed** from the user’s perspective:
+- Short summary in bullet points, in plain language, focusing on **what changed** from the user's perspective:
   - New features.
   - Improvements.
   - Bug fixes.
   - Breaking changes, if any.
-- Any required action (e.g., “Run migration script X”, “Export data before updating”, etc.).
+- Any required action (e.g., "Run migration script X", "Export data before updating", etc.), with short step-by-step instructions when relevant (e.g., "To use the new variable expenses filter, open the 'Variable expenses' tab, then…").
 
-PATCH_NOTES.md must be **concise, user-facing** and suitable for publishing in Gitea release notes.
-
-### 5.4 USER_UPDATE_SUMMARY.txt
-
-Purpose: simple explanation for the end user, in clear language, describing:
-
-- What was changed in this update.
-- How to use the new or modified features.
-- Any impact on existing data or workflows.
-
-For each change session, you MUST:
-
-- Append a new section at the top of this file.
-- Use plain, explicit wording.
-- Give short step-by-step instructions, if relevant (e.g., “To use the new variable expenses filter, open the 'Variable expenses' tab, then…”).
-
-This file is the **human-readable guide** for the person using the Finterest desktop app.
+PATCH_NOTES.md must stay **concise and readable by a non-technical user** — it is both the release-notes file and the human-readable guide for the person using the Finterest desktop app, so do not let it drift into developer-level detail (that belongs in `DEV_CHANGES.md`).
 
 ## 6. Behavior Per Request
 
@@ -201,11 +184,10 @@ For **every** instruction or request you receive:
    - Builds successfully.
    - Runs without obvious errors.
    - Keeps existing data safe, or provides migrations if necessary.
-4. Update all four documentation files:
+4. Update all three documentation files:
    - `README.md`
    - `DEV_CHANGES.md`
    - `PATCH_NOTES.md`
-   - `USER_UPDATE_SUMMARY.txt`
 5. Present the resulting code and explain briefly what was done.
 
 You must never deliver partial, uncompilable snippets without also explaining where they fit and how they integrate into the existing structure.
@@ -282,7 +264,7 @@ Requirements:
 - The preferred backup format for full migration is a single structured file (JSON-based backup with metadata, or a full validated app backup format).
 - The app must validate the imported file before replacing current data.
 - The restore process must be transactional or otherwise safe against corruption.
-- The README.md and USER_UPDATE_SUMMARY.txt must explain exactly how to export and restore data on another machine.
+- The README.md and PATCH_NOTES.md must explain exactly how to export and restore data on another machine.
 - The app should also support optional CSV export for spreadsheet use, but CSV alone is NOT sufficient for full machine-to-machine migration.
 
 Goal:

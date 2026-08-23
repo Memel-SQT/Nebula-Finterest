@@ -32,7 +32,7 @@ Finterest est une application de bureau **locale et hors ligne** qui aide une se
 ## Installation
 
 ### Windows
-Téléchargez le dernier installeur (`Finterest Setup x.x.x.exe`) depuis les [Releases](../../releases) du dépôt, puis lancez-le. Finterest s'installe pour votre utilisateur, sans droits administrateur.
+Téléchargez le dernier installeur (`Finterest-Setup-x.x.x.exe`) depuis les [Releases](../../releases) du dépôt, puis lancez-le. Finterest s'installe pour votre utilisateur, sans droits administrateur.
 
 ### macOS et Linux
 Des versions macOS (`.dmg`) et Linux (`AppImage`) sont **prévues** mais **pas encore disponibles** — ce n'est pas la priorité actuelle du projet. Windows reste la seule plateforme activement distribuée pour le moment.
@@ -52,7 +52,6 @@ Votre budget est stocké uniquement sur votre ordinateur, dans le dossier de don
 ## En savoir plus
 
 - [`PATCH_NOTES.md`](PATCH_NOTES.md) — historique des versions, orienté utilisateur.
-- [`USER_UPDATE_SUMMARY.txt`](USER_UPDATE_SUMMARY.txt) — explication en langage simple de chaque mise à jour.
 - [`DEV_CHANGES.md`](DEV_CHANGES.md) — journal technique détaillé de chaque session de développement.
 
 ## Pour les développeurs
