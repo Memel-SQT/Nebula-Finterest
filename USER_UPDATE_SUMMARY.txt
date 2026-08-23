@@ -1,3 +1,17 @@
+Finterest update summary - 2026-08-23 (login screen redesign, spacing fix, darker light theme)
+
+What changed
+- Fixed a bug where some buttons on the login screen sat too close to the field above them.
+- The light theme is now a bit darker and less bright.
+- The "Welcome" and "Login" screens now show your profile photo prominently, matching the account picker's look.
+- A few new subtle animations: the budget ring animates smoothly, banners slide in, buttons give a small press effect.
+
+How to use it
+- Nothing to do — these changes apply automatically the next time you open Finterest after updating.
+
+Data impact
+- No accounts, budgets, or backup files are changed by this update.
+
 Finterest update summary - 2026-08-23 (light theme, cleaner look, reorganized settings, investment calculator)
 
 What changed

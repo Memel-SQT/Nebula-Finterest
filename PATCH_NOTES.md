@@ -1,3 +1,9 @@
+## Finterest v0.1.33
+- Corrigé : certains boutons de l'écran de connexion étaient trop proches du texte au-dessus (largeur mal calculée).
+- Thème clair assombri pour un rendu moins éblouissant.
+- Écrans « Bienvenue » et « Connexion » entièrement repensés : votre photo de profil apparaît en grand, dans le même esprit que l'écran de sélection des comptes.
+- Quelques nouvelles animations discrètes : anneau de budget qui s'anime en douceur, bannières qui glissent à l'apparition, retour visuel au clic sur les boutons.
+
 ## Finterest v0.1.32
 - Nouveau thème clair, en plus du thème sombre, avec une option « Système » qui suit automatiquement les préférences de Windows.
 - Interface visuellement épurée : moins de dégradés décoratifs, ombres plus discrètes.
