@@ -19,16 +19,10 @@ jobs:
             command: npm run dist:win
             artifact: windows-installer
             output: install/windows/*
-          - platform: macos
-            os: macos-latest
-            command: npm run dist:mac
-            artifact: macos-dmg
-            output: install/mac/*
-          - platform: linux
-            os: ubuntu-latest
-            command: npm run dist:linux
-            artifact: linux-appimage
-            output: install/linux/*
+          # macOS and Linux builds are on standby: not currently published or
+          # prioritized (see README.md). The dist:mac / dist:linux scripts still
+          # work locally on their native platform; re-add these matrix entries
+          # when that changes.
 
     steps:
       - name: Checkout
