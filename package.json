@@ -73,6 +73,7 @@
       "target": [
         "nsis"
       ],
+      "icon": "build/icon.png",
       "signAndEditExecutable": false
     },
     "nsis": {
@@ -82,12 +83,14 @@
     "mac": {
       "target": [
         "dmg"
-      ]
+      ],
+      "icon": "build/icon.png"
     },
     "linux": {
       "target": [
         "AppImage"
-      ]
+      ],
+      "icon": "build/icon.png"
     }
   }
 }

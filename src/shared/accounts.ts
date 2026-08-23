@@ -1,6 +1,7 @@
 export interface LocalAccountSummary {
   id: string;
   name: string;
+  avatarUrl?: string;
 }
 
 export interface AccountSession {

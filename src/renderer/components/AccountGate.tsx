@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import type { LocalAccountSummary } from '@shared/accounts';
+import { Avatar } from './atoms';
 import logoUrl from '../../../assets/finterest-logo.svg';
 
 export type AuthStage = 'select' | 'welcome' | 'login' | 'create' | 'manage';
@@ -60,7 +61,7 @@ export function AccountGate({
             <div className="account-list">
               {accounts.map((account) => (
                 <button className="account-choice" key={account.id} onClick={() => onSelect(account.id)}>
-                  <span>{account.name.slice(0, 1).toUpperCase()}</span>
+                  <Avatar name={account.name} avatarUrl={account.avatarUrl} />
                   <strong>{account.name}</strong>
                   <b>›</b>
                 </button>
@@ -170,7 +171,7 @@ function AccountManagement({
       <div className="account-list">
         {accounts.map((account) => (
           <div className="account-choice manage-row" key={account.id}>
-            <span>{account.name.slice(0, 1).toUpperCase()}</span>
+            <Avatar name={account.name} avatarUrl={account.avatarUrl} />
             <strong>{account.name}</strong>
             {confirmingId === account.id ? null : (
               <button className="ghost small" onClick={() => { setConfirmingId(account.id); setConfirmPin(''); }}>{t('manage.delete')}</button>

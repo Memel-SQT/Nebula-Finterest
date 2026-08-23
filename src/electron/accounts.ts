@@ -1,15 +1,17 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { app } from 'electron';
 import { BudgetStore } from './store';
 import type { BudgetSnapshot, FullBackupFile } from '../shared/types';
 import type { AccountBackup, LocalAccountSummary } from '../shared/accounts';
 
-interface AccountRecord extends LocalAccountSummary { pinHash: string; pinSalt: string; }
+interface AccountRecord extends LocalAccountSummary { pinHash: string; pinSalt: string; avatarFile?: string; }
 
 export class AccountManager {
   private readonly accountsPath = path.join(app.getPath('userData'), 'accounts.json');
+  private readonly avatarsDir = path.join(app.getPath('userData'), 'avatars');
   private records: AccountRecord[] = [];
   private active: { record: AccountRecord; store: BudgetStore } | null = null;
 
@@ -17,15 +19,15 @@ export class AccountManager {
     try { this.records = JSON.parse(await fs.readFile(this.accountsPath, 'utf8')) as AccountRecord[]; } catch { this.records = []; }
   }
 
-  list(): LocalAccountSummary[] { return this.records.map(({ id, name }) => ({ id, name })); }
+  list(): LocalAccountSummary[] { return this.records.map((record) => this.toSummary(record)); }
 
   async create(name: string, pin: string): Promise<LocalAccountSummary> {
     this.assertCredentials(name, pin);
-    const record = { id: crypto.randomUUID(), name: name.trim(), ...this.hashPin(pin) };
+    const record: AccountRecord = { id: crypto.randomUUID(), name: name.trim(), ...this.hashPin(pin) };
     this.records.push(record);
     await this.saveRecords();
     await this.open(record);
-    return { id: record.id, name: record.name };
+    return this.toSummary(record);
   }
 
   async unlock(id: string, pin: string): Promise<BudgetSnapshot> {
@@ -48,11 +50,40 @@ export class AccountManager {
 
     const databasePath = path.join(app.getPath('userData'), `finterest-${record.id}.sqlite`);
     await fs.rm(databasePath, { force: true });
+    if (record.avatarFile) {
+      await fs.rm(path.join(this.avatarsDir, record.avatarFile), { force: true });
+    }
   }
 
   lock(): void { this.active = null; }
-  getActive(): LocalAccountSummary | null { return this.active ? { id: this.active.record.id, name: this.active.record.name } : null; }
+  getActive(): LocalAccountSummary | null { return this.active ? this.toSummary(this.active.record) : null; }
   getStore(): BudgetStore { return this.requireActive().store; }
+
+  async renameActive(name: string): Promise<LocalAccountSummary> {
+    const active = this.requireActive();
+    if (name.trim().length < 2) throw new Error('ERR_INVALID_ACCOUNT_NAME');
+    active.record.name = name.trim();
+    await this.saveRecords();
+    return this.toSummary(active.record);
+  }
+
+  async setActiveAvatar(sourceFilePath: string): Promise<LocalAccountSummary> {
+    const active = this.requireActive();
+    await fs.mkdir(this.avatarsDir, { recursive: true });
+
+    const extension = path.extname(sourceFilePath) || '.png';
+    const fileName = `${active.record.id}${extension}`;
+    const destinationPath = path.join(this.avatarsDir, fileName);
+
+    if (active.record.avatarFile && active.record.avatarFile !== fileName) {
+      await fs.rm(path.join(this.avatarsDir, active.record.avatarFile), { force: true });
+    }
+
+    await fs.copyFile(sourceFilePath, destinationPath);
+    active.record.avatarFile = fileName;
+    await this.saveRecords();
+    return this.toSummary(active.record);
+  }
 
   async exportActive(): Promise<AccountBackup> {
     const active = this.requireActive();
@@ -70,6 +101,11 @@ export class AccountManager {
     }
 
     return { app: 'Finterest', version: 1, exportedAt: new Date().toISOString(), accounts };
+  }
+
+  private toSummary(record: AccountRecord): LocalAccountSummary {
+    const avatarUrl = record.avatarFile ? pathToFileURL(path.join(this.avatarsDir, record.avatarFile)).href : undefined;
+    return { id: record.id, name: record.name, avatarUrl };
   }
 
   private async open(record: AccountRecord): Promise<void> {

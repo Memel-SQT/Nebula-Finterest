@@ -1,3 +1,20 @@
+Finterest update summary - 2026-08-23 (premium dark redesign, profiles, account switching)
+
+What changed
+- The whole app has a new look: a darker, more premium theme with a single emerald accent and subtle gold highlights, replacing the previous copper theme.
+- Finterest has a new logo and application icon.
+- You can now personalize your profile with a photo and a nickname, from a new "Profil" screen.
+- Account photos now show as circles on the account selection screen.
+- A new screen lets you switch to a different local account without closing the app.
+
+How to use it
+1. Open the "Profil" tab from the sidebar (or click your name at the top of the sidebar) to change your photo or pseudonym.
+2. Click "Changer de compte" on that screen to return to account selection without quitting Finterest.
+3. From account selection, your photo (once set) appears next to your name in a circle, just like the other local accounts.
+
+Data impact
+- No existing accounts, budgets, or backup files are altered by this update. Profile photos are stored as separate files on this computer and are not yet included in the regular backup export.
+
 Finterest update summary - 2026-08-23 (loans, subscription types, language switch, account management)
 
 What changed

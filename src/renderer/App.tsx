@@ -5,18 +5,19 @@ import type { BudgetSnapshot, FixedExpenseKind, UpdateStatus } from '@shared/typ
 import type { LocalAccountSummary } from '@shared/accounts';
 import { translate, translateError, useLanguage } from './i18n';
 import { formatMoney, subscriptionCategories } from './constants';
-import { Card, FieldGroup, ListCard, NavButton } from './components/atoms';
+import { Avatar, Card, FieldGroup, ListCard, NavButton } from './components/atoms';
 import { AccountGate, type AuthStage } from './components/AccountGate';
 import { SubscriptionCalendar } from './components/SubscriptionCalendar';
 import { AdvancedCalculator } from './components/AdvancedCalculator';
 import { SettingsPanel } from './components/SettingsPanel';
 import { LoansPanel, type LoanFormState } from './components/LoansPanel';
+import { ProfileScreen } from './components/ProfileScreen';
 import logoUrl from '../../assets/finterest-logo.svg';
 
 const emptyExpense = { name: '', amount: 0, category: '' };
 const emptyLoanForm: LoanFormState = { name: '', principal: '', monthlyPayment: '', rate: '', remainingMonths: '' };
 
-type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'loans' | 'settings';
+type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'loans' | 'profile' | 'settings';
 
 export function App() {
   const [language, setLanguage] = useLanguage();
@@ -34,6 +35,7 @@ export function App() {
   const [loanForm, setLoanForm] = useState<LoanFormState>(emptyLoanForm);
   const [activeMonthKey, setActiveMonthKey] = useState(getMonthKey(new Date()));
   const [accounts, setAccounts] = useState<LocalAccountSummary[]>([]);
+  const [activeAccount, setActiveAccount] = useState<LocalAccountSummary | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [accountName, setAccountName] = useState('');
   const [accountPin, setAccountPin] = useState('');
@@ -70,11 +72,13 @@ export function App() {
       if (authStage === 'create' || accounts.length === 0 || isCreatingAccount) {
         const account = await window.finterest.createAccount(accountName, accountPin);
         setAccounts([account]);
+        setActiveAccount(account);
         setSelectedAccountId(account.id);
         setSnapshot(await window.finterest.getSnapshot());
         setIsCreatingAccount(false);
       } else {
         setSnapshot(await window.finterest.unlockAccount(selectedAccountId, accountPin));
+        setActiveAccount(await window.finterest.getActiveAccount());
       }
       setAccountPin('');
     } catch (thrown) {
@@ -90,6 +94,36 @@ export function App() {
     } catch (thrown) {
       setError(translateError(language, thrown, 'error.deleteAccount'));
     }
+  }
+
+  async function handleRenameAccount(name: string): Promise<void> {
+    try {
+      setError(null);
+      setActiveAccount(await window.finterest.renameAccount(name));
+    } catch (thrown) {
+      setError(translateError(language, thrown, 'error.renameAccount'));
+    }
+  }
+
+  async function handleChangeAvatar(): Promise<void> {
+    try {
+      setError(null);
+      const updated = await window.finterest.chooseAvatar();
+      if (updated) {
+        setActiveAccount(updated);
+      }
+    } catch (thrown) {
+      setError(translateError(language, thrown, 'error.setAvatar'));
+    }
+  }
+
+  async function handleSwitchAccount(): Promise<void> {
+    await window.finterest.lockAccount();
+    setSnapshot(null);
+    setActiveAccount(null);
+    setAccountPin('');
+    setError(null);
+    await loadAccounts();
   }
 
   async function loadDatabasePath(): Promise<void> {
@@ -258,6 +292,7 @@ export function App() {
     fixed: { eyebrow: 'view.fixed.eyebrow', title: 'view.fixed.title' },
     variable: { eyebrow: 'view.variable.eyebrow', title: 'view.variable.title' },
     loans: { eyebrow: 'view.loans.eyebrow', title: 'view.loans.title' },
+    profile: { eyebrow: 'view.profile.eyebrow', title: 'view.profile.title' },
     settings: { eyebrow: 'view.settings.eyebrow', title: 'view.settings.title' },
   };
 
@@ -270,6 +305,13 @@ export function App() {
           <img src={logoUrl} alt="Finterest logo" />
           <div><strong>{t('app.name')}</strong><span>{t('app.tagline')}</span></div>
         </div>
+        {activeMode === 'simple' && activeAccount ? (
+          <button className="profile-chip" onClick={() => setActiveView('profile')}>
+            <Avatar name={activeAccount.name} avatarUrl={activeAccount.avatarUrl} size="sm" />
+            <span>{activeAccount.name}</span>
+            <b>›</b>
+          </button>
+        ) : null}
         <div className="mode-switch" aria-label="Mode de calcul">
           <button className={activeMode === 'simple' ? 'selected' : 'ghost'} onClick={() => setActiveMode('simple')}>{t('mode.simple')}</button>
           <button className={activeMode === 'advanced' ? 'selected' : 'ghost'} onClick={() => setActiveMode('advanced')}>{t('mode.advanced')}</button>
@@ -281,6 +323,7 @@ export function App() {
             <NavButton active={activeView === 'fixed'} label={t('nav.fixed')} onClick={() => setActiveView('fixed')} icon="▤" />
             <NavButton active={activeView === 'variable'} label={t('nav.variable')} onClick={() => setActiveView('variable')} icon="⌁" />
             <NavButton active={activeView === 'loans'} label={t('nav.loans')} onClick={() => setActiveView('loans')} icon="▣" />
+            <NavButton active={activeView === 'profile'} label={t('nav.profile')} onClick={() => setActiveView('profile')} icon="◍" />
             <NavButton active={activeView === 'settings'} label={t('nav.settings')} onClick={() => setActiveView('settings')} icon="⚙" />
           </nav>
         ) : (
@@ -329,6 +372,16 @@ export function App() {
 
         {activeMode === 'simple' && activeView === 'settings' ? (
           <SettingsPanel databasePath={databasePath} language={language} onExport={handleExportBackup} onImport={handleImportBackup} onLanguageChange={setLanguage} />
+        ) : null}
+
+        {activeMode === 'simple' && activeView === 'profile' && activeAccount ? (
+          <ProfileScreen
+            account={activeAccount}
+            language={language}
+            onRename={handleRenameAccount}
+            onChangePhoto={handleChangeAvatar}
+            onSwitchAccount={() => void handleSwitchAccount()}
+          />
         ) : null}
 
         {showKpis ? (

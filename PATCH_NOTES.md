@@ -1,3 +1,11 @@
+## Finterest v0.1.28
+- Nouveau thème visuel sombre et premium : fonds quasi noirs, accent émeraude, touches dorées discrètes — remplace l'ancien thème cuivré.
+- Nouveau logo et nouvelle icône de l'application.
+- Personnalisez votre profil : photo et pseudonyme, modifiables depuis un nouvel écran « Profil ».
+- Les comptes affichent maintenant leur photo en rond sur l'écran de sélection.
+- Nouvel écran dédié pour changer de compte sans fermer l'application (accessible depuis la puce de profil en haut de la barre latérale).
+- Le mécanisme de sauvegarde automatique avant désinstallation a été vérifié techniquement contre electron-builder ; un test manuel d'installation/désinstallation reste à faire avant publication.
+
 ## Finterest v0.1.27
 - Ajout d'une section « Prêts » pour suivre vos crédits bancaires (montant, mensualité, taux, durée restante). Les mensualités actives sont désormais comptées dans votre reste à vivre.
 - Les abonnements sont renommés « Abonnements / Prélèvements » : chaque élément a maintenant un type (Abonnement ou Prélèvement) affiché en badge.
