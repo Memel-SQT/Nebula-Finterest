@@ -1,3 +1,10 @@
+## Nebula Finterest v0.1.35
+- L'application s'appelle désormais **Nebula Finterest** et rejoint l'identité visuelle des projets Nebula : nouveau logo (orbite, barres ascendantes et étoile), nouvelle icône, fonds bleu nuit et accent bleu→violet, avec un halo de nébuleuse qui dérive lentement en arrière-plan.
+- Deux nouveaux thèmes, **Nebula sombre** et **Nebula clair**, deviennent l'apparence par défaut. Les anciens thèmes restent disponibles dans les réglages sous les noms **Old sombre** et **Old clair** — rien n'est perdu si vous les préfériez.
+- Nouvel écran de démarrage animé : le halo respire, l'orbite se trace, les barres poussent et l'étoile éclot avant l'apparition du nom.
+- Animations revues dans toute l'application : entrées en cascade des cartes, apparition de la barre latérale, retours au survol et au clic plus francs — le tout volontairement discret plutôt que chargé.
+- Vos comptes et vos budgets sont conservés malgré le changement de nom : la mise à jour depuis une version précédente n'exige aucune manipulation.
+
 ## Finterest v0.1.34
 - Nouveau : « Essayer sans compte » sur l'écran de connexion vous laisse parcourir Finterest avec un budget d'exemple, sans créer de compte. Rien n'est enregistré : tout disparaît en changeant de compte ou en fermant l'application.
 

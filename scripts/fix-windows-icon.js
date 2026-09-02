@@ -19,7 +19,9 @@ const https = require('node:https');
 
 const OUTPUT_DIR = path.join(__dirname, '..', 'install', 'windows');
 const UNPACKED_DIR = path.join(OUTPUT_DIR, 'win-unpacked');
-const APP_EXE = path.join(UNPACKED_DIR, 'Finterest.exe');
+// electron-builder names the packaged exe after build.productName, so read it rather
+// than hard-coding it (it changed once already, with the Nebula Finterest rename).
+const APP_EXE = path.join(UNPACKED_DIR, `${require('../package.json').build.productName}.exe`);
 const ICON_PATH = path.join(__dirname, '..', 'build', 'icon.ico');
 const RCEDIT_CACHE_PATH = path.join(__dirname, '..', 'node_modules', '.cache', 'rcedit-x64.exe');
 const RCEDIT_DOWNLOAD_URL = 'https://github.com/electron/rcedit/releases/latest/download/rcedit-x64.exe';

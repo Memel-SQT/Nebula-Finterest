@@ -1,12 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="nebula-finterest-icon-title">
+  <title id="nebula-finterest-icon-title">Nebula Finterest</title>
   <defs>
-    <linearGradient id="finterest-gradient" x1="160" y1="160" x2="864" y2="864" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2ac98c"/>
-      <stop offset="1" stop-color="#1b8f5f"/>
+    <linearGradient id="nebula-icon-gradient" x1="128" y1="128" x2="896" y2="896" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4C6EF5"/>
+      <stop offset="1" stop-color="#A855F7"/>
     </linearGradient>
+    <radialGradient id="nebula-icon-glow" cx="0.5" cy="0.32" r="0.78">
+      <stop stop-color="#8B5CF6" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="1024" height="1024" fill="#080b0d"/>
-  <path d="M304 736V288h400" fill="none" stroke="url(#finterest-gradient)" stroke-linecap="round" stroke-linejoin="round" stroke-width="88"/>
-  <path d="M304 496h264" fill="none" stroke="url(#finterest-gradient)" stroke-linecap="round" stroke-linejoin="round" stroke-width="88"/>
-  <circle cx="744" cy="736" r="56" fill="#cda75a"/>
+  <rect width="1024" height="1024" rx="240" fill="#12121F"/>
+  <rect width="1024" height="1024" rx="240" fill="url(#nebula-icon-glow)"/>
+  <ellipse cx="512" cy="512" rx="376" ry="168" transform="rotate(-30 512 512)" fill="none" stroke="url(#nebula-icon-gradient)" stroke-width="48" opacity="0.55"/>
+  <path d="M320 736V576" fill="none" stroke="url(#nebula-icon-gradient)" stroke-linecap="round" stroke-width="96"/>
+  <path d="M512 736V448" fill="none" stroke="url(#nebula-icon-gradient)" stroke-linecap="round" stroke-width="96"/>
+  <path d="M704 736V320" fill="none" stroke="url(#nebula-icon-gradient)" stroke-linecap="round" stroke-width="96"/>
+  <circle cx="704" cy="176" r="52" fill="#A855F7"/>
 </svg>

@@ -14,7 +14,7 @@ import { Dashboard } from './components/Dashboard';
 import type { LoanFormState } from './components/LoansPanel';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SplashScreen } from './components/SplashScreen';
-import logoUrl from '../../assets/finterest-logo.svg';
+import logoUrl from '../../assets/nebula-logo.svg';
 
 const emptyExpense = { name: '', amount: 0, category: '' };
 const emptyLoanForm: LoanFormState = { name: '', principal: '', monthlyPayment: '', rate: '', remainingMonths: '' };
@@ -321,7 +321,7 @@ export function App() {
     <main className="app-shell">
       <aside className="sidebar">
         <div className="brand-lockup">
-          <img src={logoUrl} alt="Finterest logo" />
+          <img src={logoUrl} alt="" />
           <div><strong>{t('app.name')}</strong><span>{t('app.tagline')}</span></div>
         </div>
         {activeMode === 'simple' && activeAccount ? (

@@ -1,6 +1,8 @@
-# Finterest
+# Nebula Finterest
 
-Finterest est une application de bureau **locale et hors ligne** qui aide une seule personne à visualiser clairement son budget mensuel — beaucoup plus lisiblement qu'avec une simple calculatrice. Toutes vos données restent sur votre ordinateur : aucune connexion à une banque, aucun compte en ligne, aucune donnée envoyée sur internet (à l'exception, optionnelle, de la vérification des mises à jour).
+Nebula Finterest est une application de bureau **locale et hors ligne** qui aide une seule personne à visualiser clairement son budget mensuel — beaucoup plus lisiblement qu'avec une simple calculatrice. Toutes vos données restent sur votre ordinateur : aucune connexion à une banque, aucun compte en ligne, aucune donnée envoyée sur internet (à l'exception, optionnelle, de la vérification des mises à jour).
+
+L'application fait partie de la famille **Nebula** et en reprend l'identité visuelle : fonds bleu nuit, accent bleu→violet, halo de nébuleuse en arrière-plan.
 
 ## Fonctionnalités
 
@@ -18,13 +20,18 @@ Finterest est une application de bureau **locale et hors ligne** qui aide une se
 **Comptes et confidentialité**
 - Plusieurs comptes locaux sur le même ordinateur, chacun avec son propre budget et un code secret (PIN).
 - Écran de sélection des comptes avec photo de profil, pseudonyme personnalisable, et création/suppression de comptes depuis un écran dédié.
+- Session invité pour parcourir l'application avec un budget d'exemple, sans rien enregistrer.
 - Changement de compte sans fermer l'application.
 - Interface disponible en français et en anglais.
-- Thème clair, sombre, ou automatique selon les préférences de votre système.
+
+**Apparence**
+- Quatre thèmes au choix : **Nebula sombre** et **Nebula clair** (l'identité actuelle), plus **Old sombre** et **Old clair** (les anciens thèmes émeraude/or, conservés pour celles et ceux qui les préféraient).
+- Un mode **Système** suit automatiquement le thème clair ou sombre de Windows, en Nebula.
 
 **Sauvegarde**
 - Export de votre budget dans un fichier de sauvegarde unique, à tout moment.
 - Import de ce fichier pour restaurer vos données, y compris sur un autre ordinateur.
+- Sur Windows, la désinstallation sauvegarde automatiquement vos comptes dans `Documents\Nebula Finterest` avant de les supprimer.
 
 **Mises à jour**
 - Vérification automatique des mises à jour au démarrage (Windows), et bouton de vérification manuelle dans les réglages.
@@ -32,14 +39,16 @@ Finterest est une application de bureau **locale et hors ligne** qui aide une se
 ## Installation
 
 ### Windows
-Téléchargez le dernier installeur (`Finterest-Setup-x.x.x.exe`) depuis les [Releases](../../releases) du dépôt, puis lancez-le. Finterest s'installe pour votre utilisateur, sans droits administrateur.
+Téléchargez le dernier installeur (`Nebula-Finterest-Setup-x.x.x.exe`) depuis les [Releases](../../releases) du dépôt, puis lancez-le. Nebula Finterest s'installe pour votre utilisateur, sans droits administrateur.
+
+Si vous aviez déjà installé Finterest, la mise à jour se fait normalement : l'application est simplement renommée, et **vos comptes et budgets sont conservés**.
 
 ### macOS et Linux
 Des versions macOS (`.dmg`) et Linux (`AppImage`) sont **prévues** mais **pas encore disponibles** — ce n'est pas la priorité actuelle du projet. Windows reste la seule plateforme activement distribuée pour le moment.
 
 ## Utilisation
 
-1. Au premier lancement, créez un compte local avec un nom et un code secret à 4-8 chiffres.
+1. Au premier lancement, créez un compte local avec un nom et un code secret à 4-8 chiffres — ou cliquez sur « Essayer sans compte » pour faire un tour sans rien enregistrer.
 2. Renseignez votre revenu mensuel, ajoutez vos abonnements/prélèvements, vos achats prévus et vos éventuels prêts.
 3. Consultez la vue d'ensemble pour voir votre reste à vivre du mois.
 4. Depuis les réglages, personnalisez l'apparence (thème, langue), exportez une sauvegarde régulièrement, ou vérifiez les mises à jour disponibles.
@@ -72,8 +81,12 @@ npm test                         # tests Jest
 
 Architecture en bref :
 - `src/electron/` — process principal Electron, pont preload, et couche de persistance locale (SQLite via sql.js).
-- `src/renderer/` — interface React ; `src/renderer/components/` contient les écrans (compte, calendrier, prêts, réglages, profil, tableau de bord) ; `i18n.ts` et `theme.ts` gèrent respectivement la langue et le thème clair/sombre/système.
+- `src/renderer/` — interface React ; `src/renderer/components/` contient les écrans (compte, calendrier, prêts, réglages, profil, tableau de bord) ; `i18n.ts` et `theme.ts` gèrent respectivement la langue et le thème.
 - `src/shared/` — types et calculs de budget partagés entre les deux processus.
 - `assets/` et `build/` — logo, icônes source, et icône packagée pour Windows/macOS/Linux.
+
+Notes utiles :
+- Les jetons de couleur, le dégradé d'accent et l'échelle de mouvement de la DA Nebula sont définis en tête de `src/renderer/styles.css`. La fiche de référence complète (`NEBULA_DESIGN.md`) n'est pas versionnée : elle se partage à la main.
+- Le nom du produit a changé en v0.1.35, mais l'application épingle volontairement son dossier de données à `%APPDATA%\Finterest` (voir `src/electron/main.ts`) pour ne pas orpheliner les comptes existants.
 
 Le journal technique complet de chaque changement se trouve dans [`DEV_CHANGES.md`](DEV_CHANGES.md).

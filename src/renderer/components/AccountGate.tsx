@@ -3,7 +3,7 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import type { LocalAccountSummary } from '@shared/accounts';
 import { Avatar } from './atoms';
-import logoUrl from '../../../assets/finterest-logo.svg';
+import logoUrl from '../../../assets/nebula-logo.svg';
 
 export type AuthStage = 'select' | 'welcome' | 'login' | 'create' | 'manage';
 
@@ -52,7 +52,7 @@ export function AccountGate({
   return (
     <main className="account-gate">
       <section className={`account-card ${stage === 'select' || stage === 'manage' ? 'account-card-wide' : ''}`}>
-        <img src={logoUrl} alt="Finterest logo" />
+        <img src={logoUrl} alt="" />
         <div key={stage} className={`account-stage ${stage === 'welcome' || stage === 'login' ? 'account-stage-centered' : ''}`}>
         {stage === 'select' ? (
           <>

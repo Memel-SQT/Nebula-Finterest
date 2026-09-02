@@ -2,7 +2,7 @@ import type { UpdateStatus } from '@shared/types';
 import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import type { Theme } from '../theme';
-import logoUrl from '../../../assets/finterest-logo.svg';
+import logoUrl from '../../../assets/nebula-logo.svg';
 
 export function SettingsPanel({
   databasePath,
@@ -58,8 +58,10 @@ export function SettingsPanel({
             <label className="select-field">
               {t('settings.theme')}
               <select value={theme} onChange={(event) => onThemeChange(event.target.value as Theme)}>
-                <option value="light">{t('theme.light')}</option>
-                <option value="dark">{t('theme.dark')}</option>
+                <option value="nebula-dark">{t('theme.nebulaDark')}</option>
+                <option value="nebula-light">{t('theme.nebulaLight')}</option>
+                <option value="old-dark">{t('theme.oldDark')}</option>
+                <option value="old-light">{t('theme.oldLight')}</option>
                 <option value="system">{t('theme.system')}</option>
               </select>
             </label>
