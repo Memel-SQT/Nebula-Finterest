@@ -50,7 +50,7 @@ export type TranslationKey =
   | 'settings.title' | 'settings.description' | 'settings.export' | 'settings.import' | 'settings.path'
   | 'settings.loading' | 'settings.language'
   | 'settings.appearance' | 'settings.data' | 'settings.account' | 'settings.theme' | 'settings.viewProfile'
-  | 'theme.light' | 'theme.dark' | 'theme.system'
+  | 'theme.nebulaDark' | 'theme.nebulaLight' | 'theme.oldDark' | 'theme.oldLight' | 'theme.system'
   | 'advanced.title' | 'advanced.heading' | 'advanced.description' | 'advanced.capital' | 'advanced.rate'
   | 'advanced.years' | 'advanced.estimatedValue' | 'advanced.interestOf'
   | 'advanced.monthlyInvestment' | 'advanced.contributedOf'
@@ -67,7 +67,7 @@ export type TranslationKey =
   | 'error.deleteAccount' | 'error.renameAccount' | 'error.setAvatar' | 'error.guestReadonly';
 
 export const fr: Record<TranslationKey, string> = {
-  'app.name': 'Finterest',
+  'app.name': 'Nebula Finterest',
   'app.tagline': 'Votre budget, simplement',
   'mode.simple': 'Budget simple',
   'mode.advanced': 'Calcul avancé',
@@ -158,13 +158,13 @@ export const fr: Record<TranslationKey, string> = {
   'category.wellbeing': 'Sport et bien-être',
   'category.other': 'Autre',
   'gate.localSpace': 'Espace local',
-  'gate.whoUses': 'Qui utilise Finterest ?',
+  'gate.whoUses': 'Qui utilise Nebula Finterest ?',
   'gate.chooseAccount': 'Choisissez votre compte pour continuer.',
   'gate.createAnother': 'Créer un autre compte',
   'gate.manageAccounts': 'Gérer les comptes',
   'gate.guestMode': 'Essayer sans compte',
   'gate.guestName': 'Invité',
-  'gate.guestIntro': 'Parcourez Finterest avec des données d’exemple. Rien de ce que vous saisissez ne sera enregistré.',
+  'gate.guestIntro': 'Parcourez Nebula Finterest avec des données d’exemple. Rien de ce que vous saisissez ne sera enregistré.',
   'gate.welcome': 'Bienvenue',
   'gate.hello': 'Bonjour {name}',
   'gate.spaceReady': 'Votre espace budget est prêt. Vous allez être invité à saisir votre code secret.',
@@ -198,7 +198,7 @@ export const fr: Record<TranslationKey, string> = {
   'profile.guestNotice': 'Session invité : vos modifications ne sont pas enregistrées et disparaîtront à la fermeture.',
   'profile.exitGuest': 'Quitter le mode invité',
   'settings.title': 'Données locales',
-  'settings.description': 'Finterest conserve votre budget uniquement sur cet ordinateur. Utilisez une sauvegarde pour le transférer.',
+  'settings.description': 'Nebula Finterest conserve votre budget uniquement sur cet ordinateur. Utilisez une sauvegarde pour le transférer.',
   'settings.export': 'Exporter la sauvegarde',
   'settings.import': 'Importer une sauvegarde',
   'settings.path': 'Emplacement : {path}',
@@ -209,8 +209,10 @@ export const fr: Record<TranslationKey, string> = {
   'settings.account': 'Compte',
   'settings.theme': 'Thème',
   'settings.viewProfile': 'Voir mon profil',
-  'theme.light': 'Clair',
-  'theme.dark': 'Sombre',
+  'theme.nebulaDark': 'Nebula sombre',
+  'theme.nebulaLight': 'Nebula clair',
+  'theme.oldDark': 'Old sombre',
+  'theme.oldLight': 'Old clair',
   'theme.system': 'Système',
   'advanced.title': 'Outil économique',
   'advanced.heading': 'Intérêts composés',
@@ -266,7 +268,7 @@ export const fr: Record<TranslationKey, string> = {
 };
 
 export const en: Record<TranslationKey, string> = {
-  'app.name': 'Finterest',
+  'app.name': 'Nebula Finterest',
   'app.tagline': 'Your budget, simply',
   'mode.simple': 'Simple budget',
   'mode.advanced': 'Advanced calculator',
@@ -357,13 +359,13 @@ export const en: Record<TranslationKey, string> = {
   'category.wellbeing': 'Sport and wellbeing',
   'category.other': 'Other',
   'gate.localSpace': 'Local space',
-  'gate.whoUses': 'Who is using Finterest?',
+  'gate.whoUses': 'Who is using Nebula Finterest?',
   'gate.chooseAccount': 'Choose your account to continue.',
   'gate.createAnother': 'Create another account',
   'gate.manageAccounts': 'Manage accounts',
   'gate.guestMode': 'Try without an account',
   'gate.guestName': 'Guest',
-  'gate.guestIntro': "Browse Finterest with sample data. Nothing you enter will be saved.",
+  'gate.guestIntro': "Browse Nebula Finterest with sample data. Nothing you enter will be saved.",
   'gate.welcome': 'Welcome',
   'gate.hello': 'Hello {name}',
   'gate.spaceReady': 'Your budget space is ready. You will be asked for your PIN next.',
@@ -397,7 +399,7 @@ export const en: Record<TranslationKey, string> = {
   'profile.guestNotice': "Guest session: your changes are not saved and will disappear when you close the app.",
   'profile.exitGuest': 'Exit guest mode',
   'settings.title': 'Local data',
-  'settings.description': 'Finterest keeps your budget only on this computer. Use a backup to transfer it.',
+  'settings.description': 'Nebula Finterest keeps your budget only on this computer. Use a backup to transfer it.',
   'settings.export': 'Export backup',
   'settings.import': 'Import backup',
   'settings.path': 'Location: {path}',
@@ -408,8 +410,10 @@ export const en: Record<TranslationKey, string> = {
   'settings.account': 'Account',
   'settings.theme': 'Theme',
   'settings.viewProfile': 'View my profile',
-  'theme.light': 'Light',
-  'theme.dark': 'Dark',
+  'theme.nebulaDark': 'Nebula dark',
+  'theme.nebulaLight': 'Nebula light',
+  'theme.oldDark': 'Old dark',
+  'theme.oldLight': 'Old light',
   'theme.system': 'System',
   'advanced.title': 'Economic tool',
   'advanced.heading': 'Compound interest',

@@ -18,3 +18,6 @@ coverage/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Fiche de direction artistique Nebula, partagée à la main aux agents IA (hors dépôt).
+NEBULA_DESIGN.md

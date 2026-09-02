@@ -1,9 +1,9 @@
 {
   "name": "finterest",
-  "version": "0.1.34",
+  "version": "0.1.35",
   "private": true,
-  "author": "Finterest",
-  "description": "Finterest is a local, offline desktop app that helps a single user visualize their monthly budget more clearly than with a simple calculator.",
+  "author": "Nebula Finterest",
+  "description": "Nebula Finterest is a local, offline desktop app that helps a single user visualize their monthly budget more clearly than with a simple calculator.",
   "main": "dist/electron/main.js",
   "scripts": {
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:electron:build\" \"npm:dev:electron:start\"",
@@ -54,7 +54,7 @@
   },
   "build": {
     "appId": "com.finterest.desktop",
-    "productName": "Finterest",
+    "productName": "Nebula Finterest",
     "files": [
       "dist/electron/**/*",
       "dist/renderer/**/*",
@@ -64,7 +64,7 @@
     "directories": {
       "output": "release"
     },
-    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "artifactName": "Nebula-Finterest-Setup-${version}.${ext}",
     "publish": {
       "provider": "github",
       "owner": "Memel-SQT",

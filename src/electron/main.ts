@@ -5,6 +5,12 @@ import { autoUpdater } from 'electron-updater';
 import { AccountManager } from './accounts';
 import type { BackupFile, UpdateStatus } from '../shared/types';
 
+// The app was renamed to "Nebula Finterest" in v0.1.35. Electron derives userData from
+// productName, so without this pin every existing install would silently start from an
+// empty "Nebula Finterest" folder and appear to have lost its accounts. Must run before
+// AccountManager is constructed, since BudgetStore resolves its path from userData.
+app.setPath('userData', path.join(app.getPath('appData'), 'Finterest'));
+
 let mainWindow: BrowserWindow | null = null;
 const accountManager = new AccountManager();
 
@@ -16,8 +22,8 @@ async function createWindow(): Promise<void> {
     height: 860,
     minWidth: 960,
     minHeight: 700,
-    backgroundColor: '#05070a',
-    title: 'Finterest',
+    backgroundColor: '#0a0a0f',
+    title: 'Nebula Finterest',
     icon: path.join(__dirname, '../../assets/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
