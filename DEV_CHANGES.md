@@ -1,3 +1,11 @@
+## [2026-09-02] - Nebula Finterest Change Session #43
+- Files modified: `package.json`, `DEV_CHANGES.md`.
+- Renamed the GitHub repository `Memel-SQT/Finterest` → `Memel-SQT/Nebula-Finterest` (explicitly authorized by the user; it is an account-level settings change, so it was not done as part of Session #42). Picked `Nebula-Finterest` to match the existing `Nebula-News` convention and the `Nebula-Finterest-Setup-x.x.x.exe` artifact name. Updated the local `origin` remote and `build.publish.repo`.
+- **Rebuilt and replaced the v0.1.35 release assets in place** rather than cutting a new version: `build.publish` is baked into `resources/app-update.yml` at package time, so the originally published installer still carried `repo: Finterest`. Verified the rebuilt package now embeds `repo: Nebula-Finterest`. Same tag, no version bump — consistent with the packaging-only republish precedent from Sessions #37 and #39.
+- Verified both naming paths resolve: the new asset URLs return 302, and the old `Memel-SQT/Finterest` release URL returns 301 (GitHub's permanent rename redirect). That redirect matters beyond tidiness — the v0.1.34 build already installed on the user's machine has `repo: Finterest` baked in and cannot be changed, so its update check depends on it. The republish only removes that dependency for clients updating *from* v0.1.35 onward.
+- `README.md` needed no change: its release links are repo-relative (`../../releases`). The single `Memel-SQT/Finterest` mention left in `DEV_CHANGES.md` is a historical log line from Session #37 and was intentionally not rewritten.
+- Validation: `npm run dist:win` succeeds end-to-end; `latest.yml` matches the rebuilt artifact byte size and hash, and the icon is still correctly embedded.
+
 ## [2026-09-02] - Nebula Finterest Change Session #42
 - Files added: `assets/nebula-logo.svg`, `NEBULA_DESIGN.md` (gitignored on purpose).
 - Files removed: `assets/finterest-logo.svg`.
