@@ -68,7 +68,7 @@
     "publish": {
       "provider": "github",
       "owner": "Memel-SQT",
-      "repo": "Finterest"
+      "repo": "Nebula-Finterest"
     },
     "win": {
       "target": [
