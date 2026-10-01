@@ -1,4 +1,4 @@
-import type { BackupFile, BudgetSnapshot, Loan, UpdateStatus } from './types';
+import type { BackupFile, BudgetSnapshot, Loan, SyncStatus, UpdateStatus } from './types';
 import type { LocalAccountSummary } from './accounts';
 
 declare global {
@@ -32,6 +32,12 @@ declare global {
       onUpdateStatus(callback: (status: UpdateStatus) => void): () => void;
       installUpdate(): Promise<void>;
       checkForUpdates(): Promise<void>;
+      getSyncStatus(): Promise<SyncStatus>;
+      /** `reloaded` tells the renderer to re-read accounts and the snapshot, which the sync may have replaced. */
+      chooseSyncDirectory(): Promise<{ status: SyncStatus; reloaded: boolean }>;
+      disableSync(): Promise<SyncStatus>;
+      syncNow(): Promise<{ status: SyncStatus; reloaded: boolean }>;
+      onSyncStatus(callback: (status: SyncStatus) => void): () => void;
     };
   }
 }

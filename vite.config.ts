@@ -1,11 +1,37 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
 const resolvePath = (relativePath: string) => fileURLToPath(new URL(relativePath, import.meta.url));
 
+/**
+ * Content-Security-Policy for the packaged renderer only: the dev server needs inline scripts
+ * for React refresh, so the policy is injected at build time. The app makes no network calls
+ * at all; `file:` covers the bundled assets and profile photos stored in userData.
+ */
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self' file:",
+  "script-src 'self' file:",
+  "style-src 'self' 'unsafe-inline' file:",
+  "img-src 'self' file: data: blob:",
+  "font-src 'self' file: data:",
+  "connect-src 'none'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ');
+
+function contentSecurityPolicy(): Plugin {
+  return {
+    name: 'finterest-csp',
+    apply: 'build',
+    transformIndexHtml: (html) =>
+      html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${CONTENT_SECURITY_POLICY}" />`),
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), contentSecurityPolicy()],
   root: '.',
   base: './',
   resolve: {

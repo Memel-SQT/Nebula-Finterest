@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { translate, type Language } from '../i18n';
+import type { MotionLevel } from '../appearance';
 
 // Long enough for the full sequence (halo -> orbit -> bars -> star -> wordmark)
 // to finish before the fade-out; see the .splash-* delays in styles.css.
@@ -7,11 +8,11 @@ const SPLASH_DURATION_MS = 2400;
 const SPLASH_DURATION_REDUCED_MS = 250;
 const SPLASH_FADE_MS = 380;
 
-export function SplashScreen({ language, onFinish }: { language: Language; onFinish: () => void }) {
+export function SplashScreen({ language, motion, onFinish }: { language: Language; motion: MotionLevel; onFinish: () => void }) {
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = motion === 'off' || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const duration = reduced ? SPLASH_DURATION_REDUCED_MS : SPLASH_DURATION_MS;
     const leaveTimer = window.setTimeout(() => setLeaving(true), duration);
     const finishTimer = window.setTimeout(onFinish, duration + (reduced ? 0 : SPLASH_FADE_MS));
@@ -19,7 +20,7 @@ export function SplashScreen({ language, onFinish }: { language: Language; onFin
       window.clearTimeout(leaveTimer);
       window.clearTimeout(finishTimer);
     };
-  }, [onFinish]);
+  }, [onFinish, motion]);
 
   return (
     <main className={`splash-screen ${leaving ? 'splash-leaving' : ''}`}>

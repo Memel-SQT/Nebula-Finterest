@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { BackupFile, BudgetSnapshot, Loan, UpdateStatus } from '../shared/types';
+import type { BackupFile, Loan, SyncStatus, UpdateStatus } from '../shared/types';
+
+function subscribe<T>(channel: string, callback: (payload: T) => void): () => void {
+  const listener = (_event: unknown, payload: T) => callback(payload);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
 
 contextBridge.exposeInMainWorld('finterest', {
   getSnapshot: () => ipcRenderer.invoke('budget:getSnapshot'),
@@ -27,11 +33,12 @@ contextBridge.exposeInMainWorld('finterest', {
   saveBackupToFile: () => ipcRenderer.invoke('budget:saveBackupToFile'),
   importBackupFromFile: () => ipcRenderer.invoke('budget:importBackupFromFile'),
   getDatabasePath: () => ipcRenderer.invoke('budget:getDatabasePath'),
-  onUpdateStatus: (callback: (status: UpdateStatus) => void) => {
-    const listener = (_event: unknown, status: UpdateStatus) => callback(status);
-    ipcRenderer.on('update:status', listener);
-    return () => ipcRenderer.removeListener('update:status', listener);
-  },
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => subscribe('update:status', callback),
   installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
+  getSyncStatus: () => ipcRenderer.invoke('sync:getStatus'),
+  chooseSyncDirectory: () => ipcRenderer.invoke('sync:chooseDirectory'),
+  disableSync: () => ipcRenderer.invoke('sync:disable'),
+  syncNow: () => ipcRenderer.invoke('sync:now'),
+  onSyncStatus: (callback: (status: SyncStatus) => void) => subscribe('sync:status', callback),
 } as const satisfies Window['finterest']);

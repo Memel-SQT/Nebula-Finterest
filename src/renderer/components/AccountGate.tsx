@@ -3,6 +3,7 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import type { LocalAccountSummary } from '@shared/accounts';
 import { Avatar } from './atoms';
+import { Icon } from './Icon';
 import logoUrl from '../../../assets/nebula-logo.svg';
 
 export type AuthStage = 'select' | 'welcome' | 'login' | 'create' | 'manage';
@@ -67,12 +68,12 @@ export function AccountGate({
                 </button>
               ))}
               <button className="account-tile account-tile-add" onClick={onCreate}>
-                <span className="account-tile-plus">+</span>
+                <span className="account-tile-plus"><Icon name="plus" size={26} /></span>
                 <span className="account-tile-label">{t('gate.createAnother')}</span>
               </button>
             </div>
-            <button className="ghost account-switch" onClick={onManage}>{t('gate.manageAccounts')}</button>
-            <button className="ghost account-switch" onClick={onGuest}>{t('gate.guestMode')}</button>
+            <button className="ghost account-switch" onClick={onManage}><Icon name="sliders" size={16} />{t('gate.manageAccounts')}</button>
+            <button className="ghost account-switch" onClick={onGuest}><Icon name="sparkles" size={16} />{t('gate.guestMode')}</button>
           </>
         ) : stage === 'welcome' ? (
           <>
@@ -108,7 +109,7 @@ export function AccountGate({
               />
             </label>
             {error ? <div className="error-banner">{error}</div> : null}
-            <button onClick={onSubmit}>{t('gate.createAndContinue')}</button>
+            <button onClick={onSubmit} data-sound="none">{t('gate.createAndContinue')}</button>
             {accounts.length > 0 ? <button className="ghost account-switch" onClick={onBack}>{t('gate.openExisting')}</button> : null}
             <button className="ghost account-switch" onClick={onGuest}>{t('gate.guestMode')}</button>
           </>
@@ -144,7 +145,7 @@ export function AccountGate({
               />
             </label>
             {error ? <div className="error-banner">{error}</div> : null}
-            <button onClick={onSubmit}>{t('gate.signIn')}</button>
+            <button onClick={onSubmit} data-sound="none">{t('gate.signIn')}</button>
             {accounts.length > 1 ? <button className="ghost account-switch" onClick={onLogin}>{t('gate.chooseAnother')}</button> : null}
           </>
         )}
@@ -184,7 +185,7 @@ function AccountManagement({
             <Avatar name={account.name} avatarUrl={account.avatarUrl} />
             <strong>{account.name}</strong>
             {confirmingId === account.id ? null : (
-              <button className="ghost small" onClick={() => { setConfirmingId(account.id); setConfirmPin(''); }}>{t('manage.delete')}</button>
+              <button className="ghost small danger" onClick={() => { setConfirmingId(account.id); setConfirmPin(''); }}><Icon name="trash" size={15} />{t('manage.delete')}</button>
             )}
             {confirmingId === account.id ? (
               <div className="manage-confirm">
@@ -197,6 +198,11 @@ function AccountManagement({
                     maxLength={8}
                     value={confirmPin}
                     onChange={(event) => setConfirmPin(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        void onDeleteAccount(account.id, confirmPin).then(() => { setConfirmingId(null); setConfirmPin(''); });
+                      }
+                    }}
                   />
                 </label>
                 <button

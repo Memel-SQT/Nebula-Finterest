@@ -11,7 +11,8 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
 - Abonnements et prélèvements récurrents, avec une distinction claire entre les deux (badge Abonnement / Prélèvement).
 - Achats prévus, mois par mois.
 - Prêts bancaires (montant emprunté, mensualité, taux, durée restante), dont les mensualités sont comptées dans votre reste à vivre.
-- Calendrier mensuel affichant vos abonnements et prélèvements sur leur jour de paiement, avec ajout direct depuis une date.
+- Calendrier mensuel qui réunit, jour par jour, vos abonnements et prélèvements **et** vos achats prévus, avec les totaux du mois. Cliquez sur un jour pour voir ce qui y est prévu, supprimer un élément, ou ajouter directement un **achat ponctuel** (compté une seule fois) ou un abonnement récurrent.
+- Les montants se saisissent naturellement : « 12,50 », « 1 234,56 € » ou « 12.5 » sont tous acceptés.
 - Vue d'ensemble avec anneau de progression et résumé du mois.
 
 **Calcul avancé**
@@ -24,13 +25,18 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
 - Changement de compte sans fermer l'application.
 - Interface disponible en français et en anglais.
 
-**Apparence**
-- Quatre thèmes au choix : **Nebula sombre** et **Nebula clair** (l'identité actuelle), plus **Old sombre** et **Old clair** (les anciens thèmes émeraude/or, conservés pour celles et ceux qui les préféraient).
-- Un mode **Système** suit automatiquement le thème clair ou sombre de Windows, en Nebula.
+**Apparence et personnalisation**
+- Six thèmes : **Nebula sombre** et **Nebula clair** (l'identité actuelle), **Verre liquide sombre** et **Verre liquide clair** (surfaces translucides et floutées, avec un reflet qui suit la souris), plus **Old sombre** et **Old clair** (les anciens thèmes émeraude/or, conservés tels quels). Un mode **Système** suit le thème clair ou sombre de Windows.
+- Couleurs d'accent : six palettes prêtes à l'emploi (Nebula, Aurore, Océan, Couchant, Sakura, Braise) ou deux couleurs entièrement personnalisées. Tout suit : boutons, navigation, graphiques et arrière-plans.
+- Arrière-plans animés : halo nébuleuse, aurore boréale, champ d'étoiles (avec étoiles filantes), constellation qui réagit à la souris, vagues — ou aucun.
+- Animations de l'interface réglables : complètes (transitions d'écran, ondulation au clic), réduites ou désactivées.
+- Petits sons d'interface (clic, ajout, suppression, erreur, connexion), générés par l'application elle-même, avec réglage du volume — désactivables à tout moment.
+- Nouveau jeu d'icônes dessiné pour l'application, qui prend la couleur du thème.
 
-**Sauvegarde**
+**Sauvegarde et synchronisation**
 - Export de votre budget dans un fichier de sauvegarde unique, à tout moment.
-- Import de ce fichier pour restaurer vos données, y compris sur un autre ordinateur.
+- Import de ce fichier pour restaurer vos données, y compris sur un autre ordinateur. Les sauvegardes faites par toutes les versions précédentes restent importables, y compris le fichier créé automatiquement à la désinstallation.
+- **Dossier de synchronisation** : choisissez un second dossier (clé USB, OneDrive, NAS…) dans les réglages. Chaque profil y est recopié automatiquement à chaque modification ; sur un autre ordinateur pointant vers le même dossier, les profils apparaissent et la version la plus récente est récupérée à l'ouverture. La copie locale remplacée est conservée à côté (`.before-sync.bak`). Les données y sont copiées sans chiffrement : choisissez un emplacement de confiance. La session invité n'est jamais synchronisée.
 - Sur Windows, la désinstallation sauvegarde automatiquement vos comptes dans `Documents\Nebula Finterest` avant de les supprimer.
 
 **Mises à jour**
@@ -51,16 +57,17 @@ Des versions macOS (`.dmg`) et Linux (`AppImage`) sont **prévues** mais **pas e
 1. Au premier lancement, créez un compte local avec un nom et un code secret à 4-8 chiffres — ou cliquez sur « Essayer sans compte » pour faire un tour sans rien enregistrer.
 2. Renseignez votre revenu mensuel, ajoutez vos abonnements/prélèvements, vos achats prévus et vos éventuels prêts.
 3. Consultez la vue d'ensemble pour voir votre reste à vivre du mois.
-4. Depuis les réglages, personnalisez l'apparence (thème, langue), exportez une sauvegarde régulièrement, ou vérifiez les mises à jour disponibles.
+4. Depuis les réglages, personnalisez l'apparence (thème, couleurs, arrière-plan, animations, sons, langue), exportez une sauvegarde ou choisissez un dossier de synchronisation, et vérifiez les mises à jour disponibles.
 5. Depuis l'écran de sélection des comptes, créez ou supprimez des comptes locaux, ou changez de compte à tout moment depuis votre profil.
 
 ## Vos données
 
-Votre budget est stocké uniquement sur votre ordinateur, dans le dossier de données de l'application. Aucune information n'est envoyée à un tiers. Utilisez régulièrement la fonction d'export pour conserver une copie de sauvegarde de vos données, notamment avant de désinstaller l'application ou de changer d'ordinateur.
+Votre budget est stocké uniquement sur votre ordinateur, dans le dossier de données de l'application (et dans le dossier de synchronisation si vous en avez choisi un). Aucune information n'est envoyée à un tiers. Après plusieurs codes erronés, la saisie du code secret est bloquée 30 secondes. Utilisez régulièrement la fonction d'export pour conserver une copie de sauvegarde de vos données, notamment avant de désinstaller l'application ou de changer d'ordinateur.
 
 ## En savoir plus
 
-- [`PATCH_NOTES.md`](PATCH_NOTES.md) — historique des versions, orienté utilisateur.
+- [Releases](../../releases) — notes de version de chaque mise à jour (depuis la v0.1.36, elles sont publiées uniquement avec la release).
+- [`PATCH_NOTES.md`](PATCH_NOTES.md) — historique des versions jusqu'à la v0.1.35.
 - [`DEV_CHANGES.md`](DEV_CHANGES.md) — journal technique détaillé de chaque session de développement.
 
 ## Pour les développeurs
@@ -80,13 +87,16 @@ npm test                         # tests Jest
 ```
 
 Architecture en bref :
-- `src/electron/` — process principal Electron, pont preload, et couche de persistance locale (SQLite via sql.js).
-- `src/renderer/` — interface React ; `src/renderer/components/` contient les écrans (compte, calendrier, prêts, réglages, profil, tableau de bord) ; `i18n.ts` et `theme.ts` gèrent respectivement la langue et le thème.
-- `src/shared/` — types et calculs de budget partagés entre les deux processus.
+- `src/electron/` — process principal Electron, pont preload, couche de persistance locale (SQLite via sql.js, écritures atomiques) et synchronisation vers le dossier secondaire (`sync.ts`).
+- `src/renderer/` — interface React ; `src/renderer/components/` contient les écrans (compte, calendrier, prêts, réglages, profil, tableau de bord), le jeu d'icônes (`Icon.tsx`) et les arrière-plans animés (`BackgroundFx.tsx`) ; `i18n.ts`, `theme.ts`, `appearance.ts` et `sound.ts` gèrent la langue, le thème, la personnalisation et les sons.
+- `src/shared/` — types, calculs de budget, entrées du calendrier, normalisation des sauvegardes et logique de synchronisation, partagés entre les deux processus et testés.
+- `tests/electron/` — tests du process principal (anciennes bases, ancien `accounts.json`, synchronisation entre deux machines simulées).
 - `assets/` et `build/` — logo, icônes source, et icône packagée pour Windows/macOS/Linux.
 
 Notes utiles :
 - Les jetons de couleur, le dégradé d'accent et l'échelle de mouvement de la DA Nebula sont définis en tête de `src/renderer/styles.css`. La fiche de référence complète (`NEBULA_DESIGN.md`) n'est pas versionnée : elle se partage à la main.
 - Le nom du produit a changé en v0.1.35, mais l'application épingle volontairement son dossier de données à `%APPDATA%\Finterest` (voir `src/electron/main.ts`) pour ne pas orpheliner les comptes existants.
+- Pour tester sans toucher à vos vrais comptes, lancez l'app avec la variable d'environnement `FINTEREST_USER_DATA_DIR` pointant vers un dossier jetable.
+- L'application se met à jour automatiquement : toute évolution du schéma SQLite, de `accounts.json` ou du format de sauvegarde doit rester rétrocompatible (migrations additives, nouveaux champs optionnels). Les tests de `tests/electron/` et `src/shared/budget.test.ts` vérifient ce point avec des données au format des anciennes versions.
 
 Le journal technique complet de chaque changement se trouve dans [`DEV_CHANGES.md`](DEV_CHANGES.md).

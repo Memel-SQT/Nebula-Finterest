@@ -4,12 +4,22 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import { formatMoney, subscriptionCategories } from '../constants';
 import { Card, FieldGroup, ListCard } from './atoms';
+import { Icon } from './Icon';
 import { LoansPanel, type LoanFormState } from './LoansPanel';
 
 type DashboardView = 'overview' | 'fixed' | 'variable' | 'loans';
 
-interface FixedFormState { name: string; amount: number; category: string; dayOfMonth: string; kind: FixedExpenseKind }
-interface VariableFormState { name: string; amount: number; category: string; date: string }
+function formatDate(date: string, language: Language): string {
+  const [year, month, day] = date.split('-').map(Number);
+  if (!year || !month || !day) {
+    return date;
+  }
+  return new Date(year, month - 1, day).toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'short' });
+}
+
+/** Amounts stay strings while typed, so "12," or "12,5" can be entered; App parses them with parseAmount on submit. */
+export interface FixedFormState { name: string; amount: string; category: string; dayOfMonth: string; kind: FixedExpenseKind }
+export interface VariableFormState { name: string; amount: string; category: string; date: string }
 
 export function Dashboard({
   activeView,
@@ -67,11 +77,11 @@ export function Dashboard({
   return (
     <>
       <section className="summary-grid">
-        <Card label={t('card.income')} value={formatMoney(summary?.income ?? 0, language)} accent="income" icon="↗" />
-        <Card label={t('card.fixed')} value={formatMoney(summary?.totalFixedExpenses ?? 0, language)} accent="fixed" icon="▤" />
-        <Card label={t('card.variable')} value={formatMoney(summary?.totalVariableExpenses ?? 0, language)} accent="variable" icon="⌁" />
-        <Card label={t('card.loans')} value={formatMoney(summary?.totalLoanPayments ?? 0, language)} accent="loans" icon="▣" />
-        <Card label={t('card.remaining')} value={formatMoney(summary?.remainingIncome ?? 0, language)} accent="remaining" icon="◒" />
+        <Card label={t('card.income')} value={formatMoney(summary?.income ?? 0, language)} accent="income" icon="trendUp" />
+        <Card label={t('card.fixed')} value={formatMoney(summary?.totalFixedExpenses ?? 0, language)} accent="fixed" icon="repeat" />
+        <Card label={t('card.variable')} value={formatMoney(summary?.totalVariableExpenses ?? 0, language)} accent="variable" icon="bag" />
+        <Card label={t('card.loans')} value={formatMoney(summary?.totalLoanPayments ?? 0, language)} accent="loans" icon="bank" />
+        <Card label={t('card.remaining')} value={formatMoney(summary?.remainingIncome ?? 0, language)} accent="remaining" icon="wallet" />
       </section>
 
       {activeView === 'overview' ? (
@@ -113,7 +123,7 @@ export function Dashboard({
               <input aria-label={t('form.income.label')} value={incomeInput} onChange={(event) => onIncomeInputChange(event.target.value)} inputMode="decimal" />
             </label>
             <button className="ghost" onClick={onSaveMonth}>{t('form.income.saveMonth')}</button>
-            <button onClick={onSaveIncome}>{t('form.income.saveIncome')}</button>
+            <button data-sound="none" onClick={onSaveIncome}><Icon name="check" size={16} />{t('form.income.saveIncome')}</button>
           </FieldGroup>
         </section>
       ) : null}
@@ -128,20 +138,20 @@ export function Dashboard({
               </label>
               <label>
                 {t('form.fixed.amount')}
-                <input value={fixedForm.amount} onChange={(event) => onFixedFormChange({ ...fixedForm, amount: Number(event.target.value) })} inputMode="decimal" />
+                <input value={fixedForm.amount} onChange={(event) => onFixedFormChange({ ...fixedForm, amount: event.target.value })} inputMode="decimal" placeholder="0,00" />
               </label>
               <label>
                 {t('form.fixed.category')}
                 <select value={fixedForm.category} onChange={(event) => onFixedFormChange({ ...fixedForm, category: event.target.value })}>
                   <option value="">{t('form.fixed.categoryPlaceholder')}</option>
                   {subscriptionCategories.map((category) => (
-                    <option key={category.labelKey} value={translate(language, category.labelKey)}>{category.icon} {translate(language, category.labelKey)}</option>
+                    <option key={category.labelKey} value={translate(language, category.labelKey)}>{translate(language, category.labelKey)}</option>
                   ))}
                 </select>
               </label>
               <label>
                 {t('form.fixed.dayOfMonth')}
-                <input value={fixedForm.dayOfMonth} onChange={(event) => onFixedFormChange({ ...fixedForm, dayOfMonth: event.target.value })} inputMode="numeric" />
+                <input value={fixedForm.dayOfMonth} onChange={(event) => onFixedFormChange({ ...fixedForm, dayOfMonth: event.target.value })} inputMode="numeric" placeholder="1 – 31" />
               </label>
               <label>
                 {t('form.fixed.type')}
@@ -150,7 +160,7 @@ export function Dashboard({
                   <option value="directDebit">{t('form.fixed.type.directDebit')}</option>
                 </select>
               </label>
-              <button onClick={onAddFixedExpense}>{t('form.fixed.submit')}</button>
+              <button data-sound="none" onClick={onAddFixedExpense}><Icon name="plus" size={16} />{t('form.fixed.submit')}</button>
             </FieldGroup>
           </section>
           <section className="lists-grid">
@@ -158,7 +168,7 @@ export function Dashboard({
               title={t('list.fixed.title')}
               subtitle={t('list.fixed.subtitle')}
               language={language}
-              items={snapshot.fixedExpenses.map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), kind: expense.kind, active: expense.active }))}
+              items={snapshot.fixedExpenses.map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), kind: expense.kind, active: expense.active, detail: expense.dayOfMonth ? t('list.fixed.day', { day: String(expense.dayOfMonth) }) : undefined }))}
               onToggle={onToggleFixedExpense}
               onDelete={onDeleteFixedExpense}
             />
@@ -176,17 +186,20 @@ export function Dashboard({
               </label>
               <label>
                 {t('form.variable.amount')}
-                <input value={variableForm.amount} onChange={(event) => onVariableFormChange({ ...variableForm, amount: Number(event.target.value) })} inputMode="decimal" />
+                <input value={variableForm.amount} onChange={(event) => onVariableFormChange({ ...variableForm, amount: event.target.value })} inputMode="decimal" placeholder="0,00" />
               </label>
               <label>
                 {t('form.variable.category')}
-                <input value={variableForm.category} onChange={(event) => onVariableFormChange({ ...variableForm, category: event.target.value })} />
+                <input list="variable-categories" value={variableForm.category} onChange={(event) => onVariableFormChange({ ...variableForm, category: event.target.value })} />
+                <datalist id="variable-categories">
+                  {subscriptionCategories.map((category) => <option key={category.labelKey} value={translate(language, category.labelKey)} />)}
+                </datalist>
               </label>
               <label>
                 {t('form.variable.date')}
                 <input type="date" value={variableForm.date} onChange={(event) => onVariableFormChange({ ...variableForm, date: event.target.value })} />
               </label>
-              <button onClick={onAddVariableExpense}>{t('form.variable.submit')}</button>
+              <button data-sound="none" onClick={onAddVariableExpense}><Icon name="plus" size={16} />{t('form.variable.submit')}</button>
             </FieldGroup>
           </section>
           <section className="lists-grid">
@@ -196,7 +209,7 @@ export function Dashboard({
               language={language}
               items={snapshot.variableExpenses
                 .filter((expense) => expense.monthKey === activeMonthKey)
-                .map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language) }))}
+                .map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), detail: formatDate(expense.date, language) }))}
               onDelete={onDeleteVariableExpense}
             />
           </section>
