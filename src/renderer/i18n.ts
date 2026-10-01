@@ -30,7 +30,7 @@ export type TranslationKey =
   | 'form.variable.date' | 'form.variable.submit'
   | 'form.loan.title' | 'form.loan.name' | 'form.loan.principal' | 'form.loan.monthlyPayment'
   | 'form.loan.rate' | 'form.loan.remainingMonths' | 'form.loan.submit'
-  | 'list.fixed.title' | 'list.fixed.subtitle'
+  | 'list.fixed.title' | 'list.fixed.subtitle' | 'list.fixed.day'
   | 'list.variable.title' | 'list.variable.subtitle'
   | 'list.loans.title' | 'list.loans.subtitle'
   | 'list.activate' | 'list.deactivate' | 'list.delete'
@@ -64,7 +64,79 @@ export type TranslationKey =
   | 'error.negativeAmount' | 'error.storeNotInitialized' | 'error.invalidBackup'
   | 'error.openAccount' | 'error.loadBudget' | 'error.saveIncome' | 'error.saveMonth'
   | 'error.saveFixed' | 'error.saveVariable' | 'error.saveLoan' | 'error.exportBackup' | 'error.importBackup'
-  | 'error.deleteAccount' | 'error.renameAccount' | 'error.setAvatar' | 'error.guestReadonly';
+  | 'error.deleteAccount' | 'error.renameAccount' | 'error.setAvatar' | 'error.guestReadonly'
+  | 'calendar.today'
+  | 'calendar.totalRecurring'
+  | 'calendar.totalPurchases'
+  | 'calendar.totalMonth'
+  | 'calendar.entries'
+  | 'calendar.selectedDay'
+  | 'calendar.close'
+  | 'calendar.oneOff'
+  | 'calendar.nothingThisDay'
+  | 'calendar.entryType'
+  | 'calendar.oneOffPurchase'
+  | 'calendar.recurring'
+  | 'calendar.oneOffNote'
+  | 'calendar.recurringNote'
+  | 'calendar.pickDay'
+  | 'calendar.deleteRecurringConfirm'
+  | 'calendar.deleteEveryMonth'
+  | 'theme.glassDark'
+  | 'theme.glassLight'
+  | 'accent.nebula'
+  | 'accent.aurora'
+  | 'accent.ocean'
+  | 'accent.sunset'
+  | 'accent.sakura'
+  | 'accent.ember'
+  | 'accent.custom'
+  | 'settings.accent'
+  | 'settings.accentPrimary'
+  | 'settings.accentSecondary'
+  | 'settings.accentLegacyNote'
+  | 'settings.effects'
+  | 'settings.background'
+  | 'background.glow'
+  | 'background.aurora'
+  | 'background.stars'
+  | 'background.particles'
+  | 'background.waves'
+  | 'background.none'
+  | 'settings.motion'
+  | 'motion.full'
+  | 'motion.reduced'
+  | 'motion.off'
+  | 'settings.glassHint'
+  | 'settings.sounds'
+  | 'settings.soundEnabled'
+  | 'settings.soundVolume'
+  | 'settings.soundTest'
+  | 'settings.on'
+  | 'settings.off'
+  | 'settings.reset'
+  | 'sync.title'
+  | 'sync.description'
+  | 'sync.choose'
+  | 'sync.change'
+  | 'sync.disable'
+  | 'sync.now'
+  | 'sync.folder'
+  | 'sync.state.disabled'
+  | 'sync.state.idle'
+  | 'sync.state.syncing'
+  | 'sync.state.error'
+  | 'sync.lastSync'
+  | 'sync.warning'
+  | 'sync.guestNote'
+  | 'error.invalidName'
+  | 'error.invalidDate'
+  | 'error.invalidMonth'
+  | 'error.tooManyAttempts'
+  | 'error.syncUnavailable'
+  | 'error.sync'
+  | 'error.deleteItem'
+  | 'error.updateItem';
 
 export const fr: Record<TranslationKey, string> = {
   'app.name': 'Nebula Finterest',
@@ -77,13 +149,13 @@ export const fr: Record<TranslationKey, string> = {
   'nav.fixed': 'Abonnements / Prélèvements',
   'nav.variable': 'Achats prévus',
   'nav.loans': 'Prêts',
-  'nav.settings': 'Sauvegarde',
+  'nav.settings': 'Réglages',
   'nav.profile': 'Profil',
   'sidebar.localData': 'Données locales',
   'sidebar.localDataNote': 'Enregistrées sur cet ordinateur',
   'view.overview.eyebrow': 'Votre budget',
   'view.overview.title': 'Mon budget du mois',
-  'view.calendar.eyebrow': 'Abonnements et échéances',
+  'view.calendar.eyebrow': 'Échéances et achats prévus',
   'view.calendar.title': 'Calendrier',
   'view.fixed.eyebrow': 'Charges récurrentes',
   'view.fixed.title': 'Mes abonnements et prélèvements',
@@ -91,8 +163,8 @@ export const fr: Record<TranslationKey, string> = {
   'view.variable.title': 'Mes achats prévus',
   'view.loans.eyebrow': 'Crédits en cours',
   'view.loans.title': 'Mes prêts bancaires',
-  'view.settings.eyebrow': 'Données et sauvegarde',
-  'view.settings.title': 'Sauvegarder mes données',
+  'view.settings.eyebrow': 'Apparence, sons et données',
+  'view.settings.title': 'Réglages',
   'view.profile.eyebrow': 'Mon compte',
   'view.profile.title': 'Mon profil',
   'view.advanced.eyebrow': 'Outils économiques',
@@ -141,6 +213,7 @@ export const fr: Record<TranslationKey, string> = {
   'form.loan.submit': 'Ajouter le prêt',
   'list.fixed.title': 'Mes abonnements et prélèvements',
   'list.fixed.subtitle': 'Ce qui tombe chaque mois. Désactivez sans supprimer.',
+  'list.fixed.day': 'le {day} du mois',
   'list.variable.title': 'Mes achats prévus',
   'list.variable.subtitle': 'Achats prévus pour {month}.',
   'list.loans.title': 'Mes prêts',
@@ -197,8 +270,8 @@ export const fr: Record<TranslationKey, string> = {
   'profile.switchAccount': 'Changer de compte',
   'profile.guestNotice': 'Session invité : vos modifications ne sont pas enregistrées et disparaîtront à la fermeture.',
   'profile.exitGuest': 'Quitter le mode invité',
-  'settings.title': 'Données locales',
-  'settings.description': 'Nebula Finterest conserve votre budget uniquement sur cet ordinateur. Utilisez une sauvegarde pour le transférer.',
+  'settings.title': 'Réglages',
+  'settings.description': 'Personnalisez Nebula Finterest et gérez vos données, qui restent sur cet ordinateur (et, si vous le souhaitez, dans un dossier de synchronisation).',
   'settings.export': 'Exporter la sauvegarde',
   'settings.import': 'Importer une sauvegarde',
   'settings.path': 'Emplacement : {path}',
@@ -225,7 +298,7 @@ export const fr: Record<TranslationKey, string> = {
   'advanced.contributedOf': 'Dont {amount} versés',
   'advanced.interestOf': 'Dont {amount} d’intérêts',
   'calendar.monthlyView': 'Vue mensuelle',
-  'calendar.hint': 'Sélectionnez un jour pour programmer un abonnement ou un prélèvement.',
+  'calendar.hint': 'Vos abonnements, prélèvements et achats prévus, jour par jour.',
   'calendar.prevMonth': 'Mois précédent',
   'calendar.nextMonth': 'Mois suivant',
   'calendar.newSubscription': 'Nouvel abonnement / prélèvement',
@@ -265,6 +338,78 @@ export const fr: Record<TranslationKey, string> = {
   'error.renameAccount': 'Impossible de renommer ce compte.',
   'error.setAvatar': "Impossible de changer la photo de profil.",
   'error.guestReadonly': "Impossible en mode invité : rien n'est enregistré durant cette session.",
+  'calendar.today': 'Aujourd\'hui',
+  'calendar.totalRecurring': 'Récurrent',
+  'calendar.totalPurchases': 'Achats ponctuels',
+  'calendar.totalMonth': 'Total du mois',
+  'calendar.entries': 'élément(s)',
+  'calendar.selectedDay': 'Jour sélectionné',
+  'calendar.close': 'Fermer',
+  'calendar.oneOff': 'Achat ponctuel',
+  'calendar.nothingThisDay': 'Rien de prévu ce jour-là pour le moment.',
+  'calendar.entryType': 'Type d\'élément',
+  'calendar.oneOffPurchase': 'Achat ponctuel',
+  'calendar.recurring': 'Abonnement / prélèvement',
+  'calendar.oneOffNote': 'Compté une seule fois, uniquement ce mois-ci.',
+  'calendar.recurringNote': 'Revient chaque mois à cette date.',
+  'calendar.pickDay': 'Sélectionnez un jour pour voir ce qui y est prévu, ou y ajouter un achat ponctuel ou un abonnement.',
+  'calendar.deleteRecurringConfirm': 'Supprime cet abonnement de tous les mois',
+  'calendar.deleteEveryMonth': 'Supprimer partout ?',
+  'theme.glassDark': 'Verre liquide sombre',
+  'theme.glassLight': 'Verre liquide clair',
+  'accent.nebula': 'Nebula',
+  'accent.aurora': 'Aurore',
+  'accent.ocean': 'Océan',
+  'accent.sunset': 'Couchant',
+  'accent.sakura': 'Sakura',
+  'accent.ember': 'Braise',
+  'accent.custom': 'Personnalisée',
+  'settings.accent': 'Couleurs d\'accent',
+  'settings.accentPrimary': 'Couleur principale',
+  'settings.accentSecondary': 'Couleur secondaire',
+  'settings.accentLegacyNote': 'Les thèmes « Old » gardent leurs couleurs d’origine.',
+  'settings.effects': 'Effets et animations',
+  'settings.background': 'Arrière-plan animé',
+  'background.glow': 'Halo nébuleuse',
+  'background.aurora': 'Aurore boréale',
+  'background.stars': 'Champ d’étoiles',
+  'background.particles': 'Constellation',
+  'background.waves': 'Vagues',
+  'background.none': 'Aucun',
+  'settings.motion': 'Animations de l’interface',
+  'motion.full': 'Complètes',
+  'motion.reduced': 'Réduites',
+  'motion.off': 'Désactivées',
+  'settings.glassHint': 'Astuce : le verre liquide est à son meilleur avec l’arrière-plan « Aurore boréale ».',
+  'settings.sounds': 'Sons',
+  'settings.soundEnabled': 'Sons de l\'interface',
+  'settings.soundVolume': 'Volume',
+  'settings.soundTest': 'Tester',
+  'settings.on': 'Activés',
+  'settings.off': 'Désactivés',
+  'settings.reset': 'Réinitialiser l’apparence',
+  'sync.title': 'Synchronisation',
+  'sync.description': 'Choisissez un second dossier (clé USB, OneDrive, NAS…) : chaque profil de cet ordinateur y est recopié automatiquement à chaque modification, et les versions plus récentes qui s’y trouvent sont récupérées à l’ouverture d’un profil.',
+  'sync.choose': 'Choisir un dossier',
+  'sync.change': 'Changer de dossier',
+  'sync.disable': 'Désactiver',
+  'sync.now': 'Synchroniser maintenant',
+  'sync.folder': 'Dossier : {path}',
+  'sync.state.disabled': 'Synchronisation désactivée.',
+  'sync.state.idle': 'Synchronisé.',
+  'sync.state.syncing': 'Synchronisation en cours…',
+  'sync.state.error': 'Le dossier de synchronisation est inaccessible : vos données restent enregistrées sur cet ordinateur.',
+  'sync.lastSync': 'Dernière synchronisation : {time}',
+  'sync.warning': 'Les données y sont copiées sans chiffrement : choisissez un emplacement de confiance.',
+  'sync.guestNote': 'La session invité n’est jamais synchronisée.',
+  'error.invalidName': 'Donnez un nom à cet élément.',
+  'error.invalidDate': 'La date est invalide.',
+  'error.invalidMonth': 'Le mois est invalide.',
+  'error.tooManyAttempts': 'Trop de tentatives. Réessayez dans 30 secondes.',
+  'error.syncUnavailable': 'La synchronisation n’est pas configurée.',
+  'error.sync': 'Impossible de synchroniser.',
+  'error.deleteItem': 'Impossible de supprimer cet élément.',
+  'error.updateItem': 'Impossible de modifier cet élément.',
 };
 
 export const en: Record<TranslationKey, string> = {
@@ -278,13 +423,13 @@ export const en: Record<TranslationKey, string> = {
   'nav.fixed': 'Subscriptions / Direct debits',
   'nav.variable': 'Planned purchases',
   'nav.loans': 'Loans',
-  'nav.settings': 'Backup',
+  'nav.settings': 'Settings',
   'nav.profile': 'Profile',
   'sidebar.localData': 'Local data',
   'sidebar.localDataNote': 'Stored on this computer',
   'view.overview.eyebrow': 'Your budget',
   'view.overview.title': 'My monthly budget',
-  'view.calendar.eyebrow': 'Subscriptions and due dates',
+  'view.calendar.eyebrow': 'Due dates and planned purchases',
   'view.calendar.title': 'Calendar',
   'view.fixed.eyebrow': 'Recurring charges',
   'view.fixed.title': 'My subscriptions and direct debits',
@@ -292,8 +437,8 @@ export const en: Record<TranslationKey, string> = {
   'view.variable.title': 'My planned purchases',
   'view.loans.eyebrow': 'Ongoing loans',
   'view.loans.title': 'My bank loans',
-  'view.settings.eyebrow': 'Data and backup',
-  'view.settings.title': 'Back up my data',
+  'view.settings.eyebrow': 'Appearance, sounds and data',
+  'view.settings.title': 'Settings',
   'view.profile.eyebrow': 'My account',
   'view.profile.title': 'My profile',
   'view.advanced.eyebrow': 'Economic tools',
@@ -342,6 +487,7 @@ export const en: Record<TranslationKey, string> = {
   'form.loan.submit': 'Add loan',
   'list.fixed.title': 'My subscriptions and direct debits',
   'list.fixed.subtitle': 'What comes out every month. Deactivate without deleting.',
+  'list.fixed.day': 'on day {day}',
   'list.variable.title': 'My planned purchases',
   'list.variable.subtitle': 'Purchases planned for {month}.',
   'list.loans.title': 'My loans',
@@ -398,8 +544,8 @@ export const en: Record<TranslationKey, string> = {
   'profile.switchAccount': 'Switch account',
   'profile.guestNotice': "Guest session: your changes are not saved and will disappear when you close the app.",
   'profile.exitGuest': 'Exit guest mode',
-  'settings.title': 'Local data',
-  'settings.description': 'Nebula Finterest keeps your budget only on this computer. Use a backup to transfer it.',
+  'settings.title': 'Settings',
+  'settings.description': 'Customize Nebula Finterest and manage your data, which stays on this computer (and, if you want, in a sync folder).',
   'settings.export': 'Export backup',
   'settings.import': 'Import backup',
   'settings.path': 'Location: {path}',
@@ -426,7 +572,7 @@ export const en: Record<TranslationKey, string> = {
   'advanced.contributedOf': 'Including {amount} contributed',
   'advanced.interestOf': 'Including {amount} in interest',
   'calendar.monthlyView': 'Monthly view',
-  'calendar.hint': 'Select a day to schedule a subscription or direct debit.',
+  'calendar.hint': 'Your subscriptions, direct debits and planned purchases, day by day.',
   'calendar.prevMonth': 'Previous month',
   'calendar.nextMonth': 'Next month',
   'calendar.newSubscription': 'New subscription / direct debit',
@@ -466,6 +612,78 @@ export const en: Record<TranslationKey, string> = {
   'error.renameAccount': 'Unable to rename this account.',
   'error.setAvatar': 'Unable to change the profile picture.',
   'error.guestReadonly': "Not available in guest mode: nothing is saved during this session.",
+  'calendar.today': 'Today',
+  'calendar.totalRecurring': 'Recurring',
+  'calendar.totalPurchases': 'One-off purchases',
+  'calendar.totalMonth': 'Month total',
+  'calendar.entries': 'item(s)',
+  'calendar.selectedDay': 'Selected day',
+  'calendar.close': 'Close',
+  'calendar.oneOff': 'One-off purchase',
+  'calendar.nothingThisDay': 'Nothing planned on this day yet.',
+  'calendar.entryType': 'Item type',
+  'calendar.oneOffPurchase': 'One-off purchase',
+  'calendar.recurring': 'Subscription / debit',
+  'calendar.oneOffNote': 'Counted once, in this month only.',
+  'calendar.recurringNote': 'Comes back every month on this date.',
+  'calendar.pickDay': 'Select a day to see what is planned, or add a one-off purchase or a subscription to it.',
+  'calendar.deleteRecurringConfirm': 'Removes this subscription from every month',
+  'calendar.deleteEveryMonth': 'Delete everywhere?',
+  'theme.glassDark': 'Liquid glass dark',
+  'theme.glassLight': 'Liquid glass light',
+  'accent.nebula': 'Nebula',
+  'accent.aurora': 'Aurora',
+  'accent.ocean': 'Ocean',
+  'accent.sunset': 'Sunset',
+  'accent.sakura': 'Sakura',
+  'accent.ember': 'Ember',
+  'accent.custom': 'Custom',
+  'settings.accent': 'Accent colors',
+  'settings.accentPrimary': 'Main color',
+  'settings.accentSecondary': 'Secondary color',
+  'settings.accentLegacyNote': 'The “Old” themes keep their original colors.',
+  'settings.effects': 'Effects and motion',
+  'settings.background': 'Animated background',
+  'background.glow': 'Nebula glow',
+  'background.aurora': 'Aurora',
+  'background.stars': 'Starfield',
+  'background.particles': 'Constellation',
+  'background.waves': 'Waves',
+  'background.none': 'None',
+  'settings.motion': 'Interface motion',
+  'motion.full': 'Full',
+  'motion.reduced': 'Reduced',
+  'motion.off': 'Off',
+  'settings.glassHint': 'Tip: liquid glass looks its best with the “Aurora” background.',
+  'settings.sounds': 'Sounds',
+  'settings.soundEnabled': 'Interface sounds',
+  'settings.soundVolume': 'Volume',
+  'settings.soundTest': 'Test',
+  'settings.on': 'On',
+  'settings.off': 'Off',
+  'settings.reset': 'Reset appearance',
+  'sync.title': 'Sync',
+  'sync.description': 'Pick a second folder (USB drive, OneDrive, NAS…): every profile on this computer is copied there automatically on each change, and newer copies found there are picked up when a profile is opened.',
+  'sync.choose': 'Choose a folder',
+  'sync.change': 'Change folder',
+  'sync.disable': 'Turn off',
+  'sync.now': 'Sync now',
+  'sync.folder': 'Folder: {path}',
+  'sync.state.disabled': 'Sync is off.',
+  'sync.state.idle': 'Up to date.',
+  'sync.state.syncing': 'Syncing…',
+  'sync.state.error': 'The sync folder cannot be reached: your data is still saved on this computer.',
+  'sync.lastSync': 'Last sync: {time}',
+  'sync.warning': 'Data is copied there unencrypted: choose a location you trust.',
+  'sync.guestNote': 'The guest session is never synced.',
+  'error.invalidName': 'Give this item a name.',
+  'error.invalidDate': 'The date is invalid.',
+  'error.invalidMonth': 'The month is invalid.',
+  'error.tooManyAttempts': 'Too many attempts. Try again in 30 seconds.',
+  'error.syncUnavailable': 'Sync is not set up.',
+  'error.sync': 'Could not sync.',
+  'error.deleteItem': 'Could not delete this item.',
+  'error.updateItem': 'Could not update this item.',
 };
 
 const dictionaries: Record<Language, Record<TranslationKey, string>> = { fr, en };
@@ -479,10 +697,15 @@ const ERROR_CODE_TO_KEY: Record<string, TranslationKey> = {
   ERR_STORE_NOT_INITIALIZED: 'error.storeNotInitialized',
   ERR_INVALID_BACKUP: 'error.invalidBackup',
   ERR_GUEST_READONLY: 'error.guestReadonly',
+  ERR_INVALID_NAME: 'error.invalidName',
+  ERR_INVALID_DATE: 'error.invalidDate',
+  ERR_INVALID_MONTH: 'error.invalidMonth',
+  ERR_TOO_MANY_ATTEMPTS: 'error.tooManyAttempts',
+  ERR_SYNC_UNAVAILABLE: 'error.syncUnavailable',
 };
 
 export function translate(language: Language, key: TranslationKey, params?: Record<string, string>): string {
-  const template = dictionaries[language][key];
+  const template = dictionaries[language][key] ?? dictionaries.fr[key] ?? key;
   if (!params) {
     return template;
   }
@@ -491,19 +714,30 @@ export function translate(language: Language, key: TranslationKey, params?: Reco
 
 /** Maps a stable error code thrown by the main process (or one of our own fallback keys) to a translated message. */
 export function translateError(language: Language, thrown: unknown, fallback: TranslationKey): string {
-  const code = thrown instanceof Error ? thrown.message : '';
+  // Errors thrown in the main process reach the renderer wrapped by Electron as
+  // "Error invoking remote method 'x': Error: ERR_CODE", so the code is searched for, not compared.
+  const message = thrown instanceof Error ? thrown.message : typeof thrown === 'string' ? thrown : '';
+  const code = message.match(/ERR_[A-Z_]+/)?.[0] ?? '';
   const key = ERROR_CODE_TO_KEY[code] ?? fallback;
   return translate(language, key);
 }
 
 export function useLanguage(): [Language, (language: Language) => void] {
   const [language, setLanguageState] = useState<Language>(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === 'en' ? 'en' : 'fr';
+    try {
+      return window.localStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'fr';
+    } catch {
+      return 'fr';
+    }
   });
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, language);
+    document.documentElement.lang = language;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, language);
+    } catch {
+      // Not persisted this session; the choice still applies.
+    }
   }, [language]);
 
   const setLanguage = useCallback((next: Language) => setLanguageState(next), []);

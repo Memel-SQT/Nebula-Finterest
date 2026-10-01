@@ -65,6 +65,24 @@ export interface FullBackupFile {
   accounts: Array<{ name: string; snapshot: BudgetSnapshot }>;
 }
 
+export interface CalendarEntry {
+  id: string;
+  /** `fixed` = recurring subscription/direct debit, `purchase` = one-off planned purchase. */
+  source: 'fixed' | 'purchase';
+  name: string;
+  amount: number;
+  category: string;
+  kind?: FixedExpenseKind;
+}
+
+export interface SyncStatus {
+  /** The folder the user picked; profiles are mirrored into a "Nebula Finterest" subfolder of it. */
+  directory: string | null;
+  state: 'disabled' | 'idle' | 'syncing' | 'error';
+  lastSyncAt?: string;
+  message?: string;
+}
+
 export interface UpdateStatus {
   state: 'checking' | 'available' | 'not-available' | 'downloaded' | 'error';
   version?: string;
@@ -79,4 +97,9 @@ export type ErrorCode =
   | 'ERR_NEGATIVE_AMOUNT'
   | 'ERR_STORE_NOT_INITIALIZED'
   | 'ERR_INVALID_BACKUP'
-  | 'ERR_GUEST_READONLY';
+  | 'ERR_GUEST_READONLY'
+  | 'ERR_INVALID_NAME'
+  | 'ERR_INVALID_DATE'
+  | 'ERR_INVALID_MONTH'
+  | 'ERR_TOO_MANY_ATTEMPTS'
+  | 'ERR_SYNC_UNAVAILABLE';

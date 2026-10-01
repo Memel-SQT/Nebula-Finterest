@@ -3,6 +3,7 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import { formatMoney } from '../constants';
 import { FieldGroup } from './atoms';
+import { Icon } from './Icon';
 
 export interface LoanFormState {
   name: string;
@@ -55,7 +56,7 @@ export function LoansPanel({
             {t('form.loan.remainingMonths')}
             <input value={form.remainingMonths} inputMode="numeric" onChange={(event) => onFormChange({ ...form, remainingMonths: event.target.value })} />
           </label>
-          <button onClick={onSubmit}>{t('form.loan.submit')}</button>
+          <button data-sound="none" onClick={onSubmit}><Icon name="plus" size={16} />{t('form.loan.submit')}</button>
         </FieldGroup>
       </section>
 
@@ -69,17 +70,21 @@ export function LoansPanel({
           </div>
           <ul>
             {loans.map((loan) => (
-              <li key={loan.id}>
-                <div>
+              <li key={loan.id} className={loan.active ? undefined : 'inactive'}>
+                <span className="list-icon"><Icon name="bank" size={18} /></span>
+                <div className="list-text">
                   <strong>{loan.name}</strong>
                   <span>{loan.interestRate}% · {loan.remainingMonths ?? '—'} {t('form.loan.remainingMonths').toLowerCase()}</span>
                 </div>
                 <div className="row-actions">
-                  <span>{formatMoney(loan.monthlyPayment, language)}</span>
-                  <button className="ghost small" onClick={() => onToggle(loan.id, !loan.active)}>
+                  <span className="row-amount">{formatMoney(loan.monthlyPayment, language)}</span>
+                  <button className="ghost small" data-sound="toggle" onClick={() => onToggle(loan.id, !loan.active)}>
+                    <Icon name="power" size={14} />
                     {t(loan.active ? 'list.deactivate' : 'list.activate')}
                   </button>
-                  <button className="ghost small" onClick={() => onDelete(loan.id)}>{t('list.delete')}</button>
+                  <button className="ghost small icon-button danger" data-sound="none" onClick={() => onDelete(loan.id)} aria-label={`${t('list.delete')} ${loan.name}`} title={t('list.delete')}>
+                    <Icon name="trash" size={16} />
+                  </button>
                 </div>
               </li>
             ))}

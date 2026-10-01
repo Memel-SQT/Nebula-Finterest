@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { app } from 'electron';
@@ -5,23 +6,36 @@ import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import type { BackupFile, BudgetSnapshot, FixedExpense, Loan, VariableExpense } from '../shared/types';
 import {
   createEmptySnapshot,
+  extractBackupSnapshot,
+  isValidDateString,
+  isValidMonthKey,
   sanitizeFixedExpense,
   sanitizeLoan,
   sanitizeVariableExpense,
-  validateBackupFile,
 } from '../shared/budget';
+import { writeFileAtomic } from './fsutil';
 
 const DATABASE_FILE_NAME = 'finterest.sqlite';
 const BACKUP_FILE_VERSION = 1;
+
+export interface BudgetStoreOptions {
+  ephemeral?: boolean;
+  /** Called after every successful write to disk with the bytes just written (used by the folder sync). */
+  onPersist?: (data: Uint8Array) => Promise<void>;
+}
 
 export class BudgetStore {
   private database: SqlJsDatabase | null = null;
   private readonly databasePath: string;
   private readonly ephemeral: boolean;
   private readonly sqlJsPromise: Promise<Awaited<ReturnType<typeof initSqlJs>>>;
+  private readonly onPersist?: BudgetStoreOptions['onPersist'];
+  /** Serializes disk writes: two IPC calls in quick succession must not interleave their file writes. */
+  private persistChain: Promise<void> = Promise.resolve();
 
-  constructor(databasePath?: string, options?: { ephemeral?: boolean }) {
+  constructor(databasePath?: string, options?: BudgetStoreOptions) {
     this.ephemeral = options?.ephemeral ?? false;
+    this.onPersist = options?.onPersist;
     this.databasePath = databasePath ?? (this.ephemeral ? ':memory:' : path.join(app.getPath('userData'), DATABASE_FILE_NAME));
     this.sqlJsPromise = initSqlJs({
       locateFile: (fileName: string) => path.join(path.dirname(require.resolve('sql.js/dist/sql-wasm.wasm')), fileName),
@@ -79,17 +93,21 @@ export class BudgetStore {
   }
 
   async saveMonthKey(monthKey: string): Promise<BudgetSnapshot> {
+    if (!isValidMonthKey(monthKey)) {
+      throw new Error('ERR_INVALID_MONTH');
+    }
     await this.upsertSetting('activeMonthKey', monthKey);
     return this.getSnapshot();
   }
 
   async addFixedExpense(expense: Partial<FixedExpense> & { name: string; amount: number; category: string; active?: boolean }): Promise<BudgetSnapshot> {
     this.assertNonNegative(expense.amount);
+    this.assertName(expense.name);
     const fixedExpense: FixedExpense = sanitizeFixedExpense({
       id: expense.id ?? crypto.randomUUID(),
       name: expense.name.trim(),
       amount: Number(expense.amount),
-      category: expense.category.trim(),
+      category: (expense.category ?? '').trim(),
       dayOfMonth: expense.dayOfMonth ?? null,
       active: expense.active ?? true,
       kind: expense.kind ?? 'subscription',
@@ -121,15 +139,20 @@ export class BudgetStore {
     return this.getSnapshot();
   }
 
-  async addVariableExpense(expense: Partial<VariableExpense> & { name: string; amount: number; category: string; date: string; monthKey: string }): Promise<BudgetSnapshot> {
+  async addVariableExpense(expense: Partial<VariableExpense> & { name: string; amount: number; category: string; date: string; monthKey?: string }): Promise<BudgetSnapshot> {
     this.assertNonNegative(expense.amount);
+    this.assertName(expense.name);
+    if (!isValidDateString(expense.date)) {
+      throw new Error('ERR_INVALID_DATE');
+    }
     const variableExpense: VariableExpense = sanitizeVariableExpense({
       id: expense.id ?? crypto.randomUUID(),
       name: expense.name.trim(),
       amount: Number(expense.amount),
-      category: expense.category.trim(),
+      category: (expense.category ?? '').trim(),
       date: expense.date,
-      monthKey: expense.monthKey,
+      // Always derived from the date: the budget totals and the calendar must agree on which month a purchase belongs to.
+      monthKey: expense.date.slice(0, 7),
     });
 
     await this.runWithTransaction(() => {
@@ -153,6 +176,7 @@ export class BudgetStore {
   async addLoan(loan: Partial<Loan> & { name: string; principal: number; monthlyPayment: number }): Promise<BudgetSnapshot> {
     this.assertNonNegative(loan.principal);
     this.assertNonNegative(loan.monthlyPayment);
+    this.assertName(loan.name);
     const sanitized: Loan = sanitizeLoan({
       id: loan.id ?? crypto.randomUUID(),
       name: loan.name.trim(),
@@ -199,9 +223,14 @@ export class BudgetStore {
     };
   }
 
-  async importBackup(backup: BackupFile): Promise<BudgetSnapshot> {
-    const errors = validateBackupFile(backup);
-    if (errors.length > 0) {
+  /**
+   * Replaces this account's data with a backup. Accepts every backup format any released version
+   * wrote (see extractBackupSnapshot) and normalizes it first, so an older file never fails
+   * half-way: the whole replacement runs in one transaction either way.
+   */
+  async importBackup(backup: unknown, preferredAccountName?: string): Promise<BudgetSnapshot> {
+    const snapshot = extractBackupSnapshot(backup, preferredAccountName);
+    if (!snapshot) {
       throw new Error('ERR_INVALID_BACKUP');
     }
 
@@ -213,27 +242,24 @@ export class BudgetStore {
       database.run('DELETE FROM variable_expenses');
       database.run('DELETE FROM loans');
 
-      database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['income', String(backup.snapshot.settings.income)]);
-      database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['activeMonthKey', backup.snapshot.settings.activeMonthKey]);
+      database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['income', String(snapshot.settings.income)]);
+      database.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['activeMonthKey', snapshot.settings.activeMonthKey]);
 
-      for (const expense of backup.snapshot.fixedExpenses) {
-        const fixedExpense = sanitizeFixedExpense(expense);
+      for (const fixedExpense of snapshot.fixedExpenses) {
         database.run(
           'INSERT INTO fixed_expenses (id, name, amount, category, dayOfMonth, active, kind) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [fixedExpense.id, fixedExpense.name, fixedExpense.amount, fixedExpense.category, fixedExpense.dayOfMonth, fixedExpense.active ? 1 : 0, fixedExpense.kind],
         );
       }
 
-      for (const expense of backup.snapshot.variableExpenses) {
-        const variableExpense = sanitizeVariableExpense(expense);
+      for (const variableExpense of snapshot.variableExpenses) {
         database.run(
           'INSERT INTO variable_expenses (id, name, amount, category, date, monthKey) VALUES (?, ?, ?, ?, ?, ?)',
           [variableExpense.id, variableExpense.name, variableExpense.amount, variableExpense.category, variableExpense.date, variableExpense.monthKey],
         );
       }
 
-      for (const loan of backup.snapshot.loans ?? []) {
-        const sanitizedLoan = sanitizeLoan(loan);
+      for (const sanitizedLoan of snapshot.loans) {
         database.run(
           'INSERT INTO loans (id, name, principal, monthlyPayment, interestRate, remainingMonths, active) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [sanitizedLoan.id, sanitizedLoan.name, sanitizedLoan.principal, sanitizedLoan.monthlyPayment, sanitizedLoan.interestRate, sanitizedLoan.remainingMonths, sanitizedLoan.active ? 1 : 0],
@@ -246,6 +272,18 @@ export class BudgetStore {
 
   getDatabasePath(): string {
     return this.databasePath;
+  }
+
+  /** Drops the in-memory copy and reloads from disk, after the sync replaced the file underneath. */
+  async reload(): Promise<void> {
+    await this.persistChain;
+    this.database = null;
+    await this.initialize();
+  }
+
+  /** Resolves once every pending write has reached the disk. */
+  async flush(): Promise<void> {
+    await this.persistChain;
   }
 
   private createSchema(): void {
@@ -342,27 +380,35 @@ export class BudgetStore {
   }
 
   private async runWithTransaction(action: () => void): Promise<void> {
+    await this.initialize();
     const database = this.requireDatabase();
+    database.run('BEGIN IMMEDIATE');
     try {
-      database.run('BEGIN IMMEDIATE');
       action();
       database.run('COMMIT');
-      await this.persist();
     } catch (error) {
       database.run('ROLLBACK');
       throw error;
     }
+    // Outside the try: once COMMIT succeeded there is no transaction left to roll back, and a
+    // failed ROLLBACK would otherwise hide the real disk error behind "no transaction is active".
+    await this.persist();
   }
 
-  private async persist(): Promise<void> {
+  private persist(): Promise<void> {
     if (this.ephemeral) {
-      return;
+      return Promise.resolve();
     }
 
-    const database = this.requireDatabase();
-    const data = database.export();
-    await fs.mkdir(path.dirname(this.databasePath), { recursive: true });
-    await fs.writeFile(this.databasePath, Buffer.from(data));
+    const run = async () => {
+      // Exported when the write actually starts, so it always carries the latest committed state.
+      const data = this.requireDatabase().export();
+      await writeFileAtomic(this.databasePath, data);
+      await this.onPersist?.(data);
+    };
+    const next = this.persistChain.then(run, run);
+    this.persistChain = next.catch(() => undefined);
+    return next;
   }
 
   private requireDatabase(): SqlJsDatabase {
@@ -442,6 +488,12 @@ export class BudgetStore {
   private assertNonNegative(value: number): void {
     if (!Number.isFinite(value) || value < 0) {
       throw new Error('ERR_NEGATIVE_AMOUNT');
+    }
+  }
+
+  private assertName(name: unknown): void {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      throw new Error('ERR_INVALID_NAME');
     }
   }
 

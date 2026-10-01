@@ -1,20 +1,58 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { AccountManager } from './accounts';
-import type { BackupFile, UpdateStatus } from '../shared/types';
+import type { SyncStatus, UpdateStatus } from '../shared/types';
 
 // The app was renamed to "Nebula Finterest" in v0.1.35. Electron derives userData from
 // productName, so without this pin every existing install would silently start from an
 // empty "Nebula Finterest" folder and appear to have lost its accounts. Must run before
 // AccountManager is constructed, since BudgetStore resolves its path from userData.
-app.setPath('userData', path.join(app.getPath('appData'), 'Finterest'));
-
-let mainWindow: BrowserWindow | null = null;
-const accountManager = new AccountManager();
+// FINTEREST_USER_DATA_DIR lets development and manual testing run against a throwaway
+// folder instead of the real accounts; it is never set in a packaged install.
+app.setPath('userData', process.env.FINTEREST_USER_DATA_DIR || path.join(app.getPath('appData'), 'Finterest'));
 
 const BACKUP_BEFORE_UNINSTALL_FLAG = '--backup-before-uninstall=';
+const MAX_BACKUP_FILE_BYTES = 50 * 1024 * 1024;
+const isBackupRun = process.argv.some((arg) => arg.startsWith(BACKUP_BEFORE_UNINSTALL_FLAG));
+
+let mainWindow: BrowserWindow | null = null;
+const accountManager = new AccountManager((status) => sendSyncStatus(status));
+
+// Two instances would each hold the database in memory and overwrite each other's file on
+// every save. The headless uninstall backup only reads, so it is exempt.
+if (!isBackupRun && !app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  app.whenReady().then(async () => {
+    const backupFlag = process.argv.find((arg) => arg.startsWith(BACKUP_BEFORE_UNINSTALL_FLAG));
+    if (backupFlag) {
+      const backupPath = backupFlag.slice(BACKUP_BEFORE_UNINSTALL_FLAG.length);
+      await runPreUninstallBackup(backupPath);
+      app.exit(0);
+      return;
+    }
+
+    registerIpcHandlers();
+    await accountManager.initialize();
+    await createWindow();
+    setUpAutoUpdater();
+
+    app.on('activate', async () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        await createWindow();
+      }
+    });
+  });
+}
 
 async function createWindow(): Promise<void> {
   mainWindow = new BrowserWindow({
@@ -29,14 +67,31 @@ async function createWindow(): Promise<void> {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      // The preload only uses contextBridge + ipcRenderer, both available in a sandboxed preload.
+      sandbox: true,
     },
+  });
+
+  // The renderer is a single local page: never let it navigate away or open new windows.
+  // External links (if any ever appear) go to the user's browser instead.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https:\/\//i.test(url)) {
+      void shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url !== mainWindow?.webContents.getURL()) {
+      event.preventDefault();
+    }
   });
 
   const devUrl = process.env.VITE_DEV_SERVER_URL ?? (!app.isPackaged ? 'http://127.0.0.1:5173' : undefined);
   if (devUrl) {
     await mainWindow.loadURL(devUrl);
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    if (!process.env.FINTEREST_NO_DEVTOOLS) {
+      mainWindow.webContents.openDevTools({ mode: 'detach' });
+    }
   } else {
     await mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
@@ -45,27 +100,6 @@ async function createWindow(): Promise<void> {
     mainWindow = null;
   });
 }
-
-app.whenReady().then(async () => {
-  const backupFlag = process.argv.find((arg) => arg.startsWith(BACKUP_BEFORE_UNINSTALL_FLAG));
-  if (backupFlag) {
-    const backupPath = backupFlag.slice(BACKUP_BEFORE_UNINSTALL_FLAG.length);
-    await runPreUninstallBackup(backupPath);
-    app.exit(0);
-    return;
-  }
-
-  registerIpcHandlers();
-  await accountManager.initialize();
-  await createWindow();
-  setUpAutoUpdater();
-
-  app.on('activate', async () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      await createWindow();
-    }
-  });
-});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -76,7 +110,7 @@ app.on('window-all-closed', () => {
 /** Invoked by the Windows NSIS uninstaller (build/installer.nsh) before it deletes the userData folder, so local accounts are not lost silently. */
 async function runPreUninstallBackup(backupPath: string): Promise<void> {
   try {
-    await accountManager.initialize();
+    await accountManager.initialize({ withSync: false });
     const backup = await accountManager.exportAllForBackup();
     await fs.mkdir(path.dirname(backupPath), { recursive: true });
     await fs.writeFile(backupPath, JSON.stringify(backup, null, 2), 'utf8');
@@ -87,6 +121,12 @@ async function runPreUninstallBackup(backupPath: string): Promise<void> {
 
 function sendUpdateStatus(status: UpdateStatus): void {
   mainWindow?.webContents.send('update:status', status);
+}
+
+function sendSyncStatus(status: SyncStatus): void {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('sync:status', status);
+  }
 }
 
 function setUpAutoUpdater(): void {
@@ -110,19 +150,38 @@ function setUpAutoUpdater(): void {
   }
 }
 
+async function readBackupFile(filePath: string): Promise<unknown> {
+  const stats = await fs.stat(filePath);
+  if (stats.size > MAX_BACKUP_FILE_BYTES) {
+    throw new Error('ERR_INVALID_BACKUP');
+  }
+  try {
+    // Strip a UTF-8 BOM: files re-saved with Windows Notepad start with one and JSON.parse rejects it.
+    return JSON.parse((await fs.readFile(filePath, 'utf8')).replace(/^﻿/, ''));
+  } catch {
+    throw new Error('ERR_INVALID_BACKUP');
+  }
+}
+
+function dialogParent(): BrowserWindow | undefined {
+  return mainWindow ?? undefined;
+}
+
 function registerIpcHandlers(): void {
   ipcMain.handle('account:list', () => accountManager.list());
   ipcMain.handle('account:create', async (_event, name: string, pin: string) => accountManager.create(name, pin));
   ipcMain.handle('account:unlock', async (_event, id: string, pin: string) => accountManager.unlock(id, pin));
-  ipcMain.handle('account:guest', async (_event, name: string) => accountManager.enterGuestMode(name));
+  ipcMain.handle('account:guest', async (_event, name: string) => accountManager.enterGuestMode(String(name ?? '')));
   ipcMain.handle('account:delete', async (_event, id: string, pin: string) => accountManager.delete(id, pin));
   ipcMain.handle('account:rename', async (_event, name: string) => accountManager.renameActive(name));
   ipcMain.handle('account:chooseAvatar', async () => {
-    const result = await dialog.showOpenDialog({
+    const options: Electron.OpenDialogOptions = {
       title: 'Choisir une photo de profil',
       properties: ['openFile'],
       filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }],
-    });
+    };
+    const parent = dialogParent();
+    const result = parent ? await dialog.showOpenDialog(parent, options) : await dialog.showOpenDialog(options);
 
     if (result.canceled || result.filePaths.length === 0) {
       return null;
@@ -144,7 +203,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('budget:toggleLoan', async (_event, id: string, active: boolean) => accountManager.getStore().toggleLoan(id, active));
   ipcMain.handle('budget:deleteLoan', async (_event, id: string) => accountManager.getStore().deleteLoan(id));
   ipcMain.handle('budget:exportBackup', async () => accountManager.exportActive());
-  ipcMain.handle('budget:importBackup', async (_event, backup: BackupFile) => accountManager.getStore().importBackup(backup));
+  ipcMain.handle('budget:importBackup', async (_event, backup: unknown) => accountManager.getStore().importBackup(backup, accountManager.getActiveName()));
   ipcMain.handle('budget:getDatabasePath', async () => accountManager.getStore().getDatabasePath());
   ipcMain.handle('app:installUpdate', () => {
     autoUpdater.quitAndInstall();
@@ -161,11 +220,13 @@ function registerIpcHandlers(): void {
   });
   ipcMain.handle('budget:saveBackupToFile', async () => {
     const backup = await accountManager.exportActive();
-    const result = await dialog.showSaveDialog({
-      title: 'Export Finterest Backup',
+    const options: Electron.SaveDialogOptions = {
+      title: 'Exporter une sauvegarde Nebula Finterest',
       defaultPath: 'finterest-backup.json',
       filters: [{ name: 'Finterest Backup', extensions: ['json'] }],
-    });
+    };
+    const parent = dialogParent();
+    const result = parent ? await dialog.showSaveDialog(parent, options) : await dialog.showSaveDialog(options);
 
     if (result.canceled || !result.filePath) {
       return;
@@ -174,18 +235,39 @@ function registerIpcHandlers(): void {
     await fs.writeFile(result.filePath, JSON.stringify(backup, null, 2), 'utf8');
   });
   ipcMain.handle('budget:importBackupFromFile', async () => {
-    const result = await dialog.showOpenDialog({
-      title: 'Import Finterest Backup',
+    const options: Electron.OpenDialogOptions = {
+      title: 'Importer une sauvegarde Nebula Finterest',
       properties: ['openFile'],
       filters: [{ name: 'Finterest Backup', extensions: ['json'] }],
-    });
+    };
+    const parent = dialogParent();
+    const result = parent ? await dialog.showOpenDialog(parent, options) : await dialog.showOpenDialog(options);
 
     if (result.canceled || result.filePaths.length === 0) {
       return null;
     }
 
-    const fileBuffer = await fs.readFile(result.filePaths[0], 'utf8');
-    const backup = JSON.parse(fileBuffer) as BackupFile;
-    return accountManager.getStore().importBackup(backup);
+    const backup = await readBackupFile(result.filePaths[0]);
+    return accountManager.getStore().importBackup(backup, accountManager.getActiveName());
+  });
+
+  ipcMain.handle('sync:getStatus', () => accountManager.getSyncStatus());
+  ipcMain.handle('sync:chooseDirectory', async () => {
+    const options: Electron.OpenDialogOptions = {
+      title: 'Choisir le dossier de synchronisation',
+      properties: ['openDirectory', 'createDirectory'],
+    };
+    const parent = dialogParent();
+    const result = parent ? await dialog.showOpenDialog(parent, options) : await dialog.showOpenDialog(options);
+    if (result.canceled || result.filePaths.length === 0) {
+      return { status: accountManager.getSyncStatus(), reloaded: false };
+    }
+    const status = await accountManager.setSyncDirectory(result.filePaths[0]);
+    return { status, reloaded: true };
+  });
+  ipcMain.handle('sync:disable', async () => accountManager.setSyncDirectory(null));
+  ipcMain.handle('sync:now', async () => {
+    const reloaded = await accountManager.syncNow();
+    return { status: accountManager.getSyncStatus(), reloaded };
   });
 }
