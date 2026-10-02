@@ -15,8 +15,8 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
 - Les montants se saisissent naturellement : « 12,50 », « 1 234,56 € » ou « 12.5 » sont tous acceptés.
 - Vue d'ensemble avec anneau de progression et résumé du mois.
 
-**Calcul avancé**
-- Simulateur d'intérêts composés indépendant du budget, avec capital de départ, investissement mensuel régulier, taux annuel et durée — pour estimer la valeur future d'une épargne programmée. Ce calcul est fourni à titre indicatif et ne remplace pas un conseil financier.
+**Outils**
+- Prêts bancaires et **Calculatrice** : un simulateur d'intérêts composés indépendant du budget, avec capital de départ, investissement mensuel régulier, taux annuel et durée — pour estimer la valeur future d'une épargne programmée. Ce calcul est fourni à titre indicatif et ne remplace pas un conseil financier.
 
 **Comptes et confidentialité**
 - Plusieurs comptes locaux sur le même ordinateur, chacun avec son propre budget et un code secret (PIN).
@@ -26,7 +26,8 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
 - Interface disponible en français et en anglais.
 
 **Apparence et personnalisation**
-- Six thèmes : **Nebula sombre** et **Nebula clair** (l'identité actuelle), **Verre liquide sombre** et **Verre liquide clair** (surfaces translucides et floutées, avec un reflet qui suit la souris), plus **Old sombre** et **Old clair** (les anciens thèmes émeraude/or, conservés tels quels). Un mode **Système** suit le thème clair ou sombre de Windows.
+- La même interface que toute la famille Nebula (Nebula Hub, Clock, News) : fenêtre sans cadre aux boutons Windows teintés selon le thème, barre latérale flottante rangée en groupes (« Mon budget », « Outils »), carte d'état Nebula Hub, colonne de contenu centrée qui s'élargit sur les grands écrans et les écrans ultra-larges, rail d'icônes sur les fenêtres étroites.
+- Thèmes de la famille : **Nebula sombre**, **Nebula clair**, **Verre sombre**, **Verre clair** (surfaces translucides et floutées, avec un reflet qui suit la souris) et **Système** (par défaut, suit Windows). Les **thèmes historiques** Old sombre et Old clair (les anciens thèmes émeraude/or) restent disponibles, tels quels.
 - Couleurs d'accent : six palettes prêtes à l'emploi (Nebula, Aurore, Océan, Couchant, Sakura, Braise) ou deux couleurs entièrement personnalisées. Tout suit : boutons, navigation, graphiques et arrière-plans.
 - Arrière-plans animés : halo nébuleuse, aurore boréale, champ d'étoiles (avec étoiles filantes), constellation qui réagit à la souris, vagues — ou aucun.
 - Animations de l'interface réglables : complètes (transitions d'écran, ondulation au clic), réduites ou désactivées.
@@ -46,7 +47,7 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
   - afficher votre **reste à vivre** sur l'accueil du Hub (masqué par défaut) et vous prévenir **la veille d'un prélèvement**, uniquement avec votre accord donné dans le Hub, et jamais quand l'application est verrouillée ;
   - s'ouvrir **dans la fenêtre du Hub** plutôt que dans la sienne (bouton « Détacher » pour revenir) ;
   - laisser le Hub installer ses mises à jour, si vous l'activez dans les réglages.
-- Le bouton « Apps Nebula » de la barre latérale ouvre le Hub.
+- La carte « Nebula Hub » en bas de la barre latérale indique s'il est connecté et l'ouvre d'un clic.
 - L'échange avec le Hub passe par Nebula Link, une liaison **locale** entre applications de l'ordinateur : aucun appel réseau, rien ne quitte votre ordinateur.
 
 **Mises à jour**
@@ -98,13 +99,13 @@ npm test                         # tests Jest
 
 Architecture en bref :
 - `src/electron/` — process principal Electron, pont preload, couche de persistance locale (SQLite via sql.js, écritures atomiques), copie vers le dossier secondaire (`sync.ts`), sauvegardes du dossier racine (`backups.ts`) et intégration à Nebula Hub (`nebula.ts`, SDK `@nebula/link`).
-- `src/renderer/` — interface React ; `src/renderer/components/` contient les écrans (compte, calendrier, prêts, réglages, profil, tableau de bord), le jeu d'icônes (`Icon.tsx`) et les arrière-plans animés (`BackgroundFx.tsx`) ; `i18n.ts`, `theme.ts`, `appearance.ts` et `sound.ts` gèrent la langue, le thème, la personnalisation et les sons.
+- `src/renderer/` — interface React ; `src/renderer/components/` contient la barre latérale (`Sidebar.tsx`), les écrans (compte, calendrier, prêts, calculatrice, réglages, profil, tableau de bord), le dialogue de confirmation (`Dialog.tsx`), les états vides (`ScreenState.tsx`), le jeu d'icônes Nebula (`Icon.tsx`, porté de `@nebula/design`) et les arrière-plans animés (`BackgroundFx.tsx`) ; `i18n.ts`, `theme.ts`, `appearance.ts` et `sound.ts` gèrent la langue, le thème, la personnalisation et les sons.
 - `src/shared/` — types, calculs de budget, entrées du calendrier, normalisation des sauvegardes et logique de synchronisation, partagés entre les deux processus et testés.
 - `tests/electron/` — tests du process principal (anciennes bases, ancien `accounts.json`, copie entre deux machines simulées, sauvegardes).
 - `assets/` et `build/` — logo, icônes source, et icône packagée pour Windows/macOS/Linux.
 
 Notes utiles :
-- Les jetons de couleur, le dégradé d'accent et l'échelle de mouvement de la DA Nebula sont définis en tête de `src/renderer/styles.css`. La fiche de référence complète (`NEBULA_DESIGN.md`) n'est pas versionnée : elle se partage à la main.
+- Les jetons de couleur, le dégradé d'accent et l'échelle de mouvement de la DA Nebula sont définis en tête de `src/renderer/styles.css`. Les références sont le dépôt `nebula-design-system` (`tokens/theme.css` fait foi), le paquet `@nebula/design` et le renderer de Nebula Hub, dont la coquille (barre latérale, colonne de contenu, états, dialogues) est portée en fin de `styles.css` ; le guide d'harmonisation de la famille est `docs/PROMPT_DESIGN.md` dans le dépôt Nebula Hub.
 - Le nom du produit a changé en v0.1.35, mais l'application épingle volontairement son dossier de données à `%APPDATA%\Finterest` (voir `src/electron/main.ts`) pour ne pas orpheliner les comptes existants.
 - Pour tester sans toucher à vos vrais comptes, lancez l'app avec la variable d'environnement `FINTEREST_USER_DATA_DIR` pointant vers un dossier jetable.
 - L'application se met à jour automatiquement : toute évolution du schéma SQLite, de `accounts.json` ou du format de sauvegarde doit rester rétrocompatible (migrations additives, nouveaux champs optionnels). Les tests de `tests/electron/` et `src/shared/budget.test.ts` vérifient ce point avec des données au format des anciennes versions.
