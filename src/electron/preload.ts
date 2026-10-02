@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('finterest', {
   getDatabasePath: () => ipcRenderer.invoke('budget:getDatabasePath'),
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => subscribe('update:status', callback),
   installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
+  setWindowTheme: (theme: string) => ipcRenderer.invoke('app:setWindowTheme', theme),
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
   getSyncStatus: () => ipcRenderer.invoke('sync:getStatus'),
   chooseSyncDirectory: () => ipcRenderer.invoke('sync:chooseDirectory'),

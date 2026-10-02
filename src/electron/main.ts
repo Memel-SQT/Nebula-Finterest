@@ -101,6 +101,38 @@ function focusWindow(): void {
 type Bounds = { x: number; y: number; width: number; height: number };
 
 /**
+ * Page and ink colors of each theme (styles.css token blocks), for the native window chrome: the
+ * frameless window keeps Windows' own minimize / maximize / close buttons (titleBarOverlay), tinted
+ * to match. The renderer only ever sends a theme name, validated against this table.
+ */
+const WINDOW_CHROME: Record<string, { page: string; ink: string }> = {
+  'nebula-dark': { page: '#0a0a0f', ink: '#f1f1f6' },
+  'nebula-light': { page: '#f4f3fb', ink: '#18172b' },
+  'glass-dark': { page: '#06060f', ink: '#f5f4ff' },
+  'glass-light': { page: '#e9ebf8', ink: '#17162a' },
+  'old-dark': { page: '#05070a', ink: '#edf1ef' },
+  'old-light': { page: '#eceeea', ink: '#12171a' },
+};
+/** Height of the drag strip (.titlebar-drag in styles.css) and of the window controls. */
+const TITLE_BAR_HEIGHT = 36;
+let windowTheme = 'nebula-dark';
+
+function titleBarOverlay(): Electron.TitleBarOverlayOptions {
+  // Transparent: the app's own background (and its animated glow) shows behind the controls.
+  return { color: 'rgba(0, 0, 0, 0)', symbolColor: WINDOW_CHROME[windowTheme].ink, height: TITLE_BAR_HEIGHT };
+}
+
+function setWindowTheme(theme: unknown): void {
+  if (typeof theme !== 'string' || !Object.hasOwn(WINDOW_CHROME, theme)) return;
+  windowTheme = theme;
+  const window = mainWindow;
+  if (!window || window.isDestroyed()) return;
+  window.setBackgroundColor(WINDOW_CHROME[theme].page);
+  // The docked window has no frame at all, so no controls to tint.
+  if (!dock.docked) window.setTitleBarOverlay(titleBarOverlay());
+}
+
+/**
  * The Hub mode (Nebula Hub, `nebula.hub.dock`): the window becomes frameless, off the taskbar, laid
  * exactly where the Hub says, shown without taking the focus. Electron cannot remove the frame of
  * an open window, so the window is recreated (the open profile stays open in the main process).
@@ -164,13 +196,15 @@ async function createWindow(options: { docked?: boolean; bounds?: Bounds; restor
     ...(options.bounds ? { x: options.bounds.x, y: options.bounds.y } : {}),
     minWidth: docked ? 320 : 960,
     minHeight: docked ? 240 : 700,
-    frame: !docked,
+    // Normal: no native frame, a 36 px drag strip drawn by the app, Windows' controls on top.
+    // Docked: no frame and no controls at all (the Hub owns the area).
+    ...(docked ? { frame: false } : { titleBarStyle: 'hidden' as const, titleBarOverlay: titleBarOverlay() }),
     skipTaskbar: docked,
     // Docked: exactly the Hub's area. No invisible resize border (thickFrame), and the Hub alone
     // moves and sizes it.
     ...(docked ? { thickFrame: false, resizable: false, movable: false, minimizable: false, maximizable: false, fullscreenable: false } : {}),
     show: false,
-    backgroundColor: '#0a0a0f',
+    backgroundColor: WINDOW_CHROME[windowTheme].page,
     title: 'Nebula Finterest',
     icon: path.join(__dirname, '../../assets/icon.png'),
     webPreferences: {
@@ -350,6 +384,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('budget:exportBackup', async () => accountManager.exportActive());
   ipcMain.handle('budget:importBackup', async (_event, backup: unknown) => accountManager.getStore().importBackup(backup, accountManager.getActiveName()));
   ipcMain.handle('budget:getDatabasePath', async () => accountManager.getStore().getDatabasePath());
+  ipcMain.handle('app:setWindowTheme', (_event, theme: unknown) => setWindowTheme(theme));
   ipcMain.handle('app:installUpdate', () => {
     autoUpdater.quitAndInstall();
   });
