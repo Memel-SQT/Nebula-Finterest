@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "appId": "nebula.finterest",
+  "provides": [
+    {
+      "id": "finterest.budget.remaining",
+      "kind": "widget",
+      "sensitivity": "private",
+      "title": { "fr": "Reste à vivre", "en": "Budget left" },
+      "description": { "fr": "Ce qu'il reste à vivre ce mois-ci, seulement quand un profil est déverrouillé dans Nebula Finterest.", "en": "What is left this month, only while a profile is unlocked in Nebula Finterest." },
+      "resultSchema": "WidgetV1",
+      "refreshSeconds": 300
+    }
+  ],
+  "consumes": [
+    { "id": "nebula.appearance.changed", "kind": "event" },
+    { "id": "nebula.hub.present", "kind": "event" },
+    { "id": "nebula.hub.dock", "kind": "event" }
+  ],
+  "deepLinks": [
+    { "path": "/", "params": {} },
+    { "path": "/month", "params": { "date": "month" } }
+  ]
+}

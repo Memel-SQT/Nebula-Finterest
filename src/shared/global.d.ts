@@ -1,4 +1,4 @@
-import type { BackupFile, BudgetSnapshot, Loan, SyncStatus, UpdateStatus } from './types';
+import type { BackupFile, BudgetSnapshot, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus } from './types';
 import type { LocalAccountSummary } from './accounts';
 
 declare global {
@@ -38,6 +38,24 @@ declare global {
       disableSync(): Promise<SyncStatus>;
       syncNow(): Promise<{ status: SyncStatus; reloaded: boolean }>;
       onSyncStatus(callback: (status: SyncStatus) => void): () => void;
+      /** Profiles in the copy folder that this computer does not have (v0.1.37: never added on their own). */
+      listRestorableProfiles(): Promise<LocalAccountSummary[]>;
+      restoreProfiles(ids: string[]): Promise<LocalAccountSummary[]>;
+      /** A backup waiting for confirmation (`--import-backup=`, or the latest one offered after a reinstall). */
+      getPendingImport(): Promise<PendingBackup | null>;
+      offerLatestBackup(): Promise<PendingBackup | null>;
+      dismissPendingImport(): Promise<void>;
+      importPendingBackup(accountName?: string): Promise<BudgetSnapshot>;
+      onPendingImport(callback: (pending: PendingBackup) => void): () => void;
+      /** Nebula Hub (Nebula Link). */
+      getNebulaState(): Promise<NebulaState>;
+      setUpdatesByHub(enabled: boolean): Promise<NebulaState>;
+      onNebulaState(callback: (state: NebulaState) => void): () => void;
+      onNebulaAppearance(callback: (appearance: unknown) => void): () => void;
+      onOpenMonth(callback: (monthKey: string) => void): () => void;
+      openNebulaHub(): Promise<'opened' | 'not-installed'>;
+      isDocked(): Promise<boolean>;
+      detachFromHub(): Promise<void>;
     };
   }
 }

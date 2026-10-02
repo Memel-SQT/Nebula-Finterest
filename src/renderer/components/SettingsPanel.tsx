@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
-import type { SyncStatus, UpdateStatus } from '@shared/types';
+import type { NebulaState, SyncStatus, UpdateStatus } from '@shared/types';
+import type { LocalAccountSummary } from '@shared/accounts';
+import { useEffect } from 'react';
 import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import { isLegacyTheme, type ResolvedTheme, type Theme } from '../theme';
@@ -38,6 +40,14 @@ export function SettingsPanel({
   onChooseSyncDirectory,
   onDisableSync,
   onSyncNow,
+  restorable = [],
+  onRefreshRestorable,
+  onRestoreProfile,
+  nebulaState,
+  followNebula = true,
+  onFollowNebulaChange,
+  onUpdatesByHubChange,
+  onOpenNebulaHub,
 }: {
   databasePath: string;
   isGuest: boolean;
@@ -58,9 +68,24 @@ export function SettingsPanel({
   onChooseSyncDirectory: () => Promise<void>;
   onDisableSync: () => Promise<void>;
   onSyncNow: () => Promise<void>;
+  /** Profiles in the copy folder that this computer does not have (v0.1.37). */
+  restorable?: LocalAccountSummary[];
+  onRefreshRestorable?: () => Promise<void>;
+  onRestoreProfile?: (id: string) => Promise<void>;
+  nebulaState?: NebulaState | null;
+  followNebula?: boolean;
+  onFollowNebulaChange?: (follow: boolean) => void;
+  onUpdatesByHubChange?: (enabled: boolean) => Promise<void>;
+  onOpenNebulaHub?: () => Promise<void>;
 }) {
   const t = (key: Parameters<typeof translate>[1], params?: Record<string, string>) => translate(language, key, params);
   const legacyTheme = isLegacyTheme(resolvedTheme);
+
+  // What the copy folder holds that this computer does not, listed when the settings open.
+  useEffect(() => {
+    if (syncStatus?.directory) void onRefreshRestorable?.();
+    // Once per folder, not on every render (the callback is recreated by App on each render).
+  }, [syncStatus?.directory]);
 
   const updateMessage = (() => {
     switch (updateStatus?.state) {
@@ -245,6 +270,7 @@ export function SettingsPanel({
                 <button className="secondary" onClick={onImport}><Icon name="upload" size={16} />{t('settings.import')}</button>
               </div>
               <small className="path-note">{t('settings.path', { path: databasePath || t('settings.loading') })}</small>
+              <small className="path-note">{t('backup.rootNote')}</small>
             </>
           )}
         </div>
@@ -274,6 +300,51 @@ export function SettingsPanel({
           {syncStatus?.directory ? <small className="path-note">{t('sync.folder', { path: syncStatus.directory })}</small> : null}
           {lastSync && syncState !== 'disabled' ? <small className="path-note">{t('sync.lastSync', { time: lastSync })}</small> : null}
           <small className="path-note">{t('sync.warning')}{isGuest ? ` ${t('sync.guestNote')}` : ''}</small>
+          {restorable.length && onRestoreProfile ? (
+            <div className="restorable">
+              <p className="settings-copy">{t('sync.restorable')}</p>
+              <div className="settings-actions">
+                {restorable.map((profile) => (
+                  <button key={profile.id} className="ghost small" onClick={() => void onRestoreProfile(profile.id)}>
+                    <Icon name="user" size={15} />{t('sync.restore', { name: profile.name })}
+                  </button>
+                ))}
+              </div>
+              <small className="path-note">{t('sync.restoreNote')}</small>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="settings-section">
+          <h3><Icon name="overview" size={15} />{t('nebula.title')}</h3>
+          <div className={`sync-status ${nebulaState?.connected ? 'sync-idle' : 'sync-disabled'}`}>
+            <span className="status-dot" />
+            <span>{nebulaState?.connected ? t('nebula.connected', { version: nebulaState.hubVersion ?? '' }) : t('nebula.offline')}</span>
+          </div>
+          {onFollowNebulaChange ? (
+            <>
+              <button type="button" role="switch" aria-checked={followNebula} aria-describedby="nebula-follow-hint" className={`switch ${followNebula ? 'on' : ''}`} data-sound="toggle" onClick={() => onFollowNebulaChange(!followNebula)}>
+                <i aria-hidden="true" />
+                <span>{t('nebula.follow')}</span>
+              </button>
+              <small className="path-note" id="nebula-follow-hint">{t('nebula.followHint')}</small>
+            </>
+          ) : null}
+          {onUpdatesByHubChange ? (
+            <>
+              <button type="button" role="switch" aria-checked={Boolean(nebulaState?.updatesByHub)} aria-describedby="nebula-updates-hint" className={`switch ${nebulaState?.updatesByHub ? 'on' : ''}`} data-sound="toggle" onClick={() => void onUpdatesByHubChange(!nebulaState?.updatesByHub)}>
+                <i aria-hidden="true" />
+                <span>{t('nebula.updatesByHub')}</span>
+              </button>
+              <small className="path-note" id="nebula-updates-hint">{t('nebula.updatesByHubHint')}</small>
+            </>
+          ) : null}
+          <small className="path-note">{t('nebula.privacy')}</small>
+          {onOpenNebulaHub ? (
+            <div className="settings-actions settings-reset">
+              <button className="ghost small" onClick={() => void onOpenNebulaHub()}><Icon name="overview" size={15} />{t('nebula.apps')}</button>
+            </div>
+          ) : null}
         </div>
 
         <div className="settings-section">

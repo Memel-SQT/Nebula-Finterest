@@ -1,4 +1,4 @@
-import { decideFileSync, isSyncManifest, mergeAccountRecords, MTIME_TOLERANCE_MS } from './sync';
+import { decideFileSync, isSyncManifest, mergeAccountRecords, mirrorManifestRecords, MTIME_TOLERANCE_MS, restorableRecords } from './sync';
 
 describe('decideFileSync', () => {
   it('pushes when only the local copy exists, pulls when only the remote one does', () => {
@@ -52,5 +52,19 @@ describe('isSyncManifest', () => {
     expect(isSyncManifest({ app: 'Finterest', kind: 'sync-manifest', version: 1, accounts: [], deletedIds: [] })).toBe(true);
     expect(isSyncManifest({ app: 'Finterest', version: 1, snapshot: {} })).toBe(false);
     expect(isSyncManifest(null)).toBe(false);
+  });
+});
+
+describe('copy mode (v0.1.37)', () => {
+  it('writes this computer’s records first and keeps the other computers’ ones', () => {
+    const local = [{ id: 'a', name: 'local', updatedAt: 1 }];
+    const remote = [{ id: 'a', name: 'remote newer', updatedAt: 9 }, { id: 'b', name: 'other pc' }, { id: 'gone' }];
+    expect(mirrorManifestRecords(local, remote, ['gone'])).toEqual([{ id: 'a', name: 'local', updatedAt: 1 }, { id: 'b', name: 'other pc' }]);
+  });
+
+  it('offers only the profiles this computer does not have, once each', () => {
+    const remote = [{ id: 'a' }, { id: 'b' }, { id: 'b' }, { id: 'gone' }];
+    expect(restorableRecords(['a'], remote, ['gone'])).toEqual([{ id: 'b' }]);
+    expect(restorableRecords(['a', 'b'], remote, [])).toEqual([{ id: 'gone' }]);
   });
 });

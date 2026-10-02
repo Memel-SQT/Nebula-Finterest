@@ -33,11 +33,21 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
 - Petits sons d'interface (clic, ajout, suppression, erreur, connexion), générés par l'application elle-même, avec réglage du volume — désactivables à tout moment.
 - Nouveau jeu d'icônes dessiné pour l'application, qui prend la couleur du thème.
 
-**Sauvegarde et synchronisation**
-- Export de votre budget dans un fichier de sauvegarde unique, à tout moment.
-- Import de ce fichier pour restaurer vos données, y compris sur un autre ordinateur. Les sauvegardes faites par toutes les versions précédentes restent importables, y compris le fichier créé automatiquement à la désinstallation.
-- **Dossier de synchronisation** : choisissez un second dossier (clé USB, OneDrive, NAS…) dans les réglages. Chaque profil y est recopié automatiquement à chaque modification ; sur un autre ordinateur pointant vers le même dossier, les profils apparaissent et la version la plus récente est récupérée à l'ouverture. La copie locale remplacée est conservée à côté (`.before-sync.bak`). Les données y sont copiées sans chiffrement : choisissez un emplacement de confiance. La session invité n'est jamais synchronisée.
-- Sur Windows, la désinstallation sauvegarde automatiquement vos comptes dans `Documents\Nebula Finterest` avant de les supprimer.
+**Sauvegarde et copie**
+- Export de votre budget dans un fichier de sauvegarde unique, à tout moment. L'export est proposé dans `Documents\Nebula Finterest`, le **dossier racine** des sauvegardes : c'est là que l'application regarde en premier pour un import.
+- Import d'une sauvegarde pour restaurer vos données, y compris sur un autre ordinateur, toujours après confirmation. Les sauvegardes faites par toutes les versions précédentes restent importables, y compris le fichier créé automatiquement à la désinstallation ; quand une sauvegarde contient plusieurs profils, vous choisissez lequel importer.
+- **Après une réinstallation**, le premier profil créé se voit proposer la sauvegarde la plus récente du dossier racine.
+- **Dossier de copie** : choisissez un second dossier (clé USB, OneDrive, NAS…) dans les réglages. Chaque profil y est recopié automatiquement à chaque modification. C'est une **simple copie** : les profils de cet ordinateur (et leurs codes) restent la référence et ne sont jamais remplacés par ce dossier. Les profils présents dans la copie mais absents de cet ordinateur sont listés dans les réglages, et ajoutés seulement si vous le demandez. Supprimer un profil ne l'efface pas de la copie. Les données y sont copiées sans chiffrement : choisissez un emplacement de confiance. La session invité n'est jamais copiée.
+- Sur Windows, la désinstallation sauvegarde automatiquement vos comptes dans `Documents\Nebula Finterest` avant de les supprimer (une sauvegarde précédente du même nom est conservée, renommée avec sa date). Si cette sauvegarde échoue, l'installeur vous demande si vous voulez continuer, au lieu de rester bloqué.
+
+**Nebula Hub (facultatif)**
+- Nebula Finterest fonctionne seule, comme toujours. Si [Nebula Hub](https://github.com/Memel-SQT/Nebula-Hub) est installé, elle peut :
+  - suivre l'apparence Nebula (thème, couleurs, fond, animations, sons, langue), sauf les thèmes « Ancien », qui restent un choix local ;
+  - afficher votre **reste à vivre** sur l'accueil du Hub (masqué par défaut) et vous prévenir **la veille d'un prélèvement**, uniquement avec votre accord donné dans le Hub, et jamais quand l'application est verrouillée ;
+  - s'ouvrir **dans la fenêtre du Hub** plutôt que dans la sienne (bouton « Détacher » pour revenir) ;
+  - laisser le Hub installer ses mises à jour, si vous l'activez dans les réglages.
+- Le bouton « Apps Nebula » de la barre latérale ouvre le Hub.
+- L'échange avec le Hub passe par Nebula Link, une liaison **locale** entre applications de l'ordinateur : aucun appel réseau, rien ne quitte votre ordinateur.
 
 **Mises à jour**
 - Vérification automatique des mises à jour au démarrage (Windows), et bouton de vérification manuelle dans les réglages.
@@ -57,12 +67,12 @@ Des versions macOS (`.dmg`) et Linux (`AppImage`) sont **prévues** mais **pas e
 1. Au premier lancement, créez un compte local avec un nom et un code secret à 4-8 chiffres — ou cliquez sur « Essayer sans compte » pour faire un tour sans rien enregistrer.
 2. Renseignez votre revenu mensuel, ajoutez vos abonnements/prélèvements, vos achats prévus et vos éventuels prêts.
 3. Consultez la vue d'ensemble pour voir votre reste à vivre du mois.
-4. Depuis les réglages, personnalisez l'apparence (thème, couleurs, arrière-plan, animations, sons, langue), exportez une sauvegarde ou choisissez un dossier de synchronisation, et vérifiez les mises à jour disponibles.
+4. Depuis les réglages, personnalisez l'apparence (thème, couleurs, arrière-plan, animations, sons, langue), exportez une sauvegarde ou choisissez un dossier de copie, réglez l'intégration à Nebula Hub, et vérifiez les mises à jour disponibles.
 5. Depuis l'écran de sélection des comptes, créez ou supprimez des comptes locaux, ou changez de compte à tout moment depuis votre profil.
 
 ## Vos données
 
-Votre budget est stocké uniquement sur votre ordinateur, dans le dossier de données de l'application (et dans le dossier de synchronisation si vous en avez choisi un). Aucune information n'est envoyée à un tiers. Après plusieurs codes erronés, la saisie du code secret est bloquée 30 secondes. Utilisez régulièrement la fonction d'export pour conserver une copie de sauvegarde de vos données, notamment avant de désinstaller l'application ou de changer d'ordinateur.
+Votre budget est stocké uniquement sur votre ordinateur, dans le dossier de données de l'application (et dans le dossier de copie si vous en avez choisi un). Aucune information n'est envoyée à un tiers, et l'application ne fait aucun appel réseau pour vos données : seule la vérification des mises à jour contacte GitHub, et la liaison avec Nebula Hub reste locale. Après plusieurs codes erronés, la saisie du code secret est bloquée 30 secondes. Utilisez régulièrement la fonction d'export pour conserver une copie de sauvegarde de vos données, notamment avant de désinstaller l'application ou de changer d'ordinateur.
 
 ## En savoir plus
 
@@ -87,10 +97,10 @@ npm test                         # tests Jest
 ```
 
 Architecture en bref :
-- `src/electron/` — process principal Electron, pont preload, couche de persistance locale (SQLite via sql.js, écritures atomiques) et synchronisation vers le dossier secondaire (`sync.ts`).
+- `src/electron/` — process principal Electron, pont preload, couche de persistance locale (SQLite via sql.js, écritures atomiques), copie vers le dossier secondaire (`sync.ts`), sauvegardes du dossier racine (`backups.ts`) et intégration à Nebula Hub (`nebula.ts`, SDK `@nebula/link`).
 - `src/renderer/` — interface React ; `src/renderer/components/` contient les écrans (compte, calendrier, prêts, réglages, profil, tableau de bord), le jeu d'icônes (`Icon.tsx`) et les arrière-plans animés (`BackgroundFx.tsx`) ; `i18n.ts`, `theme.ts`, `appearance.ts` et `sound.ts` gèrent la langue, le thème, la personnalisation et les sons.
 - `src/shared/` — types, calculs de budget, entrées du calendrier, normalisation des sauvegardes et logique de synchronisation, partagés entre les deux processus et testés.
-- `tests/electron/` — tests du process principal (anciennes bases, ancien `accounts.json`, synchronisation entre deux machines simulées).
+- `tests/electron/` — tests du process principal (anciennes bases, ancien `accounts.json`, copie entre deux machines simulées, sauvegardes).
 - `assets/` et `build/` — logo, icônes source, et icône packagée pour Windows/macOS/Linux.
 
 Notes utiles :

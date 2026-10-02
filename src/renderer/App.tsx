@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { computeBudgetSummary, formatLocalDate, getMonthKey, isValidMonthKey, parseAmount } from '@shared/budget';
-import type { BudgetSnapshot, CalendarEntry, FixedExpenseKind, SyncStatus, UpdateStatus } from '@shared/types';
+import type { BudgetSnapshot, CalendarEntry, FixedExpenseKind, NebulaState, PendingBackup, SyncStatus, UpdateStatus } from '@shared/types';
 import { GUEST_ACCOUNT_ID } from '@shared/accounts';
 import type { LocalAccountSummary } from '@shared/accounts';
 import { translate, translateError, useLanguage, type TranslationKey } from './i18n';
@@ -8,6 +8,7 @@ import { useTheme } from './theme';
 import { useAppearance } from './appearance';
 import { configureSounds, playSound, type SoundName } from './sound';
 import { useInterfaceEffects } from './effects';
+import { nebulaAppearancePatch, useFollowNebula, windowMode } from './nebula';
 import { Avatar, NavButton } from './components/atoms';
 import { Icon, type IconName } from './components/Icon';
 import { AccountGate, type AuthStage } from './components/AccountGate';
@@ -63,7 +64,20 @@ export function App() {
   const [calendarDay, setCalendarDay] = useState<number | null>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
-  const [showSplash, setShowSplash] = useState(true);
+  // A window recreated for (or after) the Nebula Hub mode skips the splash: the app is already open.
+  const [mode] = useState(() => windowMode(window.location.search));
+  const [showSplash, setShowSplash] = useState(mode === null);
+  const [pendingImport, setPendingImport] = useState<PendingBackup | null>(null);
+  const [pendingIsLatest, setPendingIsLatest] = useState(false);
+  const [importSource, setImportSource] = useState('');
+  const [info, setInfo] = useState<string | null>(null);
+  const [restorable, setRestorable] = useState<LocalAccountSummary[]>([]);
+  const [nebulaState, setNebulaState] = useState<NebulaState | null>(null);
+  const [followNebula, setFollowNebula] = useFollowNebula();
+  /** Profile just created on this computer (typically after a reinstall): offered the latest backup. */
+  const justCreated = useRef<string | null>(null);
+  const snapshotRef = useRef<BudgetSnapshot | null>(null);
+  snapshotRef.current = snapshot;
 
   useInterfaceEffects(appearance.motion, resolvedTheme);
 
@@ -73,14 +87,60 @@ export function App() {
 
   useEffect(() => {
     void loadAccounts();
+    void restoreOpenProfile();
     void window.finterest?.getSyncStatus().then(setSyncStatus).catch(() => undefined);
+    void window.finterest?.getPendingImport().then((pending) => pending && showPendingImport(pending, false)).catch(() => undefined);
+    void window.finterest?.getNebulaState().then(setNebulaState).catch(() => undefined);
     const offUpdate = window.finterest?.onUpdateStatus(setUpdateStatus);
     const offSync = window.finterest?.onSyncStatus(setSyncStatus);
+    const offPending = window.finterest?.onPendingImport((pending) => showPendingImport(pending, false));
+    const offNebula = window.finterest?.onNebulaState(setNebulaState);
+    const offMonth = window.finterest?.onOpenMonth((monthKey) => {
+      // A Nebula link to a month (widget, notification): shown if a profile is open.
+      if (!snapshotRef.current || !isValidMonthKey(monthKey)) return;
+      setActiveMode('simple');
+      setActiveView('overview');
+      setActiveMonthKey(monthKey);
+      void window.finterest.saveMonthKey(monthKey).then(setSnapshot).catch(() => undefined);
+    });
     return () => {
       offUpdate?.();
       offSync?.();
+      offPending?.();
+      offNebula?.();
+      offMonth?.();
     };
   }, []);
+
+  // The Nebula appearance, when the user follows it (I1): theme (never over an old-* one), colors, language.
+  useEffect(() => {
+    if (!followNebula) return undefined;
+    return window.finterest?.onNebulaAppearance((payload) => {
+      const patch = nebulaAppearancePatch(payload, theme);
+      if (patch.theme) setTheme(patch.theme);
+      updateAppearance(patch.appearance);
+      if (patch.language) setLanguage(patch.language);
+    });
+  }, [followNebula, theme, setTheme, updateAppearance, setLanguage]);
+
+  // After a reinstall, the profile created on this computer is offered the latest backup of
+  // Documents\Nebula Finterest, once (new profiles start with example data: "empty" cannot tell).
+  useEffect(() => {
+    if (!snapshot || !activeAccount || activeAccount.id === GUEST_ACCOUNT_ID || pendingImport) return;
+    if (justCreated.current !== activeAccount.id) return;
+    justCreated.current = null;
+    void window.finterest.offerLatestBackup().then((latest) => {
+      if (!latest) return;
+      let dismissed = '';
+      try {
+        dismissed = window.localStorage.getItem('finterest-dismissed-backup') ?? '';
+      } catch {
+        dismissed = '';
+      }
+      if (dismissed !== `${latest.file}|${latest.modifiedAt}`) showPendingImport(latest, true);
+      else void window.finterest.dismissPendingImport();
+    }).catch(() => undefined);
+  }, [snapshot, activeAccount, pendingImport]);
 
   useEffect(() => {
     if (snapshot) {
@@ -105,6 +165,70 @@ export function App() {
   }, [error]);
 
   const summary = useMemo(() => (snapshot ? computeBudgetSummary(snapshot, activeMonthKey) : null), [snapshot, activeMonthKey]);
+
+  /** The open profile survives a window recreated for the Hub mode: show it again without the gate. */
+  async function restoreOpenProfile(): Promise<void> {
+    try {
+      const active = await window.finterest.getActiveAccount();
+      if (!active) return;
+      setActiveAccount(active);
+      setSnapshot(await window.finterest.getSnapshot());
+    } catch {
+      // Locked: the gate shows as usual.
+    }
+  }
+
+  function showPendingImport(pending: PendingBackup, latest: boolean): void {
+    setPendingImport(pending);
+    setPendingIsLatest(latest);
+    setImportSource(pending.accounts[0] ?? '');
+  }
+
+  async function handleImportPending(): Promise<void> {
+    if (!pendingImport) return;
+    const done = await mutate(() => window.finterest.importPendingBackup(importSource || undefined), 'error.importBackup', 'success');
+    if (done) {
+      setPendingImport(null);
+      setInfo(t('import.done'));
+    }
+  }
+
+  async function handleDismissPending(): Promise<void> {
+    if (pendingImport && pendingIsLatest) {
+      try {
+        window.localStorage.setItem('finterest-dismissed-backup', `${pendingImport.file}|${pendingImport.modifiedAt}`);
+      } catch {
+        // Offered again next time; harmless.
+      }
+    }
+    setPendingImport(null);
+    await window.finterest.dismissPendingImport().catch(() => undefined);
+  }
+
+  async function refreshRestorable(): Promise<void> {
+    setRestorable(await window.finterest.listRestorableProfiles().catch(() => []));
+  }
+
+  async function handleRestoreProfile(id: string): Promise<void> {
+    try {
+      setError(null);
+      setAccounts(await window.finterest.restoreProfiles([id]));
+      await refreshRestorable();
+      setInfo(t('sync.restored'));
+      playSound('success');
+    } catch (thrown) {
+      fail(thrown, 'error.sync');
+    }
+  }
+
+  async function handleOpenNebulaHub(): Promise<void> {
+    const result = await window.finterest.openNebulaHub().catch(() => 'not-installed' as const);
+    if (result === 'not-installed') setInfo(t('nebula.notInstalled'));
+  }
+
+  async function handleUpdatesByHub(enabled: boolean): Promise<void> {
+    setNebulaState(await window.finterest.setUpdatesByHub(enabled));
+  }
   const finishSplash = useCallback(() => setShowSplash(false), []);
 
   function fail(thrown: unknown, fallback: TranslationKey): void {
@@ -140,6 +264,7 @@ export function App() {
       setError(null);
       if (authStage === 'create' || accounts.length === 0) {
         const account = await window.finterest.createAccount(accountName, accountPin);
+        justCreated.current = account.id;
         setAccounts(await window.finterest.listAccounts());
         setActiveAccount(account);
         setSelectedAccountId(account.id);
@@ -336,6 +461,7 @@ export function App() {
       const result = await window.finterest.chooseSyncDirectory();
       setSyncStatus(result.status);
       await refreshAfterSync(result.reloaded);
+      await refreshRestorable();
       if (result.reloaded) playSound(result.status.state === 'error' ? 'error' : 'success');
     } catch (thrown) {
       fail(thrown, 'error.sync');
@@ -348,6 +474,7 @@ export function App() {
       const result = await window.finterest.syncNow();
       setSyncStatus(result.status);
       await refreshAfterSync(result.reloaded);
+      await refreshRestorable();
       playSound(result.status.state === 'error' ? 'error' : 'success');
     } catch (thrown) {
       fail(thrown, 'error.sync');
@@ -373,6 +500,13 @@ export function App() {
     return (
       <>
         {background}
+        {pendingImport ? <div className="gate-notice" role="status"><Icon name="download" size={16} />{t('import.pending.locked')}</div> : null}
+        {mode === 'docked' ? (
+          <div className="dock-bar gate-dock">
+            <span><Icon name="overview" size={15} />{t('dock.bar')}</span>
+            <button className="ghost small" data-sound="none" onClick={() => void window.finterest.detachFromHub()}>{t('dock.detach')}</button>
+          </div>
+        ) : null}
         <AccountGate
           stage={authStage}
           accounts={accounts}
@@ -438,6 +572,9 @@ export function App() {
           ) : (
             <div className="advanced-nav-note"><Icon name="sparkles" size={18} /><p>{t('mode.advancedNote')}</p></div>
           )}
+          <button className="ghost small nebula-apps" data-sound="nav" onClick={() => void handleOpenNebulaHub()}>
+            <Icon name="overview" size={16} />{t('nebula.apps')}
+          </button>
           <div className="sidebar-foot">
             <span className={`status-dot ${syncStatus?.state === 'error' ? 'warn' : ''}`} />
             {t('sidebar.localData')}<br />
@@ -446,6 +583,12 @@ export function App() {
         </aside>
 
         <section key={`${activeMode}-${activeView}`} className={`workspace view-${activeView}`}>
+          {mode === 'docked' ? (
+            <div className="dock-bar">
+              <span><Icon name="overview" size={15} />{t('dock.bar')}</span>
+              <button className="ghost small" data-sound="none" onClick={() => void window.finterest.detachFromHub()}>{t('dock.detach')}</button>
+            </div>
+          ) : null}
           <header className="topbar">
             <div>
               <p className="eyebrow">{activeMode === 'advanced' ? t('view.advanced.eyebrow') : t(viewCopy[activeView].eyebrow)}</p>
@@ -470,6 +613,36 @@ export function App() {
               <Icon name="alert" size={18} />
               <span>{error}</span>
               <button className="ghost small icon-button" data-sound="none" onClick={() => setError(null)} aria-label={t('calendar.close')}><Icon name="close" size={15} /></button>
+            </div>
+          ) : null}
+          {info ? (
+            <div className="update-banner" role="status">
+              <span><Icon name="check" size={16} />{info}</span>
+              <button className="ghost small icon-button" data-sound="none" onClick={() => setInfo(null)} aria-label={t('calendar.close')}><Icon name="close" size={15} /></button>
+            </div>
+          ) : null}
+          {pendingImport ? (
+            <div className="update-banner import-banner" role="alertdialog" aria-labelledby="import-banner-title">
+              <div className="import-banner-text">
+                <strong id="import-banner-title">{t(pendingIsLatest ? 'import.latest.title' : 'import.pending.title')}</strong>
+                <span>{t(pendingIsLatest ? 'import.latest.body' : 'import.pending.body', {
+                  file: pendingImport.fileName,
+                  date: new Date(pendingImport.exportedAt ?? pendingImport.modifiedAt).toLocaleString(language === 'en' ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' }),
+                  name: activeAccount?.name ?? '',
+                })}</span>
+                {pendingImport.accounts.length > 1 ? (
+                  <label className="import-source">
+                    {t('import.pending.source')}
+                    <select value={importSource} onChange={(event) => setImportSource(event.target.value)}>
+                      {pendingImport.accounts.map((name) => <option key={name} value={name}>{name}</option>)}
+                    </select>
+                  </label>
+                ) : null}
+              </div>
+              <div className="settings-actions">
+                <button className="small" data-sound="none" onClick={() => void handleImportPending()}>{t('import.pending.confirm')}</button>
+                <button className="ghost small" onClick={() => void handleDismissPending()}>{t('import.pending.dismiss')}</button>
+              </div>
             </div>
           ) : null}
           {updateStatus?.state === 'available' || updateStatus?.state === 'downloaded' ? (
@@ -518,6 +691,14 @@ export function App() {
               onChooseSyncDirectory={handleChooseSyncDirectory}
               onDisableSync={handleDisableSync}
               onSyncNow={handleSyncNow}
+              restorable={restorable}
+              onRefreshRestorable={refreshRestorable}
+              onRestoreProfile={handleRestoreProfile}
+              nebulaState={nebulaState}
+              followNebula={followNebula}
+              onFollowNebulaChange={setFollowNebula}
+              onUpdatesByHubChange={handleUpdatesByHub}
+              onOpenNebulaHub={handleOpenNebulaHub}
             />
           ) : null}
 

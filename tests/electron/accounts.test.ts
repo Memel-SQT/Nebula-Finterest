@@ -65,13 +65,13 @@ describe('AccountManager', () => {
     await expect(manager.unlock(account.id, '1234')).rejects.toThrow('ERR_TOO_MANY_ATTEMPTS');
   });
 
-  it('syncs profiles between two machines through a shared folder', async () => {
+  it('copies the profiles to the folder, and adds them elsewhere only on request (v0.1.37)', async () => {
     const machineA = await tempDir('machine-a');
     const machineB = await tempDir('machine-b');
     const shared = await tempDir('shared');
     cleanup.push(machineA, machineB, shared);
 
-    // Machine A: create a profile, then turn on sync.
+    // Machine A: create a profile, then turn on the copy.
     const a = managerFor(machineA);
     await a.initialize();
     const account = await a.create('Noa', '2468');
@@ -83,30 +83,64 @@ describe('AccountManager', () => {
     const mirrored = await fs.readdir(path.join(shared, 'Nebula Finterest'));
     expect(mirrored).toEqual(expect.arrayContaining(['accounts-sync.json', `finterest-${account.id}.sqlite`]));
 
-    // Machine B: points at the same folder and discovers the profile with its data.
+    // Machine B points at the same folder: nothing is added on its own, the profile is only offered.
     const b = managerFor(machineB);
     await b.initialize();
     await b.setSyncDirectory(shared);
+    expect(b.list()).toEqual([]);
+    expect(await b.listRestorable()).toEqual([{ id: account.id, name: 'Noa' }]);
+    await b.restoreFromCopy([account.id]);
     expect(b.list().map((summary) => summary.name)).toEqual(['Noa']);
+    expect(await b.listRestorable()).toEqual([]);
     const onB = await b.unlock(account.id, '2468');
     expect(onB.settings.income).toBe(3210);
     expect(onB.variableExpenses.map((expense) => expense.name)).toContain('Billet de train');
+  });
 
-    // A change made on B later flows back to A when A opens the profile again.
-    await b.renameActive('Noa R.');
+  it('never replaces the local profile with a newer copy from the folder (v0.1.37)', async () => {
+    const machineA = await tempDir('root-a');
+    const machineB = await tempDir('root-b');
+    const shared = await tempDir('root-shared');
+    cleanup.push(machineA, machineB, shared);
+    const a = managerFor(machineA);
+    await a.initialize();
+    const account = await a.create('Noa', '2468');
+    await a.getStore().saveIncome(1000);
+    await a.setSyncDirectory(shared);
+
+    const b = managerFor(machineB);
+    await b.initialize();
+    await b.setSyncDirectory(shared);
+    await b.restoreFromCopy([account.id]);
+    await b.unlock(account.id, '2468');
+    await b.renameActive('Renommé ailleurs');
     await b.getStore().saveIncome(4000);
     await b.getStore().flush();
-    // Make B's copy unambiguously newer than A's, whatever the filesystem's mtime precision.
     const future = new Date(Date.now() + 10_000);
     await fs.utimes(path.join(shared, 'Nebula Finterest', `finterest-${account.id}.sqlite`), future, future);
 
     a.lock();
-    await a.syncNow();
-    expect(a.list()[0].name).toBe('Noa R.');
-    const backOnA = await a.unlock(account.id, '2468');
-    expect(backOnA.settings.income).toBe(4000);
-    // The copy replaced on A was kept aside, just in case.
-    expect(await fs.readdir(machineA)).toContain(`finterest-${account.id}.sqlite.before-sync.bak`);
+    expect(await a.syncNow()).toBe(false);
+    expect(a.list()[0].name).toBe('Noa');
+    const onA = await a.unlock(account.id, '2468');
+    expect(onA.settings.income).toBe(1000);
+    // The local record (name, PIN) is the reference too: the other computer's rename never came back.
+    expect(a.list().map((summary) => summary.name)).toEqual(['Noa']);
+  });
+
+  it('keeps the copy of a profile deleted here, so it can be added back (v0.1.37)', async () => {
+    const userData = await tempDir('delete');
+    const shared = await tempDir('delete-shared');
+    cleanup.push(userData, shared);
+    const manager = managerFor(userData);
+    await manager.initialize();
+    const account = await manager.create('Temporaire', '1357');
+    await manager.setSyncDirectory(shared);
+    await manager.delete(account.id, '1357');
+    expect(manager.list()).toEqual([]);
+    expect(await manager.listRestorable()).toEqual([{ id: account.id, name: 'Temporaire' }]);
+    await manager.restoreFromCopy([account.id]);
+    await expect(manager.unlock(account.id, '1357')).resolves.toBeDefined();
   });
 
   it('keeps working locally when the sync folder disappears', async () => {

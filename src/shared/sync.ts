@@ -83,3 +83,27 @@ export function isSyncManifest(value: unknown): value is SyncManifest<SyncableRe
       Array.isArray(manifest.accounts),
   );
 }
+
+/**
+ * Copy mode (v0.1.37): this computer's profiles are the reference, read first; the chosen folder
+ * only receives a duplicate. The manifest written there lists this computer's records (which win
+ * for their ids) plus the records other computers left in it, so nobody's copy disappears.
+ */
+export function mirrorManifestRecords<T extends SyncableRecord>(local: T[], remote: T[], deletedIds: string[]): T[] {
+  const localIds = new Set(local.map((record) => record.id));
+  const deleted = new Set(deletedIds);
+  const others = remote.filter((record) => record && typeof record.id === 'string' && !localIds.has(record.id) && !deleted.has(record.id));
+  return [...local, ...others];
+}
+
+/** Profiles present in the copy folder but not on this computer: offered to the user, never added on their own. */
+export function restorableRecords<T extends SyncableRecord>(localIds: string[], remote: T[], deletedIds: string[]): T[] {
+  const local = new Set(localIds);
+  const deleted = new Set(deletedIds);
+  const seen = new Set<string>();
+  return remote.filter((record) => {
+    if (!record || typeof record.id !== 'string' || local.has(record.id) || deleted.has(record.id) || seen.has(record.id)) return false;
+    seen.add(record.id);
+    return true;
+  });
+}

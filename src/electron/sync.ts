@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { SyncStatus } from '../shared/types';
-import { decideFileSync, isSyncManifest, mergeAccountRecords, type SyncableRecord, type SyncManifest } from '../shared/sync';
+import { decideFileSync, isSyncManifest, mirrorManifestRecords, restorableRecords, type SyncableRecord, type SyncManifest } from '../shared/sync';
 import { statMtimeMs, writeFileAtomic } from './fsutil';
 
 /** Subfolder created inside the directory the user picks, so the app never scatters files in, say, the root of their OneDrive. */
@@ -13,11 +13,13 @@ interface SyncSettings {
 }
 
 /**
- * Mirrors every local profile (database, avatar, account record) into a second folder the user
- * chose — typically a cloud-synced or USB folder — and pulls back newer copies written there by
- * another machine. Whole-file, last-writer-wins: fine for a single person using one machine at a
- * time, which is what this app is for. A sync failure is recorded in the status and never blocks
- * or fails a local save.
+ * Copies every local profile (database, avatar, account record) into a second folder the user
+ * chose — typically a cloud-synced or USB folder. Since v0.1.37 it is a one-way **duplicate**: the
+ * profiles in userData (with their PIN records) are the reference and are read first; nothing in the
+ * folder ever replaces them on its own. Profiles found there that this computer does not have are
+ * only offered (`listRestorable`), and added on the user's request (`pullFile`, never over an
+ * existing local file). A copy failure is recorded in the status and never blocks or fails a local
+ * save.
  */
 export class SyncManager {
   private settings: SyncSettings = { directory: null };
@@ -75,32 +77,47 @@ export class SyncManager {
   }
 
   /**
-   * Merges the remote account list into `local` and writes the union back. Returns the merged
-   * list; the caller persists it locally when `changed` is true.
+   * Writes this computer's records into the folder's manifest (they win for their ids), keeping
+   * the records other computers left there. The local list is never changed.
    */
-  async syncManifest<T extends SyncableRecord>(local: T[], extraDeletedIds: string[] = []): Promise<{ records: T[]; changed: boolean }> {
+  async pushManifest<T extends SyncableRecord>(local: T[]): Promise<void> {
     if (!this.isEnabled()) {
-      return { records: local, changed: false };
+      return;
     }
-    return this.guard(async () => {
+    await this.guard(async () => {
       const remote = await this.readManifest<T>();
-      const deletedIds = Array.from(new Set([...(remote?.deletedIds ?? []), ...extraDeletedIds]));
-      const merged = mergeAccountRecords(local, remote?.accounts ?? [], deletedIds);
+      const deletedIds = remote?.deletedIds ?? [];
       const manifest: SyncManifest<T> = {
         app: 'Finterest',
         kind: 'sync-manifest',
         version: 1,
         updatedAt: new Date().toISOString(),
-        accounts: merged.records.filter((record) => !extraDeletedIds.includes(record.id)),
+        accounts: mirrorManifestRecords(local, remote?.accounts ?? [], deletedIds),
         deletedIds,
       };
       await writeFileAtomic(this.remotePath(MANIFEST_FILE), JSON.stringify(manifest, null, 2));
-      return merged;
-    }, { records: local, changed: false });
+    }, undefined);
   }
 
-  /** Copies `fileName` in whichever direction is newer. Before overwriting a local file, keeps it as `<name>.before-sync.bak`. */
-  async syncFile(localPath: string, fileName: string): Promise<'push' | 'pull' | 'none'> {
+  /** Profiles in the folder that this computer does not have (with their database present there). */
+  async listRestorable<T extends SyncableRecord>(localIds: string[], databaseFileName: (id: string) => string): Promise<T[]> {
+    const remote = await this.readManifest<T>();
+    if (!remote) {
+      return [];
+    }
+    const candidates = restorableRecords(localIds, remote.accounts, remote.deletedIds ?? []);
+    const present: T[] = [];
+    for (const record of candidates) {
+      if ((await statMtimeMs(this.remotePath(databaseFileName(record.id)))) !== null) present.push(record);
+    }
+    return present;
+  }
+
+  /**
+   * Duplicates `fileName` into the folder when the local copy is newer (or alone). A newer copy in
+   * the folder (another computer) is left untouched, never pulled: returns 'newer-elsewhere'.
+   */
+  async pushFile(localPath: string, fileName: string): Promise<'push' | 'none' | 'newer-elsewhere'> {
     if (!this.isEnabled()) {
       return 'none';
     }
@@ -109,14 +126,24 @@ export class SyncManager {
       const action = decideFileSync(await statMtimeMs(localPath), await statMtimeMs(remotePath));
       if (action === 'push') {
         await this.copyPreservingMtime(localPath, remotePath);
-      } else if (action === 'pull') {
-        if ((await statMtimeMs(localPath)) !== null) {
-          await fs.copyFile(localPath, `${localPath}.before-sync.bak`);
-        }
-        await this.copyPreservingMtime(remotePath, localPath);
+        return 'push' as const;
       }
-      return action;
+      return action === 'pull' && (await statMtimeMs(localPath)) !== null ? ('newer-elsewhere' as const) : ('none' as const);
     }, 'none' as const);
+  }
+
+  /** On the user's request only: brings a file from the folder, never over an existing local file. */
+  async pullFile(fileName: string, localPath: string): Promise<boolean> {
+    if (!this.isEnabled() || (await statMtimeMs(localPath)) !== null) {
+      return false;
+    }
+    return this.guard(async () => {
+      const remotePath = this.remotePath(fileName);
+      if ((await statMtimeMs(remotePath)) === null) return false;
+      await fs.mkdir(path.dirname(localPath), { recursive: true });
+      await this.copyPreservingMtime(remotePath, localPath);
+      return true;
+    }, false);
   }
 
   /** Called after each local database write: pushes the exact bytes just saved. */
@@ -129,13 +156,6 @@ export class SyncManager {
       await writeFileAtomic(remotePath, data);
       await this.alignMtime(localPath, remotePath);
     }, undefined);
-  }
-
-  async removeRemote(fileName: string): Promise<void> {
-    if (!this.isEnabled()) {
-      return;
-    }
-    await this.guard(() => fs.rm(this.remotePath(fileName), { force: true }), undefined);
   }
 
   private async copyPreservingMtime(source: string, destination: string): Promise<void> {

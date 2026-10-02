@@ -50,7 +50,7 @@ export class AccountManager {
 
     if (options.withSync !== false) {
       await this.sync.load();
-      await this.syncAccounts();
+      await this.pushAll();
     }
   }
 
@@ -82,13 +82,12 @@ export class AccountManager {
     }
 
     this.records = this.records.filter((candidate) => candidate.id !== id);
-    await this.saveRecords([id]);
+    await this.saveRecords();
 
+    // The copy in the sync folder is kept: it is a duplicate the user can restore from.
     await fs.rm(this.databasePath(deleted.id), { force: true });
-    await this.sync.removeRemote(this.databaseFileName(deleted.id));
     if (deleted.avatarFile) {
       await fs.rm(path.join(this.avatarsDir, deleted.avatarFile), { force: true });
-      await this.sync.removeRemote(`avatars/${deleted.avatarFile}`);
     }
   }
 
@@ -131,14 +130,13 @@ export class AccountManager {
 
     if (active.record.avatarFile && active.record.avatarFile !== fileName) {
       await fs.rm(path.join(this.avatarsDir, active.record.avatarFile), { force: true });
-      await this.sync.removeRemote(`avatars/${active.record.avatarFile}`);
     }
 
     await fs.copyFile(sourceFilePath, destinationPath);
     active.record.avatarFile = fileName;
     active.record.updatedAt = Date.now();
     await this.saveRecords();
-    await this.sync.syncFile(destinationPath, `avatars/${fileName}`);
+    await this.sync.pushFile(destinationPath, `avatars/${fileName}`);
     return this.toSummary(active.record);
   }
 
@@ -170,45 +168,66 @@ export class AccountManager {
   }
 
   /**
-   * Full two-way pass: account list, then every profile's database and avatar. If the open
-   * profile's database was replaced by a newer copy, it is reloaded so the UI shows it.
-   * Returns true when the active profile's data changed.
+   * Copy pass (v0.1.37): the account list, then every profile's database and avatar, from this
+   * computer to the folder. Nothing local is ever replaced, so the open profile never needs a
+   * reload: always returns false (kept for the IPC contract).
    */
   async syncNow(): Promise<boolean> {
     if (!this.sync.isEnabled()) {
       return false;
     }
     await this.active?.store.flush();
-    await this.syncAccounts();
-
-    let activeReloaded = false;
-    for (const record of this.records) {
-      const action = await this.sync.syncFile(this.databasePath(record.id), this.databaseFileName(record.id));
-      if (action === 'pull' && this.active?.record.id === record.id) {
-        await this.active.store.reload();
-        activeReloaded = true;
-      }
-    }
-    return activeReloaded;
+    await this.pushAll();
+    return false;
   }
 
-  private async syncAccounts(): Promise<void> {
+  /** Profiles in the copy folder that this computer does not have, offered to the user. */
+  async listRestorable(): Promise<LocalAccountSummary[]> {
+    if (!this.sync.isEnabled()) {
+      return [];
+    }
+    const records = await this.sync.listRestorable<AccountRecord>(this.records.map((record) => record.id), (id) => this.databaseFileName(id));
+    return records.map((record) => ({ id: record.id, name: typeof record.name === 'string' ? record.name : '?' }));
+  }
+
+  /**
+   * On the user's request: adds profiles from the copy folder to this computer (record with its
+   * PIN, database, photo). An existing local profile or file is never overwritten.
+   */
+  async restoreFromCopy(ids: string[]): Promise<LocalAccountSummary[]> {
+    if (!this.sync.isEnabled() || !Array.isArray(ids)) {
+      return this.list();
+    }
+    const wanted = new Set(ids.filter((id) => typeof id === 'string'));
+    const candidates = await this.sync.listRestorable<AccountRecord>(this.records.map((record) => record.id), (id) => this.databaseFileName(id));
+    let added = false;
+    for (const record of candidates) {
+      if (!wanted.has(record.id) || typeof record.pinHash !== 'string' || typeof record.pinSalt !== 'string' || typeof record.name !== 'string') continue;
+      const pulled = await this.sync.pullFile(this.databaseFileName(record.id), this.databasePath(record.id));
+      if (!pulled) continue;
+      if (record.avatarFile && /^[\w-]+\.(png|jpe?g|webp|gif)$/i.test(record.avatarFile)) {
+        await this.sync.pullFile(`avatars/${record.avatarFile}`, path.join(this.avatarsDir, record.avatarFile));
+      }
+      this.records.push({ id: record.id, name: record.name, pinHash: record.pinHash, pinSalt: record.pinSalt, avatarFile: record.avatarFile, updatedAt: record.updatedAt });
+      added = true;
+    }
+    if (added) {
+      await this.saveRecords();
+    }
+    return this.list();
+  }
+
+  /** Duplicates the account list, avatars and databases into the folder (never the other way). */
+  private async pushAll(): Promise<void> {
     if (!this.sync.isEnabled()) {
       return;
     }
-    const merged = await this.sync.syncManifest(this.records);
-    if (merged.changed) {
-      this.records = merged.records;
-      await writeFileAtomic(this.accountsPath, JSON.stringify(this.records, null, 2));
-      const refreshed = this.records.find((record) => record.id === this.active?.record.id);
-      if (this.active && refreshed) {
-        this.active.record = refreshed;
-      }
-    }
+    await this.sync.pushManifest(this.records);
     for (const record of this.records) {
       if (record.avatarFile) {
-        await this.sync.syncFile(path.join(this.avatarsDir, record.avatarFile), `avatars/${record.avatarFile}`);
+        await this.sync.pushFile(path.join(this.avatarsDir, record.avatarFile), `avatars/${record.avatarFile}`);
       }
+      await this.sync.pushFile(this.databasePath(record.id), this.databaseFileName(record.id));
     }
   }
 
@@ -224,8 +243,7 @@ export class AccountManager {
   private async open(record: AccountRecord): Promise<void> {
     const databasePath = this.databasePath(record.id);
     const fileName = this.databaseFileName(record.id);
-    // Pick up a newer copy written by another machine before loading it into memory.
-    await this.sync.syncFile(databasePath, fileName);
+    // The local database is the reference (v0.1.37): it is loaded as is, never replaced by the copy.
     const store = new BudgetStore(databasePath, {
       onPersist: (data) => this.sync.pushData(databasePath, fileName, data),
     });
@@ -261,14 +279,8 @@ export class AccountManager {
     return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
   }
 
-  private async saveRecords(deletedIds: string[] = []): Promise<void> {
+  private async saveRecords(): Promise<void> {
     await writeFileAtomic(this.accountsPath, JSON.stringify(this.records, null, 2));
-    if (this.sync.isEnabled()) {
-      const merged = await this.sync.syncManifest(this.records, deletedIds);
-      if (merged.changed) {
-        this.records = merged.records;
-        await writeFileAtomic(this.accountsPath, JSON.stringify(this.records, null, 2));
-      }
-    }
+    await this.sync.pushManifest(this.records);
   }
 }

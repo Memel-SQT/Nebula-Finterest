@@ -83,6 +83,25 @@ export interface SyncStatus {
   message?: string;
 }
 
+/** A backup waiting for the user's confirmation before it is imported (v0.1.37). */
+export interface PendingBackup {
+  file: string;
+  fileName: string;
+  exportedAt: string | null;
+  /** Profile names it holds; the user picks one when there are several. */
+  accounts: string[];
+  modifiedAt: string;
+}
+
+/** Nebula Hub as seen by Finterest (Nebula Link, v0.1.37). */
+export interface NebulaState {
+  /** The Hub is running and connected. */
+  connected: boolean;
+  hubVersion: string | null;
+  /** The user lets the Hub install the updates (only while the Hub is there). */
+  updatesByHub: boolean;
+}
+
 export interface UpdateStatus {
   state: 'checking' | 'available' | 'not-available' | 'downloaded' | 'error';
   version?: string;

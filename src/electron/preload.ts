@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { BackupFile, Loan, SyncStatus, UpdateStatus } from '../shared/types';
+import type { BackupFile, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus } from '../shared/types';
 
 function subscribe<T>(channel: string, callback: (payload: T) => void): () => void {
   const listener = (_event: unknown, payload: T) => callback(payload);
@@ -41,4 +41,19 @@ contextBridge.exposeInMainWorld('finterest', {
   disableSync: () => ipcRenderer.invoke('sync:disable'),
   syncNow: () => ipcRenderer.invoke('sync:now'),
   onSyncStatus: (callback: (status: SyncStatus) => void) => subscribe('sync:status', callback),
+  listRestorableProfiles: () => ipcRenderer.invoke('sync:listRestorable'),
+  restoreProfiles: (ids: string[]) => ipcRenderer.invoke('sync:restore', ids),
+  getPendingImport: () => ipcRenderer.invoke('backup:getPending'),
+  offerLatestBackup: () => ipcRenderer.invoke('backup:offerLatest'),
+  dismissPendingImport: () => ipcRenderer.invoke('backup:dismissPending'),
+  importPendingBackup: (accountName?: string) => ipcRenderer.invoke('backup:importPending', accountName),
+  onPendingImport: (callback: (pending: PendingBackup) => void) => subscribe('backup:pending', callback),
+  getNebulaState: () => ipcRenderer.invoke('nebula:getState'),
+  setUpdatesByHub: (enabled: boolean) => ipcRenderer.invoke('nebula:setUpdatesByHub', enabled),
+  onNebulaState: (callback: (state: NebulaState) => void) => subscribe('nebula:state', callback),
+  onNebulaAppearance: (callback: (appearance: unknown) => void) => subscribe('nebula:appearance', callback),
+  onOpenMonth: (callback: (monthKey: string) => void) => subscribe('nebula:open-month', callback),
+  openNebulaHub: () => ipcRenderer.invoke('nebula:openHub'),
+  isDocked: () => ipcRenderer.invoke('nebula:isDocked'),
+  detachFromHub: () => ipcRenderer.invoke('nebula:detach'),
 } as const satisfies Window['finterest']);

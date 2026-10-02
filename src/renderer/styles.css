@@ -547,3 +547,16 @@ button.confirming { color: var(--danger); border-color: var(--danger); backgroun
 /* The avatar ring and hover scale must not be clipped by the button ripple's overflow: hidden. */
 .account-tile { overflow: visible; }
 .settings-intro { margin-top: 0.3rem; }
+
+/* v0.1.37 - Nebula Hub: "Nebula apps" button, Hub mode bar, pending import, profiles in the copy folder. */
+.nebula-apps { display: inline-flex; align-items: center; gap: 0.5rem; width: 100%; margin-top: auto; margin-bottom: 0.6rem; justify-content: flex-start; }
+.dock-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 1480px; margin-bottom: 1rem; padding: 0.55rem 0.9rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface-raised); color: var(--muted); font-size: 0.78rem; }
+.dock-bar > span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.import-banner { align-items: flex-start; border-color: var(--accent); background: var(--accent-soft); }
+.import-banner-text { display: grid; gap: 0.35rem; }
+.import-banner-text strong { color: var(--ink); font-size: 0.86rem; }
+.import-source { display: grid; gap: 0.3rem; margin-top: 0.3rem; color: var(--muted); font-size: 0.75rem; }
+.import-source select { max-width: 280px; }
+.gate-notice { position: fixed; top: 1rem; left: 50%; z-index: 5; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface-raised); color: var(--ink); font-size: 0.8rem; transform: translateX(-50%); }
+.restorable { display: grid; gap: 0.4rem; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--line); }
+.gate-dock { position: fixed; top: 0.8rem; right: 0.8rem; z-index: 5; margin: 0; }
