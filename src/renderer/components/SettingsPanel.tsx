@@ -8,7 +8,6 @@ import { isLegacyTheme, type ResolvedTheme, type Theme } from '../theme';
 import { ACCENT_PRESETS, DEFAULT_APPEARANCE, type Appearance, type BackgroundEffect, type MotionLevel } from '../appearance';
 import { playSound } from '../sound';
 import { Icon, type IconName } from './Icon';
-import logoUrl from '../../../assets/nebula-logo.svg';
 
 const BACKGROUNDS: Array<{ id: BackgroundEffect; icon: IconName }> = [
   { id: 'glow', icon: 'sparkles' },
@@ -19,6 +18,23 @@ const BACKGROUNDS: Array<{ id: BackgroundEffect; icon: IconName }> = [
   { id: 'none', icon: 'close' },
 ];
 const MOTIONS: MotionLevel[] = ['full', 'reduced', 'off'];
+/** The family's theme model, in the family's order (PROMPT_DESIGN part 2). */
+const FAMILY_THEMES: Array<{ id: Theme; labelKey: Parameters<typeof translate>[1] }> = [
+  { id: 'nebula-dark', labelKey: 'theme.nebulaDark' },
+  { id: 'nebula-light', labelKey: 'theme.nebulaLight' },
+  { id: 'glass-dark', labelKey: 'theme.glassDark' },
+  { id: 'glass-light', labelKey: 'theme.glassLight' },
+  { id: 'system', labelKey: 'theme.system' },
+];
+/** Finterest-only frozen themes, kept selectable apart from the shared model. */
+const HISTORIC_THEMES: Array<{ id: Theme; labelKey: Parameters<typeof translate>[1] }> = [
+  { id: 'old-dark', labelKey: 'theme.oldDark' },
+  { id: 'old-light', labelKey: 'theme.oldLight' },
+];
+const LANGUAGES: Array<{ id: Language; label: string }> = [
+  { id: 'fr', label: 'Français' },
+  { id: 'en', label: 'English' },
+];
 
 export function SettingsPanel({
   databasePath,
@@ -105,32 +121,35 @@ export function SettingsPanel({
 
   return (
     <section className="settings-panel">
-      <div className="settings-icon"><img src={logoUrl} alt="" /></div>
       <div className="settings-body">
         <p className="settings-intro">{t('settings.description')}</p>
 
         <div className="settings-section">
-          <h3><Icon name="palette" size={15} />{t('settings.appearance')}</h3>
-          <div className="settings-fields">
-            <label className="select-field">
-              {t('settings.theme')}
-              <select value={theme} onChange={(event) => onThemeChange(event.target.value as Theme)}>
-                <option value="nebula-dark">{t('theme.nebulaDark')}</option>
-                <option value="nebula-light">{t('theme.nebulaLight')}</option>
-                <option value="glass-dark">{t('theme.glassDark')}</option>
-                <option value="glass-light">{t('theme.glassLight')}</option>
-                <option value="old-dark">{t('theme.oldDark')}</option>
-                <option value="old-light">{t('theme.oldLight')}</option>
-                <option value="system">{t('theme.system')}</option>
-              </select>
-            </label>
-            <label className="select-field">
-              {t('settings.language')}
-              <select value={language} onChange={(event) => onLanguageChange(event.target.value as Language)}>
-                <option value="fr">Français</option>
-                <option value="en">English</option>
-              </select>
-            </label>
+          <h2><Icon name="palette" size={15} />{t('settings.appearance')}</h2>
+          <p className="settings-label" id="settings-theme-label">{t('settings.theme')}</p>
+          <div className="segmented" role="radiogroup" aria-labelledby="settings-theme-label">
+            {FAMILY_THEMES.map((option) => (
+              <button key={option.id} type="button" role="radio" aria-checked={theme === option.id} className={theme === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onThemeChange(option.id)}>
+                {t(option.labelKey)}
+              </button>
+            ))}
+          </div>
+          <p className="settings-sublabel" id="settings-historic-label">{t('settings.historicThemes')}</p>
+          <div className="segmented segmented-quiet" role="radiogroup" aria-labelledby="settings-historic-label">
+            {HISTORIC_THEMES.map((option) => (
+              <button key={option.id} type="button" role="radio" aria-checked={theme === option.id} className={theme === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onThemeChange(option.id)}>
+                {t(option.labelKey)}
+              </button>
+            ))}
+          </div>
+
+          <p className="settings-label" id="settings-language-label">{t('settings.language')}</p>
+          <div className="segmented" role="radiogroup" aria-labelledby="settings-language-label">
+            {LANGUAGES.map((option) => (
+              <button key={option.id} type="button" role="radio" lang={option.id} aria-checked={language === option.id} className={language === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onLanguageChange(option.id)}>
+                {option.label}
+              </button>
+            ))}
           </div>
           {resolvedTheme.startsWith('glass-') && appearance.background !== 'aurora' ? (
             <small className="path-note settings-hint"><Icon name="info" size={14} />{t('settings.glassHint')}</small>
@@ -182,7 +201,7 @@ export function SettingsPanel({
         </div>
 
         <div className="settings-section">
-          <h3><Icon name="sparkles" size={15} />{t('settings.effects')}</h3>
+          <h2><Icon name="sparkles" size={15} />{t('settings.effects')}</h2>
           <p className="settings-label">{t('settings.background')}</p>
           <div className="effect-grid" role="radiogroup" aria-label={t('settings.background')}>
             {BACKGROUNDS.map((background) => (
@@ -218,7 +237,7 @@ export function SettingsPanel({
         </div>
 
         <div className="settings-section">
-          <h3><Icon name={appearance.soundEnabled ? 'volume' : 'volumeOff'} size={15} />{t('settings.sounds')}</h3>
+          <h2><Icon name={appearance.soundEnabled ? 'volume' : 'volumeOff'} size={15} />{t('settings.sounds')}</h2>
           <div className="sound-row">
             <button
               type="button"
@@ -253,20 +272,20 @@ export function SettingsPanel({
             </button>
           </div>
           <div className="settings-actions settings-reset">
-            <button className="ghost small" data-sound="none" onClick={() => { onAppearanceChange(DEFAULT_APPEARANCE); onThemeChange('nebula-dark'); }}>
+            <button className="ghost small" data-sound="none" onClick={() => { onAppearanceChange(DEFAULT_APPEARANCE); onThemeChange('system'); }}>
               <Icon name="refresh" size={15} />{t('settings.reset')}
             </button>
           </div>
         </div>
 
         <div className="settings-section">
-          <h3><Icon name="download" size={15} />{t('settings.data')}</h3>
+          <h2><Icon name="download" size={15} />{t('settings.data')}</h2>
           {isGuest ? (
             <small className="path-note">{t('profile.guestNotice')}</small>
           ) : (
             <>
               <div className="settings-actions">
-                <button onClick={onExport}><Icon name="download" size={16} />{t('settings.export')}</button>
+                <button className="secondary" onClick={onExport}><Icon name="download" size={16} />{t('settings.export')}</button>
                 <button className="secondary" onClick={onImport}><Icon name="upload" size={16} />{t('settings.import')}</button>
               </div>
               <small className="path-note">{t('settings.path', { path: databasePath || t('settings.loading') })}</small>
@@ -276,10 +295,10 @@ export function SettingsPanel({
         </div>
 
         <div className="settings-section">
-          <h3><Icon name="folderSync" size={15} />{t('sync.title')}</h3>
+          <h2><Icon name="folderSync" size={15} />{t('sync.title')}</h2>
           <p className="settings-copy">{t('sync.description')}</p>
           <div className="settings-actions">
-            <button className={syncStatus?.directory ? 'ghost small' : 'small'} onClick={() => void onChooseSyncDirectory()}>
+            <button className="ghost small" onClick={() => void onChooseSyncDirectory()}>
               <Icon name="folderSync" size={15} />{t(syncStatus?.directory ? 'sync.change' : 'sync.choose')}
             </button>
             {syncStatus?.directory ? (
@@ -316,7 +335,7 @@ export function SettingsPanel({
         </div>
 
         <div className="settings-section">
-          <h3><Icon name="overview" size={15} />{t('nebula.title')}</h3>
+          <h2><Icon name="orbit" size={15} />{t('nebula.title')}</h2>
           <div className={`sync-status ${nebulaState?.connected ? 'sync-idle' : 'sync-disabled'}`}>
             <span className="status-dot" />
             <span>{nebulaState?.connected ? t('nebula.connected', { version: nebulaState.hubVersion ?? '' }) : t('nebula.offline')}</span>
@@ -342,24 +361,24 @@ export function SettingsPanel({
           <small className="path-note">{t('nebula.privacy')}</small>
           {onOpenNebulaHub ? (
             <div className="settings-actions settings-reset">
-              <button className="ghost small" onClick={() => void onOpenNebulaHub()}><Icon name="overview" size={15} />{t('nebula.apps')}</button>
+              <button className="ghost small" onClick={() => void onOpenNebulaHub()}><Icon name="apps" size={15} />{t('nebula.apps')}</button>
             </div>
           ) : null}
         </div>
 
         <div className="settings-section">
-          <h3><Icon name="refresh" size={15} />{t('settings.updates')}</h3>
+          <h2><Icon name="refresh" size={15} />{t('settings.updates')}</h2>
           <div className="settings-actions">
             <button className="ghost small" onClick={() => void onCheckForUpdates()} disabled={updateStatus?.state === 'checking'}>{t('update.check')}</button>
             {updateStatus?.state === 'downloaded' ? (
-              <button className="small" onClick={() => void onInstallUpdate()}>{t('update.restartInstall')}</button>
+              <button className="secondary small" onClick={() => void onInstallUpdate()}>{t('update.restartInstall')}</button>
             ) : null}
           </div>
           {updateMessage ? <small className="path-note">{updateMessage}</small> : null}
         </div>
 
         <div className="settings-section">
-          <h3><Icon name="user" size={15} />{t('settings.account')}</h3>
+          <h2><Icon name="user" size={15} />{t('settings.account')}</h2>
           <div className="settings-actions">
             <button className="ghost small" onClick={onOpenProfile}>{t('settings.viewProfile')}</button>
           </div>

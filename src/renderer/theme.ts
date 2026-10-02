@@ -16,17 +16,22 @@ const THEMES: Theme[] = ['nebula-dark', 'nebula-light', 'glass-dark', 'glass-lig
 /** Pre-Nebula builds stored plain 'light'/'dark'. Those users move to the new identity, not to `old-*`. */
 const LEGACY_THEMES: Record<string, Theme> = { light: 'nebula-light', dark: 'nebula-dark' };
 
+/** Migrates whatever any version stored: current values as is, pre-Nebula 'light'/'dark' to Nebula, anything else to 'system'. */
+export function parseStoredTheme(stored: string | null): Theme {
+  const value = stored ?? '';
+  if ((THEMES as string[]).includes(value)) {
+    return value as Theme;
+  }
+  return LEGACY_THEMES[value] ?? 'system';
+}
+
 function readStoredTheme(): Theme {
-  let stored = '';
   try {
-    stored = window.localStorage.getItem(STORAGE_KEY) ?? '';
+    return parseStoredTheme(window.localStorage.getItem(STORAGE_KEY));
   } catch {
     // Storage can be unavailable (locked-down profile); fall back to the system theme.
+    return 'system';
   }
-  if ((THEMES as string[]).includes(stored)) {
-    return stored as Theme;
-  }
-  return LEGACY_THEMES[stored] ?? 'system';
 }
 
 function resolveTheme(theme: Theme): ResolvedTheme {

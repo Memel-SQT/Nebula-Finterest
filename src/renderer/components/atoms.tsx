@@ -3,22 +3,13 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import { categoryIcon } from '../constants';
 import { Icon, type IconName } from './Icon';
+import { EmptyState } from './ScreenState';
 
 export function Avatar({ name, avatarUrl, size = 'md' }: { name: string; avatarUrl?: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
   if (avatarUrl) {
     return <img className={`avatar avatar-${size}`} src={avatarUrl} alt="" />;
   }
   return <span className={`avatar avatar-${size} avatar-fallback`}>{name.slice(0, 1).toUpperCase()}</span>;
-}
-
-export function NavButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: IconName; onClick: () => void }) {
-  return (
-    <button className={`nav-button ${active ? 'active' : ''}`} onClick={onClick} data-sound="nav" aria-current={active ? 'page' : undefined} title={label}>
-      <span className="nav-icon"><Icon name={icon} size={19} /></span>
-      <span className="nav-label">{label}</span>
-      {active ? <b><Icon name="chevronRight" size={14} /></b> : null}
-    </button>
-  );
 }
 
 export function Card({ label, value, accent, icon }: { label: string; value: string; accent: 'income' | 'fixed' | 'variable' | 'loans' | 'remaining'; icon: IconName }) {
@@ -56,6 +47,7 @@ export function ListCard({
   language,
   onToggle,
   onDelete,
+  empty,
 }: {
   title: string;
   subtitle: string;
@@ -63,6 +55,8 @@ export function ListCard({
   language: Language;
   onToggle?: (id: string, active: boolean) => void;
   onDelete: (id: string) => void;
+  /** Shown instead of an empty list. */
+  empty?: { icon: IconName; title: string; body: string };
 }) {
   return (
     <article className="list-card">
@@ -72,6 +66,7 @@ export function ListCard({
           <p>{subtitle}</p>
         </div>
       </div>
+      {items.length === 0 && empty ? <EmptyState compact icon={empty.icon} title={empty.title} body={empty.body} /> : null}
       <ul>
         {items.map((item) => (
           <li key={item.id} className={item.active === false ? 'inactive' : undefined}>

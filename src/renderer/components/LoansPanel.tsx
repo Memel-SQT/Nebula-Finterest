@@ -4,6 +4,7 @@ import { translate } from '../i18n';
 import { formatMoney } from '../constants';
 import { FieldGroup } from './atoms';
 import { Icon } from './Icon';
+import { EmptyState } from './ScreenState';
 
 export interface LoanFormState {
   name: string;
@@ -68,6 +69,7 @@ export function LoansPanel({
               <p>{t('list.loans.subtitle')}</p>
             </div>
           </div>
+          {loans.length === 0 ? <EmptyState compact icon="bank" title={t('empty.loans.title')} body={t('empty.loans.body')} /> : null}
           <ul>
             {loans.map((loan) => (
               <li key={loan.id} className={loan.active ? undefined : 'inactive'}>

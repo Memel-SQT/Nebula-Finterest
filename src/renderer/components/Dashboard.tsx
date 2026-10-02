@@ -171,6 +171,7 @@ export function Dashboard({
               items={snapshot.fixedExpenses.map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), kind: expense.kind, active: expense.active, detail: expense.dayOfMonth ? t('list.fixed.day', { day: String(expense.dayOfMonth) }) : undefined }))}
               onToggle={onToggleFixedExpense}
               onDelete={onDeleteFixedExpense}
+              empty={{ icon: 'repeat', title: t('empty.fixed.title'), body: t('empty.fixed.body') }}
             />
           </section>
         </>
@@ -211,6 +212,7 @@ export function Dashboard({
                 .filter((expense) => expense.monthKey === activeMonthKey)
                 .map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), detail: formatDate(expense.date, language) }))}
               onDelete={onDeleteVariableExpense}
+              empty={{ icon: 'bag', title: t('empty.variable.title'), body: t('empty.variable.body') }}
             />
           </section>
         </>

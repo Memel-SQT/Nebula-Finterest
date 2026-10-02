@@ -60,7 +60,8 @@ export function parseAppearance(raw: string | null): Appearance {
   } catch {
     parsed = {};
   }
-  const volume = Number(parsed.soundVolume);
+  const rawVolume: unknown = parsed.soundVolume;
+  const volume = Number(rawVolume);
   return {
     accentPreset: PRESET_IDS.includes(parsed.accentPreset as AccentPresetId) ? (parsed.accentPreset as AccentPresetId) : DEFAULT_APPEARANCE.accentPreset,
     customPrimary: HEX.test(String(parsed.customPrimary)) ? String(parsed.customPrimary) : DEFAULT_APPEARANCE.customPrimary,
@@ -68,7 +69,8 @@ export function parseAppearance(raw: string | null): Appearance {
     background: BACKGROUNDS.includes(parsed.background as BackgroundEffect) ? (parsed.background as BackgroundEffect) : DEFAULT_APPEARANCE.background,
     motion: MOTIONS.includes(parsed.motion as MotionLevel) ? (parsed.motion as MotionLevel) : DEFAULT_APPEARANCE.motion,
     soundEnabled: typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : DEFAULT_APPEARANCE.soundEnabled,
-    soundVolume: Number.isFinite(volume) ? Math.min(100, Math.max(0, Math.round(volume))) : DEFAULT_APPEARANCE.soundVolume,
+    // `Number(null)` is 0: a missing volume must fall back to the default, not mute the app (same fix as @nebula/design).
+    soundVolume: rawVolume !== null && rawVolume !== '' && Number.isFinite(volume) ? Math.min(100, Math.max(0, Math.round(volume))) : DEFAULT_APPEARANCE.soundVolume,
   };
 }
 

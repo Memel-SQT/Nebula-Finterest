@@ -9,8 +9,8 @@ import { useAppearance } from './appearance';
 import { configureSounds, playSound, type SoundName } from './sound';
 import { useInterfaceEffects } from './effects';
 import { nebulaAppearancePatch, useFollowNebula, windowMode } from './nebula';
-import { Avatar, NavButton } from './components/atoms';
-import { Icon, type IconName } from './components/Icon';
+import { Icon } from './components/Icon';
+import { Sidebar, type ActiveView } from './components/Sidebar';
 import { AccountGate, type AuthStage } from './components/AccountGate';
 import { BudgetCalendar } from './components/BudgetCalendar';
 import { AdvancedCalculator, type AdvancedCalculatorForm } from './components/AdvancedCalculator';
@@ -20,23 +20,17 @@ import type { LoanFormState } from './components/LoansPanel';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SplashScreen } from './components/SplashScreen';
 import { BackgroundFx } from './components/BackgroundFx';
-import logoUrl from '../../assets/nebula-logo.svg';
+import { Dialog } from './components/Dialog';
+
+/** Injected by Vite from package.json (vite.config.ts); empty under Jest. */
+const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '';
 
 const emptyFixedForm = (): FixedFormState => ({ name: '', amount: '', category: '', dayOfMonth: '', kind: 'subscription' });
 const emptyVariableForm = (): VariableFormState => ({ name: '', amount: '', category: '', date: formatLocalDate(new Date()) });
 const emptyLoanForm: LoanFormState = { name: '', principal: '', monthlyPayment: '', rate: '', remainingMonths: '' };
 
-type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'loans' | 'profile' | 'settings';
-
-const NAV_ITEMS: Array<{ view: ActiveView; labelKey: TranslationKey; icon: IconName }> = [
-  { view: 'overview', labelKey: 'nav.overview', icon: 'overview' },
-  { view: 'calendar', labelKey: 'nav.calendar', icon: 'calendar' },
-  { view: 'fixed', labelKey: 'nav.fixed', icon: 'repeat' },
-  { view: 'variable', labelKey: 'nav.variable', icon: 'bag' },
-  { view: 'loans', labelKey: 'nav.loans', icon: 'bank' },
-  { view: 'profile', labelKey: 'nav.profile', icon: 'user' },
-  { view: 'settings', labelKey: 'nav.settings', icon: 'sliders' },
-];
+/** Views that work on one month: they show the "Month" control in the page header. */
+const MONTH_VIEWS: ActiveView[] = ['overview', 'calendar', 'fixed', 'variable', 'loans'];
 
 export function App() {
   const [language, setLanguage] = useLanguage();
@@ -49,7 +43,6 @@ export function App() {
   const [incomeInput, setIncomeInput] = useState('0');
   const [databasePath, setDatabasePath] = useState('');
   const [activeView, setActiveView] = useState<ActiveView>('overview');
-  const [activeMode, setActiveMode] = useState<'simple' | 'advanced'>('simple');
   const [interestForm, setInterestForm] = useState<AdvancedCalculatorForm>({ capital: '1000', rate: '3', years: '5', monthlyInvestment: '0' });
   const [fixedForm, setFixedForm] = useState<FixedFormState>(emptyFixedForm);
   const [variableForm, setVariableForm] = useState<VariableFormState>(emptyVariableForm);
@@ -81,6 +74,11 @@ export function App() {
 
   useInterfaceEffects(appearance.motion, resolvedTheme);
 
+  // The frameless window keeps Windows' own controls: tint them like the page.
+  useEffect(() => {
+    void window.finterest?.setWindowTheme?.(resolvedTheme).catch(() => undefined);
+  }, [resolvedTheme]);
+
   useEffect(() => {
     configureSounds({ enabled: appearance.soundEnabled, volume: appearance.soundVolume });
   }, [appearance.soundEnabled, appearance.soundVolume]);
@@ -98,7 +96,6 @@ export function App() {
     const offMonth = window.finterest?.onOpenMonth((monthKey) => {
       // A Nebula link to a month (widget, notification): shown if a profile is open.
       if (!snapshotRef.current || !isValidMonthKey(monthKey)) return;
-      setActiveMode('simple');
       setActiveView('overview');
       setActiveMonthKey(monthKey);
       void window.finterest.saveMonthKey(monthKey).then(setSnapshot).catch(() => undefined);
@@ -500,6 +497,7 @@ export function App() {
     return (
       <>
         {background}
+        {mode === 'docked' ? null : <div className="titlebar-drag" aria-hidden="true" />}
         {pendingImport ? <div className="gate-notice" role="status"><Icon name="download" size={16} />{t('import.pending.locked')}</div> : null}
         {mode === 'docked' ? (
           <div className="dock-bar gate-dock">
@@ -539,111 +537,93 @@ export function App() {
     loans: { eyebrow: 'view.loans.eyebrow', title: 'view.loans.title' },
     profile: { eyebrow: 'view.profile.eyebrow', title: 'view.profile.title' },
     settings: { eyebrow: 'view.settings.eyebrow', title: 'view.settings.title' },
+    calculator: { eyebrow: 'view.advanced.eyebrow', title: 'view.advanced.title' },
   };
 
-  const showKpis = activeMode === 'simple' && ['overview', 'fixed', 'variable', 'loans'].includes(activeView);
+  const showKpis = ['overview', 'fixed', 'variable', 'loans'].includes(activeView);
 
   return (
     <>
       {background}
+      {mode === 'docked' ? null : <div className="titlebar-drag" aria-hidden="true" />}
       <main className="app-shell">
-        <aside className="sidebar">
-          <div className="brand-lockup">
-            <img src={logoUrl} alt="" />
-            <div><strong>{t('app.name')}</strong><span>{t('app.tagline')}</span></div>
-          </div>
-          {activeMode === 'simple' && activeAccount ? (
-            <button className="profile-chip" data-sound="nav" onClick={() => setActiveView('profile')}>
-              <Avatar name={activeAccount.name} avatarUrl={activeAccount.avatarUrl} size="sm" />
-              <span>{activeAccount.name}</span>
-              <b><Icon name="chevronRight" size={14} /></b>
-            </button>
-          ) : null}
-          <div className="mode-switch" aria-label={t('mode.simple')}>
-            <button className={activeMode === 'simple' ? 'selected' : 'ghost'} data-sound="nav" onClick={() => setActiveMode('simple')}><Icon name="wallet" size={16} />{t('mode.simple')}</button>
-            <button className={activeMode === 'advanced' ? 'selected' : 'ghost'} data-sound="nav" onClick={() => setActiveMode('advanced')}><Icon name="calculator" size={16} />{t('mode.advanced')}</button>
-          </div>
-          {activeMode === 'simple' ? (
-            <nav className="primary-nav" aria-label={t('app.name')}>
-              {NAV_ITEMS.map((item) => (
-                <NavButton key={item.view} active={activeView === item.view} label={t(item.labelKey)} icon={item.icon} onClick={() => setActiveView(item.view)} />
-              ))}
-            </nav>
-          ) : (
-            <div className="advanced-nav-note"><Icon name="sparkles" size={18} /><p>{t('mode.advancedNote')}</p></div>
-          )}
-          <button className="ghost small nebula-apps" data-sound="nav" onClick={() => void handleOpenNebulaHub()}>
-            <Icon name="overview" size={16} />{t('nebula.apps')}
-          </button>
-          <div className="sidebar-foot">
-            <span className={`status-dot ${syncStatus?.state === 'error' ? 'warn' : ''}`} />
-            {t('sidebar.localData')}<br />
-            <small>{syncStatus?.directory ? `${t('sidebar.localDataNote')} · ${t('sync.title')}` : t('sidebar.localDataNote')}</small>
-          </div>
-        </aside>
+        <Sidebar
+          active={activeView}
+          account={activeAccount}
+          nebulaState={nebulaState}
+          syncError={syncStatus?.state === 'error'}
+          version={APP_VERSION}
+          language={language}
+          onNavigate={setActiveView}
+          onLock={() => void handleSwitchAccount()}
+          onOpenHub={() => void handleOpenNebulaHub()}
+        />
 
-        <section key={`${activeMode}-${activeView}`} className={`workspace view-${activeView}`}>
+        <div className="workspace-column">
+        <section key={activeView} className={`workspace view-${activeView}`}>
+          <div className="workspace-inner">
           {mode === 'docked' ? (
             <div className="dock-bar">
-              <span><Icon name="overview" size={15} />{t('dock.bar')}</span>
+              <span><Icon name="orbit" size={15} />{t('dock.bar')}</span>
               <button className="ghost small" data-sound="none" onClick={() => void window.finterest.detachFromHub()}>{t('dock.detach')}</button>
             </div>
           ) : null}
           <header className="topbar">
             <div>
-              <p className="eyebrow">{activeMode === 'advanced' ? t('view.advanced.eyebrow') : t(viewCopy[activeView].eyebrow)}</p>
-              <h1>{activeMode === 'advanced' ? t('view.advanced.title') : t(viewCopy[activeView].title)}</h1>
+              <p className="eyebrow">{t(viewCopy[activeView].eyebrow)}</p>
+              <h1>{t(viewCopy[activeView].title)}</h1>
             </div>
-            {activeMode === 'simple' && activeView !== 'settings' && activeView !== 'profile' ? (
-              <div className="month-control">
+            {MONTH_VIEWS.includes(activeView) ? (
+              <label className="topbar-control month-control">
                 <span>{t('month.label')}</span>
                 <input
-                  aria-label={t('month.label')}
                   type="month"
                   value={activeMonthKey}
                   onChange={(event) => { if (isValidMonthKey(event.target.value)) setActiveMonthKey(event.target.value); }}
                   onBlur={() => void handleSaveMonthKey(activeMonthKey)}
                 />
-              </div>
+              </label>
             ) : null}
           </header>
 
           {error ? (
-            <div className="error-banner" role="alert">
+            <div className="state-banner error-banner" role="alert">
               <Icon name="alert" size={18} />
-              <span>{error}</span>
+              <span className="state-banner-text">{error}</span>
               <button className="ghost small icon-button" data-sound="none" onClick={() => setError(null)} aria-label={t('calendar.close')}><Icon name="close" size={15} /></button>
             </div>
           ) : null}
           {info ? (
-            <div className="update-banner" role="status">
-              <span><Icon name="check" size={16} />{info}</span>
+            <div className="state-banner info-banner" role="status">
+              <Icon name="check" size={18} />
+              <span className="state-banner-text">{info}</span>
               <button className="ghost small icon-button" data-sound="none" onClick={() => setInfo(null)} aria-label={t('calendar.close')}><Icon name="close" size={15} /></button>
             </div>
           ) : null}
           {pendingImport ? (
-            <div className="update-banner import-banner" role="alertdialog" aria-labelledby="import-banner-title">
-              <div className="import-banner-text">
-                <strong id="import-banner-title">{t(pendingIsLatest ? 'import.latest.title' : 'import.pending.title')}</strong>
-                <span>{t(pendingIsLatest ? 'import.latest.body' : 'import.pending.body', {
-                  file: pendingImport.fileName,
-                  date: new Date(pendingImport.exportedAt ?? pendingImport.modifiedAt).toLocaleString(language === 'en' ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' }),
-                  name: activeAccount?.name ?? '',
-                })}</span>
-                {pendingImport.accounts.length > 1 ? (
-                  <label className="import-source">
-                    {t('import.pending.source')}
-                    <select value={importSource} onChange={(event) => setImportSource(event.target.value)}>
-                      {pendingImport.accounts.map((name) => <option key={name} value={name}>{name}</option>)}
-                    </select>
-                  </label>
-                ) : null}
-              </div>
-              <div className="settings-actions">
-                <button className="small" data-sound="none" onClick={() => void handleImportPending()}>{t('import.pending.confirm')}</button>
-                <button className="ghost small" onClick={() => void handleDismissPending()}>{t('import.pending.dismiss')}</button>
-              </div>
-            </div>
+            <Dialog
+              title={t(pendingIsLatest ? 'import.latest.title' : 'import.pending.title')}
+              icon="download"
+              tone="accent"
+              confirmLabel={t('import.pending.confirm')}
+              cancelLabel={t('import.pending.dismiss')}
+              onConfirm={() => void handleImportPending()}
+              onCancel={() => void handleDismissPending()}
+            >
+              <p>{t(pendingIsLatest ? 'import.latest.body' : 'import.pending.body', {
+                file: pendingImport.fileName,
+                date: new Date(pendingImport.exportedAt ?? pendingImport.modifiedAt).toLocaleString(language === 'en' ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' }),
+                name: activeAccount?.name ?? '',
+              })}</p>
+              {pendingImport.accounts.length > 1 ? (
+                <label className="dialog-field">
+                  {t('import.pending.source')}
+                  <select value={importSource} onChange={(event) => setImportSource(event.target.value)}>
+                    {pendingImport.accounts.map((name) => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                </label>
+              ) : null}
+            </Dialog>
           ) : null}
           {updateStatus?.state === 'available' || updateStatus?.state === 'downloaded' ? (
             <div className="update-banner">
@@ -654,9 +634,9 @@ export function App() {
             </div>
           ) : null}
 
-          {activeMode === 'advanced' ? <AdvancedCalculator form={interestForm} language={language} onChange={setInterestForm} /> : null}
+          {activeView === 'calculator' ? <AdvancedCalculator form={interestForm} language={language} onChange={setInterestForm} /> : null}
 
-          {activeMode === 'simple' && activeView === 'calendar' ? (
+          {activeView === 'calendar' ? (
             <BudgetCalendar
               monthKey={activeMonthKey}
               snapshot={snapshot}
@@ -670,7 +650,7 @@ export function App() {
             />
           ) : null}
 
-          {activeMode === 'simple' && activeView === 'settings' ? (
+          {activeView === 'settings' ? (
             <SettingsPanel
               databasePath={databasePath}
               isGuest={activeAccount?.id === GUEST_ACCOUNT_ID}
@@ -702,7 +682,7 @@ export function App() {
             />
           ) : null}
 
-          {activeMode === 'simple' && activeView === 'profile' && activeAccount ? (
+          {activeView === 'profile' && activeAccount ? (
             <ProfileScreen
               account={activeAccount}
               language={language}
@@ -740,7 +720,9 @@ export function App() {
               onDeleteLoan={(id) => void mutate(() => window.finterest.deleteLoan(id), 'error.deleteItem', 'delete')}
             />
           ) : null}
+          </div>
         </section>
+        </div>
       </main>
     </>
   );
