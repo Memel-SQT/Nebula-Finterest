@@ -1,11 +1,18 @@
+// Ported from Nebula Hub 2ebf5f6 (packages/nebula-design/src/Icon.tsx). Keep in sync; do not edit glyphs here.
 import type { ReactNode } from 'react';
 
 /**
- * Nebula Finterest icon set: 24px grid, 1.8px rounded strokes, and one soft duotone shape
- * (`.icon-duo`, filled with currentColor at low opacity) per glyph for depth. Everything is
- * drawn in currentColor, so icons follow the theme and the user's custom accent colors.
+ * Nebula icon set: 24px grid, 1.8px rounded strokes, and one soft duotone shape (`.icon-duo`,
+ * filled with currentColor at low opacity) per glyph for depth. Everything is drawn in
+ * currentColor, so icons follow the theme and the user's custom accent colors. No Unicode
+ * glyph is ever used in the interface.
+ *
+ * The first block is ported verbatim from Nebula Finterest v0.1.36
+ * `src/renderer/components/Icon.tsx`; the second block adds the Store's icons, drawn in the
+ * same style.
  */
 const duo = { className: 'icon-duo' };
+const duoFill = { className: 'icon-duo', stroke: 'none' };
 const dot = { fill: 'currentColor', stroke: 'none' };
 
 const glyphs = {
@@ -244,9 +251,185 @@ const glyphs = {
       <circle cx="8" cy="8" r="1.4" {...dot} />
     </>
   ),
+
+  // ---- Nebula Store additions ----
+  store: (
+    <>
+      <path d="M3.5 9.5 5 4.5h14l1.5 5a2.5 2.5 0 0 1-4.9.7 2.6 2.6 0 0 1-5.1 0 2.6 2.6 0 0 1-5.1 0A2.5 2.5 0 0 1 3.5 9.5z" {...duo} />
+      <path d="M5 12v7a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-7" />
+      <path d="M10 20.5V16h4v4.5" />
+    </>
+  ),
+  grid: (
+    <>
+      <circle cx="12" cy="12" r="2.6" {...duoFill} />
+      <circle cx="5.5" cy="5.5" r="1.6" {...dot} /><circle cx="12" cy="5.5" r="1.6" {...dot} /><circle cx="18.5" cy="5.5" r="1.6" {...dot} />
+      <circle cx="5.5" cy="12" r="1.6" {...dot} /><circle cx="12" cy="12" r="1.6" {...dot} /><circle cx="18.5" cy="12" r="1.6" {...dot} />
+      <circle cx="5.5" cy="18.5" r="1.6" {...dot} /><circle cx="12" cy="18.5" r="1.6" {...dot} /><circle cx="18.5" cy="18.5" r="1.6" {...dot} />
+    </>
+  ),
+  link: (
+    <>
+      <circle cx="12" cy="12" r="2.4" {...duoFill} />
+      <path d="M10.2 13.8a3.6 3.6 0 0 0 5.1 0l3.2-3.2a3.6 3.6 0 0 0-5.1-5.1l-1.1 1.1" />
+      <path d="M13.8 10.2a3.6 3.6 0 0 0-5.1 0l-3.2 3.2a3.6 3.6 0 0 0 5.1 5.1l1.1-1.1" />
+    </>
+  ),
+  puzzle: (
+    <path d="M4.5 8h3.4a2.1 2.1 0 1 1 4.2 0h3.4v3.4a2.1 2.1 0 1 1 0 4.2V19a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 19z" {...duo} />
+  ),
+  package: (
+    <>
+      <path d="M12 3.5 20 7.5v9l-8 4-8-4v-9z" {...duo} />
+      <path d="m4 7.5 8 4 8-4" />
+      <path d="M12 11.5v9" />
+      <path d="m8 5.5 8 4" />
+    </>
+  ),
+  update: (
+    <>
+      <circle cx="12" cy="12" r="5" {...duoFill} />
+      <path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" />
+      <path d="M19.5 4.5v4h-4" />
+      <path d="M12 8.5v6" />
+      <path d="m9.5 12.5 2.5 2.5 2.5-2.5" />
+    </>
+  ),
+  repair: (
+    <path d="M14.8 4a4.5 4.5 0 0 0-4.9 6l-5.4 5.4a1.9 1.9 0 0 0 2.7 2.7l5.4-5.4a4.5 4.5 0 0 0 6-4.9l-2.6 2.6-2.5-.4-.4-2.5z" {...duo} />
+  ),
+  uninstall: (
+    <>
+      <path d="M12 3.5 19.5 7.3v4.2" />
+      <path d="M4.5 7.3 12 3.5" />
+      <path d="M4.5 7.3v8.9l7.5 3.8" />
+      <path d="m4.5 7.3 7.5 3.8 7.5-3.8" />
+      <path d="M12 11.1v8.9" />
+      <circle cx="17.5" cy="17.5" r="3.5" {...duo} />
+      <path d="M16 17.5h3" />
+    </>
+  ),
+  tray: (
+    <>
+      <rect x="3.5" y="14.5" width="17" height="6" rx="2" {...duo} />
+      <path d="M12 11.5v-7" />
+      <path d="m8.5 8 3.5-3.5L15.5 8" />
+      <circle cx="13.5" cy="17.5" r="0.95" {...dot} />
+      <circle cx="16.8" cy="17.5" r="0.95" {...dot} />
+    </>
+  ),
+  bell: (
+    <>
+      <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" {...duo} />
+      <path d="M10 20.8a2.1 2.1 0 0 0 4 0" />
+    </>
+  ),
+  pause: (
+    <>
+      <rect x="6" y="4.5" width="4" height="15" rx="1.5" {...duo} />
+      <rect x="14" y="4.5" width="4" height="15" rx="1.5" {...duo} />
+    </>
+  ),
+  external: (
+    <>
+      <path d="M18 14v4.5a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2H11" {...duo} />
+      <path d="M13.5 4.5h6v6" />
+      <path d="M19.5 4.5 11 13" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="10.5" cy="10.5" r="6.5" {...duo} />
+      <path d="m15.5 15.5 5 5" />
+    </>
+  ),
+  history: (
+    <>
+      <circle cx="12" cy="12" r="5.2" {...duoFill} />
+      <path d="M4.2 12a7.8 7.8 0 1 0 2.3-5.5" />
+      <path d="M4 4.5V9h4.5" />
+      <path d="M12 8v4.3l2.8 1.8" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" {...duo} />
+      <circle cx="12" cy="12" r="2.8" />
+    </>
+  ),
+  eyeOff: (
+    <>
+      <path d="M6.6 7.4C4 9.2 2.5 12 2.5 12S6 18.5 12 18.5c1.9 0 3.5-.6 4.9-1.5M10 5.7c.6-.1 1.3-.2 2-.2 6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.4 3.2" {...duo} />
+      <path d="M4 4l16 16" />
+    </>
+  ),
+  grip: (
+    <>
+      <circle cx="9" cy="6.5" r="1.4" {...dot} />
+      <circle cx="15" cy="6.5" r="1.4" {...dot} />
+      <circle cx="9" cy="12" r="1.4" {...dot} />
+      <circle cx="15" cy="12" r="1.4" {...dot} />
+      <circle cx="9" cy="17.5" r="1.4" {...dot} />
+      <circle cx="15" cy="17.5" r="1.4" {...dot} />
+    </>
+  ),
+  rocket: (
+    <>
+      <path d="M14.5 4.5c3-1 5-1 5-1s0 2-1 5l-5.5 5.5-3-3z" {...duo} />
+      <path d="M10 10.5 6.5 10l-2 2 4 1.5M13.5 14l.5 3.5-2 2-1.5-4" />
+      <path d="M6 18c-1 .4-1.5 1-1.5 1.5.5 0 1.1-.5 1.5-1.5z" />
+    </>
+  ),
+
+  // ---- Navigation set (Hub sidebar, shared by the family): one glyph per section, the
+  // duotone shape carries the meaning so the icon still reads at 18 px. ----
+  navHome: (
+    <>
+      <path d="M4 10.6 12 4l8 6.6v7.9a2 2 0 0 1-2 2h-3.2v-5.2a1.5 1.5 0 0 0-1.5-1.5h-2.6a1.5 1.5 0 0 0-1.5 1.5v5.2H6a2 2 0 0 1-2-2z" {...duo} />
+      <path d="M18.5 3.5v3M17 5h3" />
+    </>
+  ),
+  compass: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m15.6 8.4-2.1 5.1-5.1 2.1 2.1-5.1z" {...duo} />
+      <circle cx="12" cy="12" r="1" {...dot} />
+    </>
+  ),
+  apps: (
+    <>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="2.2" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="2.2" {...duo} />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="2.2" {...duo} />
+      <circle cx="17" cy="17" r="3.6" />
+    </>
+  ),
+  downloadTray: (
+    <>
+      <path d="M3.5 14.5h4.2l1.4 2.2h5.8l1.4-2.2h4.2v3.5a2.5 2.5 0 0 1-2.5 2.5H6A2.5 2.5 0 0 1 3.5 18z" {...duo} />
+      <path d="M12 3.5v9" />
+      <path d="m8.3 9 3.7 3.7L15.7 9" />
+    </>
+  ),
+  orbit: (
+    <>
+      <circle cx="12" cy="12" r="3" {...duo} />
+      <ellipse cx="12" cy="12" rx="9" ry="4.3" transform="rotate(-30 12 12)" />
+      <circle cx="18.6" cy="6.5" r="1.5" {...dot} />
+      <circle cx="5.4" cy="17.5" r="1.5" {...dot} />
+    </>
+  ),
+  gear: (
+    <>
+      <path d="M10.44 5.49L10.64 3.41L13.36 3.41L13.56 5.49L15.5 6.29L17.11 4.96L19.04 6.89L17.71 8.5L18.51 10.44L20.59 10.64L20.59 13.36L18.51 13.56L17.71 15.5L19.04 17.11L17.11 19.04L15.5 17.71L13.56 18.51L13.36 20.59L10.64 20.59L10.44 18.51L8.5 17.71L6.89 19.04L4.96 17.11L6.29 15.5L5.49 13.56L3.41 13.36L3.41 10.64L5.49 10.44L6.29 8.5L4.96 6.89L6.89 4.96L8.5 6.29Z" {...duo} />
+      <circle cx="12" cy="12" r="2.8" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof glyphs;
+
+export const ICON_NAMES = Object.keys(glyphs) as IconName[];
 
 export function Icon({ name, size = 18, className }: { name: IconName; size?: number; className?: string }) {
   return (

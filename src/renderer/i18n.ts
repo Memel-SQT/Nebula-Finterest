@@ -5,10 +5,31 @@ export type Language = 'fr' | 'en';
 const STORAGE_KEY = 'finterest-language';
 
 export type TranslationKey =
+| 'nav.calculator'
+| 'nav.group.budget'
+| 'nav.group.tools'
+| 'nav.sections'
+| 'sidebar.hub.title'
+  | 'sidebar.hub.connected'
+  | 'sidebar.hub.absent'
+  | 'sidebar.hub.open'
+  | 'sidebar.profile.open'
+  | 'sidebar.profile.guest'
+  | 'sidebar.profile.lock'
+  | 'sidebar.local'
+  | 'sidebar.localNote'
+  | 'sidebar.version'
+  | 'settings.historicThemes'
+  | 'empty.fixed.title'
+  | 'empty.fixed.body'
+  | 'empty.variable.title'
+  | 'empty.variable.body'
+  | 'empty.loans.title'
+  | 'empty.loans.body'
   | 'app.name' | 'app.tagline'
-  | 'mode.simple' | 'mode.advanced' | 'mode.advancedNote'
+ 
   | 'nav.overview' | 'nav.calendar' | 'nav.fixed' | 'nav.variable' | 'nav.loans' | 'nav.settings' | 'nav.profile'
-  | 'sidebar.localData' | 'sidebar.localDataNote'
+ 
   | 'view.overview.eyebrow' | 'view.overview.title'
   | 'view.calendar.eyebrow' | 'view.calendar.title'
   | 'view.fixed.eyebrow' | 'view.fixed.title'
@@ -140,20 +161,36 @@ export type TranslationKey =
   | 'error.updateItem';
 
 export const fr: Record<TranslationKey, string> = {
+  'nav.calculator': 'Calculatrice',
+  'nav.group.budget': 'Mon budget',
+  'nav.group.tools': 'Outils',
+  'nav.sections': 'Sections de l\'application',
+  'sidebar.hub.title': 'Nebula Hub',
+  'sidebar.hub.connected': 'Connecté',
+  'sidebar.hub.absent': 'Absent',
+  'sidebar.hub.open': 'ouvrir les apps Nebula',
+  'sidebar.profile.open': 'Profil ouvert',
+  'sidebar.profile.guest': 'Session invité',
+  'sidebar.profile.lock': 'Verrouiller et changer de profil',
+  'sidebar.local': 'Local, sans compte',
+  'sidebar.localNote': 'Vos données restent sur cet ordinateur.',
+  'sidebar.version': 'Version {version}',
+  'settings.historicThemes': 'Thèmes historiques',
+  'empty.fixed.title': 'Aucun abonnement pour l’instant',
+  'empty.fixed.body': 'Ajoutez votre premier abonnement ou prélèvement avec le formulaire.',
+  'empty.variable.title': 'Aucun achat prévu ce mois-ci',
+  'empty.variable.body': 'Ajoutez un achat avec le formulaire, ou depuis un jour du calendrier.',
+  'empty.loans.title': 'Aucun prêt en cours',
+  'empty.loans.body': 'Ajoutez un prêt pour compter ses mensualités dans votre reste à vivre.',
   'app.name': 'Nebula Finterest',
   'app.tagline': 'Votre budget, simplement',
-  'mode.simple': 'Budget simple',
-  'mode.advanced': 'Calcul avancé',
-  'mode.advancedNote': 'Outils économiques supplémentaires',
   'nav.overview': "Vue d'ensemble",
   'nav.calendar': 'Calendrier',
-  'nav.fixed': 'Abonnements / Prélèvements',
+  'nav.fixed': 'Abonnements',
   'nav.variable': 'Achats prévus',
   'nav.loans': 'Prêts',
   'nav.settings': 'Réglages',
   'nav.profile': 'Profil',
-  'sidebar.localData': 'Données locales',
-  'sidebar.localDataNote': 'Enregistrées sur cet ordinateur',
   'view.overview.eyebrow': 'Votre budget',
   'view.overview.title': 'Mon budget du mois',
   'view.calendar.eyebrow': 'Échéances et achats prévus',
@@ -356,8 +393,8 @@ export const fr: Record<TranslationKey, string> = {
   'calendar.pickDay': 'Sélectionnez un jour pour voir ce qui y est prévu, ou y ajouter un achat ponctuel ou un abonnement.',
   'calendar.deleteRecurringConfirm': 'Supprime cet abonnement de tous les mois',
   'calendar.deleteEveryMonth': 'Supprimer partout ?',
-  'theme.glassDark': 'Verre liquide sombre',
-  'theme.glassLight': 'Verre liquide clair',
+  'theme.glassDark': 'Verre sombre',
+  'theme.glassLight': 'Verre clair',
   'accent.nebula': 'Nebula',
   'accent.aurora': 'Aurore',
   'accent.ocean': 'Océan',
@@ -381,7 +418,7 @@ export const fr: Record<TranslationKey, string> = {
   'motion.full': 'Complètes',
   'motion.reduced': 'Réduites',
   'motion.off': 'Désactivées',
-  'settings.glassHint': 'Astuce : le verre liquide est à son meilleur avec l’arrière-plan « Aurore boréale ».',
+  'settings.glassHint': 'Astuce : les thèmes Verre sont à leur meilleur avec l’arrière-plan « Aurore boréale ».',
   'settings.sounds': 'Sons',
   'settings.soundEnabled': 'Sons de l\'interface',
   'settings.soundVolume': 'Volume',
@@ -440,20 +477,36 @@ export const fr: Record<TranslationKey, string> = {
 };
 
 export const en: Record<TranslationKey, string> = {
+  'nav.calculator': 'Calculator',
+  'nav.group.budget': 'My budget',
+  'nav.group.tools': 'Tools',
+  'nav.sections': 'App sections',
+  'sidebar.hub.title': 'Nebula Hub',
+  'sidebar.hub.connected': 'Connected',
+  'sidebar.hub.absent': 'Not running',
+  'sidebar.hub.open': 'open the Nebula apps',
+  'sidebar.profile.open': 'Open profile',
+  'sidebar.profile.guest': 'Guest session',
+  'sidebar.profile.lock': 'Lock and switch profile',
+  'sidebar.local': 'Local, no account',
+  'sidebar.localNote': 'Your data stays on this computer.',
+  'sidebar.version': 'Version {version}',
+  'settings.historicThemes': 'Historic themes',
+  'empty.fixed.title': 'No subscriptions yet',
+  'empty.fixed.body': 'Add your first subscription or direct debit with the form.',
+  'empty.variable.title': 'No purchases planned this month',
+  'empty.variable.body': 'Add a purchase with the form, or from a day of the calendar.',
+  'empty.loans.title': 'No loans yet',
+  'empty.loans.body': 'Add a loan to count its payments in what you have left.',
   'app.name': 'Nebula Finterest',
   'app.tagline': 'Your budget, simply',
-  'mode.simple': 'Simple budget',
-  'mode.advanced': 'Advanced calculator',
-  'mode.advancedNote': 'Additional economic tools',
   'nav.overview': 'Overview',
   'nav.calendar': 'Calendar',
-  'nav.fixed': 'Subscriptions / Direct debits',
+  'nav.fixed': 'Subscriptions',
   'nav.variable': 'Planned purchases',
   'nav.loans': 'Loans',
   'nav.settings': 'Settings',
   'nav.profile': 'Profile',
-  'sidebar.localData': 'Local data',
-  'sidebar.localDataNote': 'Stored on this computer',
   'view.overview.eyebrow': 'Your budget',
   'view.overview.title': 'My monthly budget',
   'view.calendar.eyebrow': 'Due dates and planned purchases',
@@ -656,8 +709,8 @@ export const en: Record<TranslationKey, string> = {
   'calendar.pickDay': 'Select a day to see what is planned, or add a one-off purchase or a subscription to it.',
   'calendar.deleteRecurringConfirm': 'Removes this subscription from every month',
   'calendar.deleteEveryMonth': 'Delete everywhere?',
-  'theme.glassDark': 'Liquid glass dark',
-  'theme.glassLight': 'Liquid glass light',
+  'theme.glassDark': 'Glass dark',
+  'theme.glassLight': 'Glass light',
   'accent.nebula': 'Nebula',
   'accent.aurora': 'Aurora',
   'accent.ocean': 'Ocean',
@@ -681,7 +734,7 @@ export const en: Record<TranslationKey, string> = {
   'motion.full': 'Full',
   'motion.reduced': 'Reduced',
   'motion.off': 'Off',
-  'settings.glassHint': 'Tip: liquid glass looks its best with the “Aurora” background.',
+  'settings.glassHint': 'Tip: the Glass themes look their best with the “Aurora” background.',
   'settings.sounds': 'Sounds',
   'settings.soundEnabled': 'Interface sounds',
   'settings.soundVolume': 'Volume',

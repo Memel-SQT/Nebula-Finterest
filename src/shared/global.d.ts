@@ -31,6 +31,8 @@ declare global {
       getDatabasePath(): Promise<string>;
       onUpdateStatus(callback: (status: UpdateStatus) => void): () => void;
       installUpdate(): Promise<void>;
+      /** Tints the native window controls of the frameless window; only known theme names are accepted. */
+      setWindowTheme(theme: string): Promise<void>;
       checkForUpdates(): Promise<void>;
       getSyncStatus(): Promise<SyncStatus>;
       /** `reloaded` tells the renderer to re-read accounts and the snapshot, which the sync may have replaced. */
