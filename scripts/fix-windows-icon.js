@@ -52,6 +52,9 @@ async function main() {
     targets: createTargets([Platform.WINDOWS], 'nsis'),
     prepackaged: UNPACKED_DIR,
     config: { directories: { output: OUTPUT_DIR } },
+    // Releases are published by hand (gh release create): never from a build, even in CI where
+    // electron-builder would otherwise try to and fail without a token.
+    publish: 'never',
   });
 
   console.log('[fix-windows-icon] Applied build/icon.ico to the packaged exe and rebuilt the installer.');
