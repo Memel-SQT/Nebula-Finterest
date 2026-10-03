@@ -100,6 +100,8 @@ export interface NebulaState {
   hubVersion: string | null;
   /** The user lets the Hub install the updates (only while the Hub is there). */
   updatesByHub: boolean;
+  /** "Finance articles from Nebula News" on the overview (shown only if News answers). */
+  newsFinance: boolean;
 }
 
 export interface UpdateStatus {

@@ -79,3 +79,65 @@ export function debitNotification(debit: DebitDue): NebulaNotification {
     category: 'debit',
   };
 }
+
+/**
+ * `news.finance.today` (Nebula News 0.4.0, public widget): today's finance / financial-literacy
+ * articles, shown as the "Learn" card of the overview. What Finterest keeps from the `WidgetV1`
+ * payload after its own checks: plain short texts and a link into Nebula News only.
+ */
+export interface NewsWidget {
+  title: string;
+  caption?: string;
+  /** Article title (`label`) and source (`value`), 3 at most. */
+  items: Array<{ label: string; value: string }>;
+  /** Always a `nebula://news/...` link (checked by `isNewsDeepLink`). */
+  deepLink: string;
+  updatedAt: string;
+}
+
+export const NEWS_MAX_ITEMS = 3;
+const NEWS_TEXT_MAX = 80;
+const NEWS_LINK_MAX = 300;
+// Control characters, and anything that looks like markup: the card shows plain text only.
+const UNSAFE_TEXT = /[\u0000-\u001f\u007f]|<\s*[a-z!/?]/i;
+const NEWS_LINK = /^nebula:\/\/news\/[a-z0-9/-]{0,60}(\?[a-z0-9=&_.%-]{1,200})?$/i;
+
+/** A deep link into Nebula News, and nothing else (no other app, no web URL, bounded). */
+export function isNewsDeepLink(value: unknown): value is string {
+  return typeof value === 'string' && value.length <= NEWS_LINK_MAX && NEWS_LINK.test(value);
+}
+
+function safeText(value: unknown, required: boolean): string | undefined | null {
+  if (value === undefined || value === null) return required ? null : undefined;
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  if (!text) return required ? null : undefined;
+  if (text.length > NEWS_TEXT_MAX || UNSAFE_TEXT.test(text)) return null;
+  return text;
+}
+
+/**
+ * Checks what Nebula News returned for `news.finance.today`. Anything unexpected makes the whole
+ * card disappear (null): a missing title, a text over 80 characters or with markup, a link that is
+ * not `nebula://news/...`, an invalid date, malformed items, or no article at all. Only the first
+ * three articles are kept.
+ */
+export function parseNewsWidget(value: unknown): NewsWidget | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const title = safeText(record.title, true);
+  const caption = safeText(record.caption, false);
+  if (title === null || title === undefined || caption === null) return null;
+  if (!isNewsDeepLink(record.deepLink)) return null;
+  if (typeof record.updatedAt !== 'string' || !Number.isFinite(Date.parse(record.updatedAt))) return null;
+  if (!Array.isArray(record.items) || record.items.length === 0 || record.items.length > 5) return null;
+  const items: NewsWidget['items'] = [];
+  for (const raw of record.items) {
+    if (!raw || typeof raw !== 'object') return null;
+    const label = safeText((raw as Record<string, unknown>).label, true);
+    const source = safeText((raw as Record<string, unknown>).value, true);
+    if (!label || !source) return null;
+    items.push({ label, value: source });
+  }
+  return { title, ...(caption ? { caption } : {}), items: items.slice(0, NEWS_MAX_ITEMS), deepLink: record.deepLink, updatedAt: record.updatedAt };
+}
