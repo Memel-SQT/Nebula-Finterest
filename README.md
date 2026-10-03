@@ -47,6 +47,7 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
   - afficher votre **reste à vivre** sur l'accueil du Hub (masqué par défaut) et vous prévenir **la veille d'un prélèvement**, uniquement avec votre accord donné dans le Hub, et jamais quand l'application est verrouillée ;
   - s'ouvrir **dans la fenêtre du Hub** plutôt que dans la sienne (bouton « Détacher » pour revenir) ;
   - laisser le Hub installer ses mises à jour, si vous l'activez dans les réglages.
+  - afficher, sur la vue d'ensemble, une carte **« Apprendre »** avec les articles de finance du jour de [Nebula News](https://github.com/Memel-SQT/Nebula-News) (éducation financière), si News est installée. Un clic ouvre le thème « Finance » dans News. La demande ne contient **rien** de votre budget, la carte n'apparaît qu'avec un profil déverrouillé (jamais en session invité), se rafraîchit au plus tous les quarts d'heure, et se désactive dans Réglages → Nebula Hub (« Articles de finance de Nebula News »).
 - La carte « Nebula Hub » en bas de la barre latérale indique s'il est connecté et l'ouvre d'un clic.
 - L'échange avec le Hub passe par Nebula Link, une liaison **locale** entre applications de l'ordinateur : aucun appel réseau, rien ne quitte votre ordinateur.
 
