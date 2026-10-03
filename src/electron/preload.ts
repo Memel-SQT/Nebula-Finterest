@@ -55,6 +55,9 @@ contextBridge.exposeInMainWorld('finterest', {
   onNebulaAppearance: (callback: (appearance: unknown) => void) => subscribe('nebula:appearance', callback),
   onOpenMonth: (callback: (monthKey: string) => void) => subscribe('nebula:open-month', callback),
   openNebulaHub: () => ipcRenderer.invoke('nebula:openHub'),
+  getFinanceNews: () => ipcRenderer.invoke('nebula:getFinanceNews'),
+  setNewsFinance: (enabled: boolean) => ipcRenderer.invoke('nebula:setNewsFinance', enabled),
+  openNewsLink: (deepLink: string) => ipcRenderer.invoke('nebula:openNewsLink', deepLink),
   isDocked: () => ipcRenderer.invoke('nebula:isDocked'),
   detachFromHub: () => ipcRenderer.invoke('nebula:detach'),
 } as const satisfies Window['finterest']);

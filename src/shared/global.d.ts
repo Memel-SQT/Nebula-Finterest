@@ -1,5 +1,6 @@
 import type { BackupFile, BudgetSnapshot, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus } from './types';
 import type { LocalAccountSummary } from './accounts';
+import type { NewsWidget } from './nebula';
 
 declare global {
   interface Window {
@@ -56,6 +57,11 @@ declare global {
       onNebulaAppearance(callback: (appearance: unknown) => void): () => void;
       onOpenMonth(callback: (monthKey: string) => void): () => void;
       openNebulaHub(): Promise<'opened' | 'not-installed'>;
+      /** Nebula News' finance articles (news.finance.today), checked in the main process; null when there is nothing to show. */
+      getFinanceNews(): Promise<NewsWidget | null>;
+      setNewsFinance(enabled: boolean): Promise<NebulaState>;
+      /** Opens a nebula://news/ link (re-checked in the main process); false when it cannot. */
+      openNewsLink(deepLink: string): Promise<boolean>;
       isDocked(): Promise<boolean>;
       detachFromHub(): Promise<void>;
     };

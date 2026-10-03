@@ -1,5 +1,5 @@
 import { createEmptySnapshot } from './budget';
-import { budgetWidget, debitNotification, debitsDueTomorrow } from './nebula';
+import { budgetWidget, debitNotification, debitsDueTomorrow, isNewsDeepLink, parseNewsWidget } from './nebula';
 
 function snapshot() {
   const value = createEmptySnapshot();
@@ -39,5 +39,53 @@ describe('charges due tomorrow', () => {
   it('builds a private notification, unique per charge and day', () => {
     const notification = debitNotification({ id: 'rent', name: 'Loyer', amount: 800, date: '2026-10-05' });
     expect(notification).toEqual({ id: 'debit-rent-2026-10-05', title: 'Prélèvement prévu demain', body: 'Loyer : 800,00 €', sensitivity: 'private', deepLink: 'nebula://finterest/month?date=2026-10', category: 'debit' });
+  });
+});
+
+describe('Nebula News finance widget (news.finance.today)', () => {
+  const valid = {
+    title: 'Finance du jour',
+    caption: 'Éducation financière',
+    items: [
+      { label: 'Comprendre le taux d’usure', value: 'Le Monde' },
+      { label: 'Épargne de précaution : combien ?', value: 'Les Échos' },
+      { label: 'Livret A : ce qui change', value: 'Capital' },
+    ],
+    deepLink: 'nebula://news/theme/finance',
+    updatedAt: '2026-10-03T08:00:00.000Z',
+  };
+
+  it('keeps a valid payload as plain texts', () => {
+    expect(parseNewsWidget(valid)).toEqual(valid);
+  });
+
+  it('keeps only the first three articles', () => {
+    const five = { ...valid, items: [...valid.items, { label: 'Quatre', value: 'A' }, { label: 'Cinq', value: 'B' }] };
+    expect(parseNewsWidget(five)?.items).toHaveLength(3);
+  });
+
+  it('drops the whole card on anything unexpected', () => {
+    expect(parseNewsWidget(null)).toBeNull();
+    expect(parseNewsWidget('text')).toBeNull();
+    expect(parseNewsWidget({ ...valid, title: '' })).toBeNull();
+    expect(parseNewsWidget({ ...valid, title: 'x'.repeat(81) })).toBeNull();
+    expect(parseNewsWidget({ ...valid, caption: '<b>gras</b>' })).toBeNull();
+    expect(parseNewsWidget({ ...valid, items: [{ label: '<img src=x onerror=alert(1)>', value: 'A' }] })).toBeNull();
+    expect(parseNewsWidget({ ...valid, items: [{ label: 'Titre\u0007', value: 'A' }] })).toBeNull();
+    expect(parseNewsWidget({ ...valid, items: [{ label: 'Sans source' }] })).toBeNull();
+    expect(parseNewsWidget({ ...valid, items: [] })).toBeNull();
+    expect(parseNewsWidget({ ...valid, items: Array.from({ length: 6 }, () => valid.items[0]) })).toBeNull();
+    expect(parseNewsWidget({ ...valid, updatedAt: 'hier' })).toBeNull();
+    expect(parseNewsWidget({ ...valid, deepLink: undefined })).toBeNull();
+  });
+
+  it('accepts only links into Nebula News', () => {
+    expect(isNewsDeepLink('nebula://news/theme/finance')).toBe(true);
+    expect(isNewsDeepLink('nebula://news/briefing?date=2026-10-03')).toBe(true);
+    expect(isNewsDeepLink('nebula://finterest/month?date=2026-10')).toBe(false);
+    expect(isNewsDeepLink('https://example.com/news')).toBe(false);
+    expect(isNewsDeepLink('nebula://news/theme/finance"><script>')).toBe(false);
+    expect(isNewsDeepLink(`nebula://news/${'a'.repeat(61)}`)).toBe(false);
+    expect(isNewsDeepLink(42)).toBe(false);
   });
 });

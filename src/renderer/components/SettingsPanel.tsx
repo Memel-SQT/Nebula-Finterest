@@ -63,6 +63,7 @@ export function SettingsPanel({
   followNebula = true,
   onFollowNebulaChange,
   onUpdatesByHubChange,
+  onNewsFinanceChange,
   onOpenNebulaHub,
 }: {
   databasePath: string;
@@ -92,6 +93,7 @@ export function SettingsPanel({
   followNebula?: boolean;
   onFollowNebulaChange?: (follow: boolean) => void;
   onUpdatesByHubChange?: (enabled: boolean) => Promise<void>;
+  onNewsFinanceChange?: (enabled: boolean) => Promise<void>;
   onOpenNebulaHub?: () => Promise<void>;
 }) {
   const t = (key: Parameters<typeof translate>[1], params?: Record<string, string>) => translate(language, key, params);
@@ -356,6 +358,15 @@ export function SettingsPanel({
                 <span>{t('nebula.updatesByHub')}</span>
               </button>
               <small className="path-note" id="nebula-updates-hint">{t('nebula.updatesByHubHint')}</small>
+            </>
+          ) : null}
+          {onNewsFinanceChange ? (
+            <>
+              <button type="button" role="switch" aria-checked={nebulaState?.newsFinance !== false} aria-describedby="nebula-news-hint" className={`switch ${nebulaState?.newsFinance !== false ? 'on' : ''}`} data-sound="toggle" onClick={() => void onNewsFinanceChange(nebulaState?.newsFinance === false)}>
+                <i aria-hidden="true" />
+                <span>{t('nebula.newsFinance')}</span>
+              </button>
+              <small className="path-note" id="nebula-news-hint">{t('nebula.newsFinanceHint')}</small>
             </>
           ) : null}
           <small className="path-note">{t('nebula.privacy')}</small>

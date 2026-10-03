@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { isNewsDeepLink } from '../shared/nebula';
 import { autoUpdater } from 'electron-updater';
 import { AccountManager } from './accounts';
 import { backupFileName, readBackupSummary, latestBackup, rotateExisting, type BackupSummary } from './backups';
@@ -46,6 +47,7 @@ const nebula = new NebulaIntegration({
   },
   focusWindow: () => focusWindow(),
   onDock: (payload) => void applyDock(payload),
+  windowVisible: () => Boolean(mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible() && !mainWindow.isMinimized()),
 });
 
 // Two instances would each hold the database in memory and overwrite each other's file on
@@ -368,7 +370,10 @@ function registerIpcHandlers(): void {
 
     return accountManager.setActiveAvatar(result.filePaths[0]);
   });
-  ipcMain.handle('account:lock', () => accountManager.lock());
+  ipcMain.handle('account:lock', () => {
+    nebula.clearNews();
+    return accountManager.lock();
+  });
   ipcMain.handle('account:active', () => accountManager.getActive());
   ipcMain.handle('budget:getSnapshot', async () => accountManager.getStore().getSnapshot());
   ipcMain.handle('budget:saveIncome', async (_event, income: number) => accountManager.getStore().saveIncome(Number(income)));
@@ -470,6 +475,18 @@ function registerIpcHandlers(): void {
     }
     await shell.openExternal('https://github.com/Memel-SQT/Nebula-Hub/releases');
     return 'not-installed';
+  });
+  // Nebula News' "Learn" card (news.finance.today): the main process asks, checks and caches it.
+  ipcMain.handle('nebula:getFinanceNews', () => nebula.financeNews());
+  ipcMain.handle('nebula:setNewsFinance', async (_event, enabled: unknown) => {
+    await nebula.setNewsFinance(enabled === true);
+    return nebula.state();
+  });
+  ipcMain.handle('nebula:openNewsLink', async (_event, deepLink: unknown) => {
+    // Re-checked here: only a nebula://news/ link, and only through the protocol Nebula Hub registers.
+    if (!isNewsDeepLink(deepLink) || !app.getApplicationNameForProtocol('nebula://')) return false;
+    await shell.openExternal(deepLink);
+    return true;
   });
   ipcMain.handle('nebula:isDocked', () => dock.docked);
   ipcMain.handle('nebula:detach', async () => {

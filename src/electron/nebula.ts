@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { NebulaLink, type Intent } from '@nebula/link';
-import { budgetWidget, debitNotification, debitsDueTomorrow } from '../shared/nebula';
+import { NebulaLink, validateSchema, type Intent } from '@nebula/link';
+import { budgetWidget, debitNotification, debitsDueTomorrow, parseNewsWidget, type NewsWidget } from '../shared/nebula';
 import { isValidMonthKey } from '../shared/budget';
 import type { BudgetSnapshot, NebulaState } from '../shared/types';
 import { writeFileAtomic } from './fsutil';
@@ -15,6 +15,10 @@ import { writeFileAtomic } from './fsutil';
  *   for a locked app; the Hub asks the user before showing it.
  * - private notifications for the charges due tomorrow, once per charge and day;
  * - nothing else: no account, no list of expenses, no history.
+ *
+ * What is read: Nebula News' public `news.finance.today` widget for the overview's "Learn" card,
+ * asked WITHOUT any parameter (nothing from the profile goes out, not even to personalize), only
+ * while a real profile is unlocked and the window is visible, at most every 15 minutes.
  *
  * What is received: the Nebula appearance (applied by the renderer if "Follow the Nebula
  * appearance" is on), the Hub's presence (updates handled by the Hub, if the user chose it), the
@@ -30,6 +34,8 @@ export interface NebulaDeps {
   send(channel: string, payload: unknown): void;
   focusWindow(): void;
   onDock(payload: unknown): void;
+  /** The window is shown (not hidden, not minimized): the "Learn" card only refreshes then. */
+  windowVisible(): boolean;
 }
 
 export interface NebulaSettings {
@@ -37,10 +43,15 @@ export interface NebulaSettings {
   updatesByHub: boolean;
   /** Charges already announced (`<profile>|<notification id>`), the last 100. */
   notified: string[];
+  /** "Finance articles from Nebula News" on the overview (v0.1.39, on by default). */
+  newsFinance: boolean;
 }
 
-const DEFAULT_SETTINGS: NebulaSettings = { updatesByHub: false, notified: [] };
+const DEFAULT_SETTINGS: NebulaSettings = { updatesByHub: false, notified: [], newsFinance: true };
 const DEBIT_CHECK_MS = 60 * 60 * 1000;
+/** News refreshes its widgets every 900 s; Finterest never asks more often than that. */
+export const NEWS_REFRESH_MS = 15 * 60 * 1000;
+export const NEWS_FINANCE_CAPABILITY = 'news.finance.today';
 
 export class NebulaIntegration {
   readonly link: NebulaLink;
@@ -48,6 +59,8 @@ export class NebulaIntegration {
   private hub: { hubVersion: string; managesUpdates: boolean } | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private stopDock: (() => void) | null = null;
+  private news: { at: number; value: NewsWidget | null } | null = null;
+  private newsInflight: Promise<NewsWidget | null> | null = null;
 
   constructor(private readonly deps: NebulaDeps) {
     // NEBULA_LINK_SESSION_FILE points a manual test at a test-mode Hub; never set in a packaged install.
@@ -99,7 +112,7 @@ export class NebulaIntegration {
 
   /** What the renderer shows in its settings. */
   state(): NebulaState {
-    return { connected: this.link.status === 'connected' && this.hub !== null, hubVersion: this.hub?.hubVersion ?? null, updatesByHub: this.settings.updatesByHub };
+    return { connected: this.link.status === 'connected' && this.hub !== null, hubVersion: this.hub?.hubVersion ?? null, updatesByHub: this.settings.updatesByHub, newsFinance: this.settings.newsFinance };
   }
 
   /** The built-in updater stands aside only while the Hub is there and the user chose it. */
@@ -120,6 +133,47 @@ export class NebulaIntegration {
     this.settings.updatesByHub = enabled === true;
     await this.saveSettings();
     this.deps.send('nebula:state', this.state());
+  }
+
+  async setNewsFinance(enabled: boolean): Promise<void> {
+    this.settings.newsFinance = enabled === true;
+    this.clearNews();
+    await this.saveSettings();
+    this.deps.send('nebula:state', this.state());
+  }
+
+  /** Forgets the cached articles (profile locked, setting turned off). */
+  clearNews(): void {
+    this.news = null;
+  }
+
+  /**
+   * The "Learn" card: Nebula News' finance articles of the day, or null whenever there is nothing
+   * to show (setting off, no unlocked profile, hidden window, Hub or News absent, timeout, consent
+   * refused, empty theme, invalid payload). Never throws, never logs the content, and asks News at
+   * most once per NEWS_REFRESH_MS, whatever the renderer does.
+   */
+  async financeNews(now = Date.now()): Promise<NewsWidget | null> {
+    if (!this.settings.newsFinance || !this.deps.openProfileId() || !this.deps.windowVisible() || this.link.status !== 'connected') {
+      return null;
+    }
+    if (this.news && now - this.news.at < NEWS_REFRESH_MS) return this.news.value;
+    if (this.newsInflight) return this.newsInflight;
+    this.newsInflight = (async () => {
+      let value: NewsWidget | null = null;
+      try {
+        // No parameter at all: the request carries nothing from the profile.
+        const result = await this.link.query(NEWS_FINANCE_CAPABILITY);
+        value = result.ok && validateSchema('WidgetV1', result.value) ? parseNewsWidget(result.value) : null;
+      } catch {
+        value = null;
+      }
+      this.news = { at: now, value };
+      return value;
+    })().finally(() => {
+      this.newsInflight = null;
+    });
+    return this.newsInflight;
   }
 
   /** An intent from Link or from `--nebula-intent` on the command line. */
@@ -162,6 +216,8 @@ export class NebulaIntegration {
       this.settings = {
         updatesByHub: parsed.updatesByHub === true,
         notified: Array.isArray(parsed.notified) ? parsed.notified.filter((value): value is string => typeof value === 'string').slice(-100) : [],
+        // Absent from files written before v0.1.39: on.
+        newsFinance: parsed.newsFinance !== false,
       };
     } catch {
       this.settings = { ...DEFAULT_SETTINGS };
