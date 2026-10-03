@@ -21,6 +21,7 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { SplashScreen } from './components/SplashScreen';
 import { BackgroundFx } from './components/BackgroundFx';
 import { Dialog } from './components/Dialog';
+import { LearnCard, type LearnState } from './components/LearnCard';
 
 /** Injected by Vite from package.json (vite.config.ts); empty under Jest. */
 const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '';
@@ -28,6 +29,9 @@ const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '';
 const emptyFixedForm = (): FixedFormState => ({ name: '', amount: '', category: '', dayOfMonth: '', kind: 'subscription' });
 const emptyVariableForm = (): VariableFormState => ({ name: '', amount: '', category: '', date: formatLocalDate(new Date()) });
 const emptyLoanForm: LoanFormState = { name: '', principal: '', monthlyPayment: '', rate: '', remainingMonths: '' };
+
+/** Nebula News refreshes its widgets every 15 minutes; the main process caches as long. */
+const LEARN_REFRESH_MS = 15 * 60 * 1000;
 
 /** Views that work on one month: they show the "Month" control in the page header. */
 const MONTH_VIEWS: ActiveView[] = ['overview', 'calendar', 'fixed', 'variable', 'loans'];
@@ -67,6 +71,7 @@ export function App() {
   const [restorable, setRestorable] = useState<LocalAccountSummary[]>([]);
   const [nebulaState, setNebulaState] = useState<NebulaState | null>(null);
   const [followNebula, setFollowNebula] = useFollowNebula();
+  const [learn, setLearn] = useState<LearnState>({ status: 'none' });
   /** Profile just created on this computer (typically after a reinstall): offered the latest backup. */
   const justCreated = useRef<string | null>(null);
   const snapshotRef = useRef<BudgetSnapshot | null>(null);
@@ -163,6 +168,45 @@ export function App() {
 
   const summary = useMemo(() => (snapshot ? computeBudgetSummary(snapshot, activeMonthKey) : null), [snapshot, activeMonthKey]);
 
+  // "Learn" card (Nebula News, news.finance.today): only on the overview of a real unlocked profile
+  // (never on the gate, profile creation or a guest session), with the Hub connected and the
+  // setting on; refreshed every 15 minutes while the window is visible. The main process asks
+  // News without any parameter, checks the payload and caches it; null hides the card.
+  const learnActive = Boolean(snapshot) && Boolean(activeAccount) && activeAccount?.id !== GUEST_ACCOUNT_ID
+    && activeView === 'overview' && nebulaState?.connected === true && nebulaState.newsFinance !== false;
+  useEffect(() => {
+    if (!learnActive) {
+      setLearn({ status: 'none' });
+      return undefined;
+    }
+    let cancelled = false;
+    let loaded = false;
+    const load = () => {
+      if (document.hidden) return;
+      if (!loaded) setLearn({ status: 'loading' });
+      void window.finterest.getFinanceNews()
+        .then((widget) => {
+          if (cancelled) return;
+          loaded = true;
+          setLearn(widget ? { status: 'ready', widget } : { status: 'none' });
+        })
+        .catch(() => {
+          if (!cancelled) setLearn({ status: 'none' });
+        });
+    };
+    load();
+    const timer = window.setInterval(load, LEARN_REFRESH_MS);
+    const onVisibility = () => {
+      if (!document.hidden) load();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [learnActive]);
+
   /** The open profile survives a window recreated for the Hub mode: show it again without the gate. */
   async function restoreOpenProfile(): Promise<void> {
     try {
@@ -225,6 +269,15 @@ export function App() {
 
   async function handleUpdatesByHub(enabled: boolean): Promise<void> {
     setNebulaState(await window.finterest.setUpdatesByHub(enabled));
+  }
+
+  async function handleNewsFinance(enabled: boolean): Promise<void> {
+    setNebulaState(await window.finterest.setNewsFinance(enabled));
+  }
+
+  async function handleOpenNews(deepLink: string): Promise<void> {
+    const opened = await window.finterest.openNewsLink(deepLink).catch(() => false);
+    if (!opened) setInfo(t('learn.unavailable'));
   }
   const finishSplash = useCallback(() => setShowSplash(false), []);
 
@@ -678,6 +731,7 @@ export function App() {
               followNebula={followNebula}
               onFollowNebulaChange={setFollowNebula}
               onUpdatesByHubChange={handleUpdatesByHub}
+              onNewsFinanceChange={handleNewsFinance}
               onOpenNebulaHub={handleOpenNebulaHub}
             />
           ) : null}
@@ -718,6 +772,7 @@ export function App() {
               onAddLoan={() => void handleAddLoan()}
               onToggleLoan={(id, active) => void mutate(() => window.finterest.toggleLoan(id, active), 'error.updateItem')}
               onDeleteLoan={(id) => void mutate(() => window.finterest.deleteLoan(id), 'error.deleteItem', 'delete')}
+              learn={<LearnCard state={learn} language={language} onOpen={(deepLink) => void handleOpenNews(deepLink)} />}
             />
           ) : null}
           </div>

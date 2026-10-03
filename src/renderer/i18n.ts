@@ -5,6 +5,12 @@ export type Language = 'fr' | 'en';
 const STORAGE_KEY = 'finterest-language';
 
 export type TranslationKey =
+  | 'learn.eyebrow'
+  | 'learn.open'
+  | 'learn.loading'
+  | 'learn.unavailable'
+  | 'nebula.newsFinance'
+  | 'nebula.newsFinanceHint'
 | 'nav.calculator'
 | 'nav.group.budget'
 | 'nav.group.tools'
@@ -161,6 +167,12 @@ export type TranslationKey =
   | 'error.updateItem';
 
 export const fr: Record<TranslationKey, string> = {
+  'learn.eyebrow': 'Apprendre',
+  'learn.open': 'Lire dans Nebula News',
+  'learn.loading': 'Chargement des articles de finance…',
+  'learn.unavailable': 'Nebula News ne peut pas être ouverte : Nebula Hub doit être installé.',
+  'nebula.newsFinance': 'Articles de finance de Nebula News',
+  'nebula.newsFinanceHint': 'Une carte « Apprendre » sur la vue d’ensemble, quand Nebula News est installée. Rien de votre budget n’est envoyé.',
   'nav.calculator': 'Calculatrice',
   'nav.group.budget': 'Mon budget',
   'nav.group.tools': 'Outils',
@@ -477,6 +489,12 @@ export const fr: Record<TranslationKey, string> = {
 };
 
 export const en: Record<TranslationKey, string> = {
+  'learn.eyebrow': 'Learn',
+  'learn.open': 'Read in Nebula News',
+  'learn.loading': 'Loading the finance articles…',
+  'learn.unavailable': 'Nebula News cannot be opened: Nebula Hub must be installed.',
+  'nebula.newsFinance': 'Finance articles from Nebula News',
+  'nebula.newsFinanceHint': 'A “Learn” card on the overview, when Nebula News is installed. Nothing from your budget is sent.',
   'nav.calculator': 'Calculator',
   'nav.group.budget': 'My budget',
   'nav.group.tools': 'Tools',

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { BudgetSnapshot, BudgetSummary, FixedExpenseKind, Loan } from '@shared/types';
 import type { Language } from '../i18n';
 import { translate } from '../i18n';
@@ -46,6 +46,7 @@ export function Dashboard({
   onAddLoan,
   onToggleLoan,
   onDeleteLoan,
+  learn,
 }: {
   activeView: DashboardView;
   language: Language;
@@ -71,6 +72,8 @@ export function Dashboard({
   onAddLoan: () => void;
   onToggleLoan: (id: string, active: boolean) => void;
   onDeleteLoan: (id: string) => void;
+  /** The "Learn" card (Nebula News), placed under the indicators of the overview. */
+  learn?: ReactNode;
 }) {
   const t = (key: Parameters<typeof translate>[1], params?: Record<string, string>) => translate(language, key, params);
 
@@ -83,6 +86,8 @@ export function Dashboard({
         <Card label={t('card.loans')} value={formatMoney(summary?.totalLoanPayments ?? 0, language)} accent="loans" icon="bank" />
         <Card label={t('card.remaining')} value={formatMoney(summary?.remainingIncome ?? 0, language)} accent="remaining" icon="wallet" />
       </section>
+
+      {activeView === 'overview' ? learn : null}
 
       {activeView === 'overview' ? (
         <section className="insight-grid">
