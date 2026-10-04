@@ -1,5 +1,5 @@
 import { createEmptySnapshot } from './budget';
-import { budgetWidget, debitNotification, debitsDueTomorrow, isNewsDeepLink, parseNewsWidget } from './nebula';
+import { budgetWidget, debitNotification, debitsDueTomorrow, dockedWindowSteps, isNewsDeepLink, parseNewsWidget } from './nebula';
 
 function snapshot() {
   const value = createEmptySnapshot();
@@ -87,5 +87,14 @@ describe('Nebula News finance widget (news.finance.today)', () => {
     expect(isNewsDeepLink('nebula://news/theme/finance"><script>')).toBe(false);
     expect(isNewsDeepLink(`nebula://news/${'a'.repeat(61)}`)).toBe(false);
     expect(isNewsDeepLink(42)).toBe(false);
+  });
+});
+
+describe('Hub mode: showing and raising the docked window (Nebula Hub ADR-032)', () => {
+  it('shows and raises a hidden window, raises a visible one only when the Hub asks', () => {
+    expect(dockedWindowSteps(false, false)).toEqual({ show: true, raise: true });
+    expect(dockedWindowSteps(false, true)).toEqual({ show: true, raise: true });
+    expect(dockedWindowSteps(true, true)).toEqual({ show: false, raise: true });
+    expect(dockedWindowSteps(true, false)).toEqual({ show: false, raise: false });
   });
 });

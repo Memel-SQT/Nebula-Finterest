@@ -569,11 +569,12 @@ html { scrollbar-color: var(--line-strong) transparent; scrollbar-width: thin; }
 /* Shell: floating sidebar + centered content column. */
 .app-shell { --sidebar-width: 284px; --sidebar-gap: 0.75rem; min-height: 100vh; display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
 .workspace-column { min-width: 0; }
-.workspace { --content-max: 1480px; width: 100%; min-width: 0; padding: max(2.75rem, clamp(1.5rem, 4vw, 4rem)) clamp(1rem, 5vw, 5rem) 5rem; animation: page-fade-in var(--motion-base) var(--ease-out) both; }
-.workspace-inner { width: 100%; max-width: var(--content-max); margin-inline: auto; }
-@media (min-width: 1900px) { .workspace { --content-max: 1680px; } }
-@media (min-width: 2400px) { .workspace { --content-max: 1960px; } html { font-size: 17px; } }
-@media (min-width: 3000px) { .workspace { --content-max: 2280px; } html { font-size: 18px; } }
+.workspace { width: 100%; min-width: 0; padding: max(2.75rem, clamp(1.5rem, 4vw, 4rem)) clamp(1rem, 5vw, 5rem) 5rem; animation: page-fade-in var(--motion-base) var(--ease-out) both; }
+/* The content fills the width next to the sidebar, docked in Nebula Hub as on an ultrawide screen
+   (Nebula Hub ADR-032); long texts keep their own reading width. */
+.workspace-inner { width: 100%; }
+@media (min-width: 2400px) { html { font-size: 17px; } }
+@media (min-width: 3000px) { html { font-size: 18px; } }
 
 /* Page header: overline, title, actions on the right that never shrink. */
 .topbar { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin: 0 0 2.5rem; animation: rise-in var(--motion-slow) var(--ease-out) both; }
@@ -684,7 +685,7 @@ html { scrollbar-color: var(--line-strong) transparent; scrollbar-width: thin; }
 :root[data-motion='off'] :is(.dialog, .dialog-backdrop) { animation: none; }
 
 /* Settings (Hub SettingsScreen layout). */
-.settings-panel { max-width: 1080px; padding: 1.6rem; animation: rise-in var(--motion-slow) var(--ease-out) both; }
+.settings-panel { padding: 1.6rem; animation: rise-in var(--motion-slow) var(--ease-out) both; }
 .settings-section h2 { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.7rem; color: var(--muted); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
 .settings-sublabel { margin: 0.8rem 0 0.4rem !important; color: var(--muted) !important; font-size: 0.68rem !important; font-weight: 700; }
 .segmented-quiet { background: transparent; }

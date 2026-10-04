@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
-import { isNewsDeepLink } from '../shared/nebula';
+import { DOCK_LOAD_TIMEOUT_MS, dockedWindowSteps, isNewsDeepLink } from '../shared/nebula';
 import { autoUpdater } from 'electron-updater';
 import { AccountManager } from './accounts';
 import { backupFileName, readBackupSummary, latestBackup, rotateExisting, type BackupSummary } from './backups';
@@ -161,7 +161,8 @@ function applyDock(payload: unknown): Promise<void> {
     if (!dock.docked) {
       dock.normalBounds = mainWindow && !mainWindow.isDestroyed() ? mainWindow.getBounds() : null;
       dock.docked = true;
-      await replaceWindow({ docked: true, bounds: payload.bounds });
+      // A page that never finishes loading must not hold back the next messages of the Hub.
+      await Promise.race([replaceWindow({ docked: true, bounds: payload.bounds }), new Promise((resolve) => setTimeout(resolve, DOCK_LOAD_TIMEOUT_MS))]);
     }
     const window = mainWindow;
     if (!window || window.isDestroyed()) return;
@@ -169,11 +170,23 @@ function applyDock(payload: unknown): Promise<void> {
       window.hide();
       return;
     }
+    const steps = dockedWindowSteps(window.isVisible(), payload.raise);
     window.setBounds(payload.bounds);
-    if (!window.isVisible()) window.showInactive();
-    if (payload.raise) window.moveTop();
+    if (steps.show) window.showInactive();
+    if (steps.raise) raiseDockedWindow(window);
   }).catch(() => undefined);
   return dock.busy;
+}
+
+/**
+ * Brings the docked window above the Hub without taking the focus. Windows ignores moveTop() from
+ * an app without the foreground right, which is the case as soon as the Hub is active; a brief
+ * always-on-top is allowed and leaves the window just above the Hub (Nebula Hub ADR-032).
+ */
+function raiseDockedWindow(window: BrowserWindow): void {
+  window.setAlwaysOnTop(true);
+  window.moveTop();
+  window.setAlwaysOnTop(false);
 }
 
 async function undock(): Promise<void> {
@@ -222,8 +235,12 @@ async function createWindow(options: { docked?: boolean; bounds?: Bounds; restor
   // External links (if any ever appear) go to the user's browser instead.
   mainWindow = window;
   window.once('ready-to-show', () => {
-    if (docked) window.showInactive();
-    else window.show();
+    if (docked) {
+      window.showInactive();
+      raiseDockedWindow(window);
+    } else {
+      window.show();
+    }
   });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https:\/\//i.test(url)) {
