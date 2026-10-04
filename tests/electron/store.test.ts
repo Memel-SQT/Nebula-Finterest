@@ -107,3 +107,88 @@ describe('BudgetStore', () => {
     expect(await fs.readdir(mockUserData)).toEqual([]);
   });
 });
+
+describe('BudgetStore budgets and pots (v0.1.41)', () => {
+  beforeEach(async () => {
+    mockUserData = await tempDir();
+  });
+
+  afterEach(async () => {
+    await fs.rm(mockUserData, { recursive: true, force: true });
+  });
+
+  it('adds the budget column and tables to a database written before budgets existed', async () => {
+    const databasePath = path.join(mockUserData, 'finterest-legacy.sqlite');
+    await writeLegacyDatabase(databasePath);
+    const snapshot = await new BudgetStore(databasePath).getSnapshot();
+    expect(snapshot.budgets).toEqual([]);
+    expect(snapshot.wallets).toEqual([]);
+    expect(snapshot.walletMovements).toEqual([]);
+    expect(snapshot.variableExpenses[0]).toMatchObject({ id: 'v1', budgetId: null });
+  });
+
+  it('creates budgets and sub-envelopes that inherit their root, and rejects invalid ones', async () => {
+    const store = new BudgetStore(path.join(mockUserData, 'b.sqlite'));
+    let snapshot = await store.saveBudget({ id: 'japon', name: 'Japon', scale: 'project', amount: 3000, period: 'range', startDate: '2026-10-20', endDate: '2026-11-05', countsInMonth: false });
+    snapshot = await store.saveBudget({ id: 'avion', name: 'Avion', amount: 900, parentId: 'japon', period: 'month', countsInMonth: true });
+    expect(snapshot.budgets!.find((budget) => budget.id === 'avion')).toMatchObject({ scale: 'project', period: 'range', startDate: '2026-10-20', countsInMonth: false });
+
+    await expect(store.saveBudget({ name: ' ', amount: 10 })).rejects.toThrow('ERR_INVALID_NAME');
+    await expect(store.saveBudget({ name: 'x', amount: -5 })).rejects.toThrow('ERR_NEGATIVE_AMOUNT');
+    await expect(store.saveBudget({ name: 'x', amount: 5, period: 'range', startDate: '2026-10-20' })).rejects.toThrow('ERR_INVALID_DATE');
+    await expect(store.saveBudget({ name: 'x', amount: 5, parentId: 'avion' })).rejects.toThrow('ERR_INVALID_BUDGET');
+    await expect(store.addVariableExpense({ name: 'x', amount: 5, category: '', date: '2026-10-01', budgetId: 'missing' })).rejects.toThrow('ERR_INVALID_BUDGET');
+
+    // Editing the root carries its period to the sub-envelopes.
+    snapshot = await store.saveBudget({ id: 'japon', name: 'Japon', scale: 'project', amount: 3200, period: 'open', countsInMonth: true });
+    expect(snapshot.budgets!.find((budget) => budget.id === 'avion')).toMatchObject({ period: 'open', startDate: null, countsInMonth: true });
+  });
+
+  it('keeps real purchases when a budget is deleted, and drops forecast ones', async () => {
+    const store = new BudgetStore(path.join(mockUserData, 'd.sqlite'));
+    await store.saveBudget({ id: 'courses', name: 'Courses', amount: 300, period: 'month', countsInMonth: true });
+    await store.saveBudget({ id: 'projet', name: 'Projet', scale: 'project', amount: 1000, period: 'open', countsInMonth: false });
+    await store.saveBudget({ id: 'part', name: 'Partie', amount: 200, parentId: 'projet' });
+    await store.addVariableExpense({ id: 'real', name: 'Marché', amount: 40, category: '', date: '2026-10-02', budgetId: 'courses' });
+    await store.addVariableExpense({ id: 'plan', name: 'Matériel', amount: 150, category: '', date: '2026-10-02', budgetId: 'part' });
+
+    let snapshot = await store.deleteBudget('courses');
+    expect(snapshot.variableExpenses.find((expense) => expense.id === 'real')).toMatchObject({ budgetId: null });
+    snapshot = await store.deleteBudget('projet');
+    expect(snapshot.variableExpenses.find((expense) => expense.id === 'plan')).toBeUndefined();
+    expect(snapshot.budgets).toEqual([]);
+  });
+
+  it('manages pots and their movements', async () => {
+    const store = new BudgetStore(path.join(mockUserData, 'w.sqlite'));
+    await store.saveWallet({ id: 'w', name: 'Vacances', goal: 800 });
+    await store.addWalletMovement({ walletId: 'w', amount: 300, label: 'Versement', date: '2026-09-01' });
+    let snapshot = await store.addWalletMovement({ walletId: 'w', amount: -120, label: 'Retrait', date: '2026-10-01' });
+    expect(snapshot.walletMovements!.reduce((sum, movement) => sum + movement.amount, 0)).toBe(180);
+
+    await expect(store.addWalletMovement({ walletId: 'w', amount: 0, date: '2026-10-01' })).rejects.toThrow('ERR_NEGATIVE_AMOUNT');
+    await expect(store.addWalletMovement({ walletId: 'nope', amount: 5, date: '2026-10-01' })).rejects.toThrow('ERR_INVALID_WALLET');
+    await expect(store.addWalletMovement({ walletId: 'w', amount: 5, date: '2026-02-30' })).rejects.toThrow('ERR_INVALID_DATE');
+    await expect(store.saveWallet({ name: '' })).rejects.toThrow('ERR_INVALID_NAME');
+
+    snapshot = await store.deleteWallet('w');
+    expect(snapshot.wallets).toEqual([]);
+    expect(snapshot.walletMovements).toEqual([]);
+  });
+
+  it('carries budgets and pots through a backup and its import', async () => {
+    const source = new BudgetStore(path.join(mockUserData, 'src.sqlite'));
+    await source.saveBudget({ id: 'b', name: 'Loisirs', amount: 120, period: 'month' });
+    await source.addVariableExpense({ id: 'e', name: 'Cinéma', amount: 12, category: '', date: '2026-10-04', budgetId: 'b' });
+    await source.saveWallet({ id: 'w', name: 'Coup dur', goal: null });
+    await source.addWalletMovement({ id: 'm', walletId: 'w', amount: 50, label: '', date: '2026-10-04' });
+    const backup = await source.exportBackup();
+
+    const target = new BudgetStore(path.join(mockUserData, 'dst.sqlite'));
+    const restored = await target.importBackup(JSON.parse(JSON.stringify(backup)));
+    expect(restored.budgets).toEqual([expect.objectContaining({ id: 'b', name: 'Loisirs', amount: 120 })]);
+    expect(restored.variableExpenses.find((expense) => expense.id === 'e')?.budgetId).toBe('b');
+    expect(restored.wallets).toEqual([{ id: 'w', name: 'Coup dur', goal: null }]);
+    expect(restored.walletMovements).toEqual([expect.objectContaining({ id: 'm', amount: 50 })]);
+  });
+});

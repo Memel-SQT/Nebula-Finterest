@@ -1,4 +1,5 @@
-import type { BackupFile, BudgetSnapshot, BudgetSummary, CalendarEntry, FixedExpense, FixedExpenseKind, Loan, VariableExpense } from './types';
+import type { BackupFile, Budget, BudgetSnapshot, BudgetSummary, CalendarEntry, FixedExpense, FixedExpenseKind, Loan, VariableExpense, Wallet, WalletMovement } from './types';
+import { countsInMonth, effectiveBudget, sanitizeBudget, sanitizeWallet, sanitizeWalletMovement } from './budgets';
 
 export function getMonthKey(date: Date): string {
   const year = date.getFullYear();
@@ -55,6 +56,9 @@ export function createEmptySnapshot(): BudgetSnapshot {
     fixedExpenses: [],
     variableExpenses: [],
     loans: [],
+    budgets: [],
+    wallets: [],
+    walletMovements: [],
   };
 }
 
@@ -63,8 +67,10 @@ export function computeBudgetSummary(snapshot: BudgetSnapshot, monthKey = snapsh
     .filter((expense) => expense.active)
     .reduce((sum, expense) => sum + expense.amount, 0);
 
+  const budgets = snapshot.budgets ?? [];
+  // Purchases charged to a forecast budget are tracked in that budget only, never in the month.
   const totalVariableExpenses = snapshot.variableExpenses
-    .filter((expense) => expense.monthKey === monthKey)
+    .filter((expense) => expense.monthKey === monthKey && countsInMonth(expense, budgets))
     .reduce((sum, expense) => sum + expense.amount, 0);
 
   const totalLoanPayments = (snapshot.loans ?? [])
@@ -111,11 +117,31 @@ export function getCalendarEntries(snapshot: BudgetSnapshot, monthKey: string): 
     push(day, { id: expense.id, source: 'fixed', name: expense.name, amount: expense.amount, category: expense.category, kind: expense.kind });
   }
 
+  const budgets = snapshot.budgets ?? [];
   for (const expense of snapshot.variableExpenses) {
     if (!isValidDateString(expense.date) || expense.date.slice(0, 7) !== monthKey) {
       continue;
     }
-    push(Number(expense.date.slice(8, 10)), { id: expense.id, source: 'purchase', name: expense.name, amount: expense.amount, category: expense.category });
+    const budget = expense.budgetId ? budgets.find((candidate) => candidate.id === expense.budgetId) : undefined;
+    push(Number(expense.date.slice(8, 10)), {
+      id: expense.id,
+      source: 'purchase',
+      name: expense.name,
+      amount: expense.amount,
+      category: expense.category,
+      ...(countsInMonth(expense, budgets) ? {} : { forecast: true }),
+      ...(budget ? { budgetName: budget.name } : {}),
+    });
+  }
+
+  // Dated budgets: their first and last day, so a trip or a project is visible in the month.
+  for (const budget of budgets) {
+    const effective = effectiveBudget(budget, budgets);
+    if (budget.parentId || effective.period !== 'range' || !effective.startDate || !effective.endDate) continue;
+    for (const [marker, date] of [['start', effective.startDate], ['end', effective.endDate]] as const) {
+      if (date.slice(0, 7) !== monthKey) continue;
+      push(Number(date.slice(8, 10)), { id: `${budget.id}-${marker}`, source: 'budget', name: budget.name, amount: budget.amount, category: '', marker, budgetName: budget.name });
+    }
   }
 
   return entries;
@@ -247,6 +273,7 @@ export function normalizeSnapshot(snapshot: BudgetSnapshot, createId: IdFactory 
         category: asText(item.category),
         date,
         monthKey,
+        budgetId: typeof item.budgetId === 'string' && item.budgetId ? item.budgetId : null,
       });
     });
 
@@ -265,6 +292,33 @@ export function normalizeSnapshot(snapshot: BudgetSnapshot, createId: IdFactory 
       }),
     );
 
+  // Budgets, pots and their movements (v0.1.41; absent from older backups).
+  const budgets: Budget[] = (Array.isArray(snapshot.budgets) ? snapshot.budgets : [])
+    .map(asRecord)
+    .filter((item): item is Record<string, unknown> => item !== null)
+    .map((item) => sanitizeBudget({ ...(item as Partial<Budget>), id: uniqueId(item.id) }))
+    .filter((budget) => budget.name);
+  const rootIds = new Set(budgets.filter((budget) => !budget.parentId).map((budget) => budget.id));
+  for (const budget of budgets) {
+    // One level of sub-envelopes only, pointing to a root budget that exists.
+    if (budget.parentId && !rootIds.has(budget.parentId)) budget.parentId = null;
+  }
+  const budgetIds = new Set(budgets.map((budget) => budget.id));
+  for (const expense of variableExpenses) {
+    if (expense.budgetId && !budgetIds.has(expense.budgetId)) expense.budgetId = null;
+  }
+  const wallets: Wallet[] = (Array.isArray(snapshot.wallets) ? snapshot.wallets : [])
+    .map(asRecord)
+    .filter((item): item is Record<string, unknown> => item !== null)
+    .map((item) => sanitizeWallet({ ...(item as Partial<Wallet>), id: uniqueId(item.id) }))
+    .filter((wallet) => wallet.name);
+  const walletIds = new Set(wallets.map((wallet) => wallet.id));
+  const walletMovements: WalletMovement[] = (Array.isArray(snapshot.walletMovements) ? snapshot.walletMovements : [])
+    .map(asRecord)
+    .filter((item): item is Record<string, unknown> => item !== null)
+    .map((item) => sanitizeWalletMovement({ ...(item as Partial<WalletMovement>), id: uniqueId(item.id) }))
+    .filter((movement) => walletIds.has(movement.walletId) && isValidDateString(movement.date) && movement.amount !== 0);
+
   const income = Number(snapshot.settings?.income);
   return {
     settings: {
@@ -274,6 +328,9 @@ export function normalizeSnapshot(snapshot: BudgetSnapshot, createId: IdFactory 
     fixedExpenses,
     variableExpenses,
     loans,
+    budgets,
+    wallets,
+    walletMovements,
   };
 }
 

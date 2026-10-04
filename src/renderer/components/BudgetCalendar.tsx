@@ -5,6 +5,10 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 import { categoryIcon, formatMoney, subscriptionCategories } from '../constants';
 import { Icon } from './Icon';
+import { BudgetSelect } from './BudgetSelect';
+
+/** Budget start / end markers and forecast purchases are shown, but never added to the money totals. */
+const countsInTotals = (entry: CalendarEntry) => entry.source !== 'budget' && !entry.forecast;
 
 type EntryMode = 'purchase' | 'recurring';
 
@@ -14,10 +18,12 @@ interface CalendarFormState {
   amount: string;
   category: string;
   kind: FixedExpenseKind;
+  /** Purchases only: the budget it is charged to ('' = none). */
+  budgetId: string;
 }
 
 const MAX_CHIPS_PER_DAY = 3;
-const emptyForm = (mode: EntryMode): CalendarFormState => ({ mode, name: '', amount: '', category: '', kind: 'subscription' });
+const emptyForm = (mode: EntryMode): CalendarFormState => ({ mode, name: '', amount: '', category: '', kind: 'subscription', budgetId: '' });
 
 export function BudgetCalendar({
   monthKey,
@@ -36,7 +42,7 @@ export function BudgetCalendar({
   language: Language;
   onDaySelect: (day: number | null) => void;
   onAddRecurring: (name: string, amount: number, category: string, day: number, kind: FixedExpenseKind) => Promise<boolean>;
-  onAddPurchase: (name: string, amount: number, category: string, date: string) => Promise<boolean>;
+  onAddPurchase: (name: string, amount: number, category: string, date: string, budgetId: string | null) => Promise<boolean>;
   onDeleteEntry: (entry: CalendarEntry) => Promise<void>;
   onMonthChange: (monthKey: string) => void;
 }) {
@@ -68,6 +74,7 @@ export function BudgetCalendar({
     let purchases = 0;
     for (const entries of entriesByDay.values()) {
       for (const entry of entries) {
+        if (!countsInTotals(entry)) continue;
         if (entry.source === 'fixed') recurring += entry.amount;
         else purchases += entry.amount;
       }
@@ -103,7 +110,7 @@ export function BudgetCalendar({
     }
     setFormError(null);
     const saved = form.mode === 'purchase'
-      ? await onAddPurchase(form.name, amount, form.category, selectedDate)
+      ? await onAddPurchase(form.name, amount, form.category, selectedDate, form.budgetId || null)
       : await onAddRecurring(form.name, amount, form.category, selectedDay, form.kind);
     if (saved) {
       setForm(emptyForm(form.mode));
@@ -138,7 +145,7 @@ export function BudgetCalendar({
             {cells.map((day, index) => {
               const inMonth = day >= 1 && day <= daysInMonth;
               const entries = inMonth ? entriesByDay.get(day) ?? [] : [];
-              const dayTotal = entries.reduce((sum, entry) => sum + entry.amount, 0);
+              const dayTotal = entries.filter(countsInTotals).reduce((sum, entry) => sum + entry.amount, 0);
               const isToday = inMonth && `${monthKey}-${String(day).padStart(2, '0')}` === today;
               return (
                 <button
@@ -154,8 +161,14 @@ export function BudgetCalendar({
                     <>
                       <strong>{day}</strong>
                       {entries.slice(0, MAX_CHIPS_PER_DAY).map((entry) => (
-                        <span className={`calendar-chip ${entry.source}`} key={`${entry.source}-${entry.id}`} title={`${entry.name} — ${formatMoney(entry.amount, language)}`}>
-                          <Icon name={entry.source === 'fixed' ? 'repeat' : 'bag'} size={12} />
+                        <span
+                          className={`calendar-chip ${entry.source} ${entry.forecast ? 'forecast' : ''}`}
+                          key={`${entry.source}-${entry.id}`}
+                          title={entry.source === 'budget'
+                            ? `${t(entry.marker === 'start' ? 'calendar.budgetStart' : 'calendar.budgetEnd')} · ${entry.name} — ${formatMoney(entry.amount, language)}`
+                            : `${entry.name} — ${formatMoney(entry.amount, language)}${entry.forecast ? ` (${t('budgets.forecast')})` : ''}`}
+                        >
+                          <Icon name={entry.source === 'fixed' ? 'repeat' : entry.source === 'budget' ? 'rocket' : 'bag'} size={12} />
                           <b>{entry.name}</b>
                         </span>
                       ))}
@@ -184,18 +197,22 @@ export function BudgetCalendar({
                 <ul className="calendar-entry-list">
                   {selectedEntries.map((entry) => (
                     <li key={`${entry.source}-${entry.id}`} className={entry.source}>
-                      <span className="calendar-entry-icon"><Icon name={categoryIcon(entry.category, language)} size={16} /></span>
+                      <span className="calendar-entry-icon"><Icon name={entry.source === 'budget' ? 'rocket' : categoryIcon(entry.category, language)} size={16} /></span>
                       <div>
                         <strong>{entry.name}</strong>
                         <span>
                           {entry.source === 'fixed'
                             ? t(entry.kind === 'directDebit' ? 'badge.directDebit' : 'badge.subscription')
-                            : t('calendar.oneOff')}
+                            : entry.source === 'budget'
+                              ? t(entry.marker === 'start' ? 'calendar.budgetStart' : 'calendar.budgetEnd')
+                              : t('calendar.oneOff')}
+                          {entry.forecast ? ` · ${t('budgets.forecast')}` : ''}
+                          {entry.source === 'purchase' && entry.budgetName ? ` · ${entry.budgetName}` : ''}
                           {entry.category ? ` · ${entry.category}` : ''}
                         </span>
                       </div>
                       <b>{formatMoney(entry.amount, language)}</b>
-                      {entry.source === 'fixed' && confirmingId !== entry.id ? (
+                      {entry.source === 'budget' ? <span aria-hidden="true" /> : entry.source === 'fixed' && confirmingId !== entry.id ? (
                         <button className="ghost small icon-button danger" onClick={() => setConfirmingId(entry.id)} aria-label={`${t('list.delete')} ${entry.name}`} title={t('list.delete')}>
                           <Icon name="trash" size={16} />
                         </button>
@@ -259,6 +276,9 @@ export function BudgetCalendar({
                     </>
                   )}
                 </label>
+                {form.mode === 'purchase' ? (
+                  <BudgetSelect snapshot={snapshot} value={form.budgetId} language={language} onChange={(budgetId) => setForm({ ...form, budgetId })} />
+                ) : null}
                 {form.mode === 'recurring' ? (
                   <label>
                     {t('form.fixed.type')}

@@ -5,6 +5,90 @@ export type Language = 'fr' | 'en';
 const STORAGE_KEY = 'finterest-language';
 
 export type TranslationKey =
+  | 'nav.budgets'
+  | 'nav.projects'
+  | 'nav.wallets'
+  | 'nav.group.plans'
+  | 'view.budgets.eyebrow'
+  | 'view.budgets.title'
+  | 'view.projects.eyebrow'
+  | 'view.projects.title'
+  | 'view.wallets.eyebrow'
+  | 'view.wallets.title'
+  | 'budgets.new'
+  | 'budgets.newProject'
+  | 'budgets.edit'
+  | 'budgets.name'
+  | 'budgets.namePlaceholder'
+  | 'budgets.projectPlaceholder'
+  | 'budgets.amount'
+  | 'budgets.amountMonthly'
+  | 'budgets.period'
+  | 'budgets.period.month'
+  | 'budgets.period.range'
+  | 'budgets.period.open'
+  | 'budgets.range'
+  | 'budgets.start'
+  | 'budgets.end'
+  | 'budgets.countsInMonth'
+  | 'budgets.countsHint'
+  | 'budgets.forecast'
+  | 'budgets.inMonth'
+  | 'budgets.create'
+  | 'budgets.save'
+  | 'budgets.cancel'
+  | 'budgets.planned'
+  | 'budgets.spent'
+  | 'budgets.remaining'
+  | 'budgets.addExpense'
+  | 'budgets.addEnvelope'
+  | 'budgets.envelopeName'
+  | 'budgets.envelopePlaceholder'
+  | 'budgets.envelopeAdd'
+  | 'budgets.envelopes'
+  | 'budgets.allocated'
+  | 'budgets.overAllocated'
+  | 'budgets.expenseIn'
+  | 'budgets.wholeBudget'
+  | 'budgets.expenseAdd'
+  | 'budgets.recent'
+  | 'budgets.noExpense'
+  | 'budgets.more'
+  | 'budgets.deleteTitle'
+  | 'budgets.deleteKeep'
+  | 'budgets.deleteForecast'
+  | 'budgets.empty.title'
+  | 'budgets.empty.body'
+  | 'projects.empty.title'
+  | 'projects.empty.body'
+  | 'budgets.chargeTo'
+  | 'budgets.none'
+  | 'wallets.new'
+  | 'wallets.name'
+  | 'wallets.namePlaceholder'
+  | 'wallets.goal'
+  | 'wallets.hint'
+  | 'wallets.create'
+  | 'wallets.balance'
+  | 'wallets.goalOf'
+  | 'wallets.deposit'
+  | 'wallets.withdraw'
+  | 'wallets.amount'
+  | 'wallets.label'
+  | 'wallets.date'
+  | 'wallets.add'
+  | 'wallets.movements'
+  | 'wallets.noMovement'
+  | 'wallets.deleteTitle'
+  | 'wallets.deleteBody'
+  | 'wallets.empty.title'
+  | 'wallets.empty.body'
+  | 'calendar.budgetStart'
+  | 'calendar.budgetEnd'
+  | 'error.invalidBudget'
+  | 'error.invalidWallet'
+  | 'error.saveBudget'
+  | 'error.saveWallet'
   | 'learn.eyebrow'
   | 'learn.open'
   | 'learn.loading'
@@ -167,6 +251,90 @@ export type TranslationKey =
   | 'error.updateItem';
 
 export const fr: Record<TranslationKey, string> = {
+  'nav.budgets': 'Budgets',
+  'nav.projects': 'Gros budgets',
+  'nav.wallets': 'Cagnottes',
+  'nav.group.plans': 'Projets et épargne',
+  'view.budgets.eyebrow': 'Enveloppes du quotidien',
+  'view.budgets.title': 'Mes budgets',
+  'view.projects.eyebrow': 'Voyages et projets',
+  'view.projects.title': 'Mes gros budgets',
+  'view.wallets.eyebrow': 'Argent mis de côté',
+  'view.wallets.title': 'Mes cagnottes',
+  'budgets.new': 'Nouveau budget',
+  'budgets.newProject': 'Nouveau gros budget',
+  'budgets.edit': 'Modifier le budget',
+  'budgets.name': 'Nom',
+  'budgets.namePlaceholder': 'Courses, loisirs, sorties…',
+  'budgets.projectPlaceholder': 'Voyage au Japon, déménagement…',
+  'budgets.amount': 'Montant prévu',
+  'budgets.amountMonthly': 'Montant par mois',
+  'budgets.period': 'Période',
+  'budgets.period.month': 'Chaque mois',
+  'budgets.period.range': 'Avec des dates',
+  'budgets.period.open': 'Sans date',
+  'budgets.range': 'Du {start} au {end}',
+  'budgets.start': 'Début',
+  'budgets.end': 'Fin',
+  'budgets.countsInMonth': 'Compter dans le reste à vivre',
+  'budgets.countsHint': 'Activé : les dépenses de ce budget diminuent votre reste à vivre. Désactivé : budget prévisionnel, suivi à part.',
+  'budgets.forecast': 'Prévisionnel',
+  'budgets.inMonth': 'Compte dans le mois',
+  'budgets.create': 'Créer le budget',
+  'budgets.save': 'Enregistrer',
+  'budgets.cancel': 'Annuler',
+  'budgets.planned': 'Prévu',
+  'budgets.spent': 'Dépensé',
+  'budgets.remaining': 'Reste',
+  'budgets.addExpense': 'Ajouter une dépense',
+  'budgets.addEnvelope': 'Sous-enveloppe',
+  'budgets.envelopeName': 'Nom de la sous-enveloppe',
+  'budgets.envelopePlaceholder': 'Transport, hébergement…',
+  'budgets.envelopeAdd': 'Ajouter la sous-enveloppe',
+  'budgets.envelopes': 'Sous-enveloppes',
+  'budgets.allocated': '{allocated} répartis sur {amount}',
+  'budgets.overAllocated': '{allocated} répartis : plus que le budget ({amount})',
+  'budgets.expenseIn': 'Enveloppe',
+  'budgets.wholeBudget': 'Budget entier',
+  'budgets.expenseAdd': 'Ajouter la dépense',
+  'budgets.recent': 'Dernières dépenses',
+  'budgets.noExpense': 'Aucune dépense pour le moment.',
+  'budgets.more': 'Et {count} de plus dans vos achats prévus.',
+  'budgets.deleteTitle': 'Supprimer « {name} » ?',
+  'budgets.deleteKeep': 'Ses sous-enveloppes sont supprimées aussi. Ses dépenses restent dans vos achats prévus, sans budget.',
+  'budgets.deleteForecast': 'Ses sous-enveloppes et ses dépenses prévisionnelles sont supprimées aussi.',
+  'budgets.empty.title': 'Aucun budget pour l’instant',
+  'budgets.empty.body': 'Créez un budget (courses, loisirs…), puis ajoutez-y vos dépenses : il se met à jour tout seul.',
+  'projects.empty.title': 'Aucun gros budget',
+  'projects.empty.body': 'Préparez un voyage ou un projet : un montant, des dates visibles dans le calendrier et des sous-enveloppes (transport, hébergement…).',
+  'budgets.chargeTo': 'Budget',
+  'budgets.none': 'Aucun budget',
+  'wallets.new': 'Nouvelle cagnotte',
+  'wallets.name': 'Nom',
+  'wallets.namePlaceholder': 'Vacances, coup dur, cadeau…',
+  'wallets.goal': 'Objectif (facultatif)',
+  'wallets.hint': 'Une cagnotte garde son solde d’un mois à l’autre et ne change pas votre reste à vivre.',
+  'wallets.create': 'Créer la cagnotte',
+  'wallets.balance': 'Solde',
+  'wallets.goalOf': 'Objectif : {goal}',
+  'wallets.deposit': 'Versement',
+  'wallets.withdraw': 'Retrait',
+  'wallets.amount': 'Montant',
+  'wallets.label': 'Libellé',
+  'wallets.date': 'Date',
+  'wallets.add': 'Ajouter',
+  'wallets.movements': 'Mouvements',
+  'wallets.noMovement': 'Aucun mouvement pour le moment.',
+  'wallets.deleteTitle': 'Supprimer la cagnotte « {name} » ?',
+  'wallets.deleteBody': 'La cagnotte et ses {count} mouvements seront supprimés.',
+  'wallets.empty.title': 'Aucune cagnotte',
+  'wallets.empty.body': 'Mettez de l’argent de côté pour un projet ou un imprévu : chaque versement et chaque retrait met le solde à jour.',
+  'calendar.budgetStart': 'Début du budget',
+  'calendar.budgetEnd': 'Fin du budget',
+  'error.invalidBudget': 'Ce budget est introuvable, ou il ne peut pas recevoir de sous-enveloppe.',
+  'error.invalidWallet': 'Cette cagnotte est introuvable.',
+  'error.saveBudget': 'Impossible d’enregistrer le budget.',
+  'error.saveWallet': 'Impossible d’enregistrer la cagnotte.',
   'learn.eyebrow': 'Apprendre',
   'learn.open': 'Lire dans Nebula News',
   'learn.loading': 'Chargement des articles de finance…',
@@ -489,6 +657,90 @@ export const fr: Record<TranslationKey, string> = {
 };
 
 export const en: Record<TranslationKey, string> = {
+  'nav.budgets': 'Budgets',
+  'nav.projects': 'Big budgets',
+  'nav.wallets': 'Pots',
+  'nav.group.plans': 'Projects and savings',
+  'view.budgets.eyebrow': 'Everyday envelopes',
+  'view.budgets.title': 'My budgets',
+  'view.projects.eyebrow': 'Trips and projects',
+  'view.projects.title': 'My big budgets',
+  'view.wallets.eyebrow': 'Money set aside',
+  'view.wallets.title': 'My pots',
+  'budgets.new': 'New budget',
+  'budgets.newProject': 'New big budget',
+  'budgets.edit': 'Edit the budget',
+  'budgets.name': 'Name',
+  'budgets.namePlaceholder': 'Groceries, leisure, outings…',
+  'budgets.projectPlaceholder': 'Trip to Japan, moving house…',
+  'budgets.amount': 'Planned amount',
+  'budgets.amountMonthly': 'Amount per month',
+  'budgets.period': 'Period',
+  'budgets.period.month': 'Every month',
+  'budgets.period.range': 'With dates',
+  'budgets.period.open': 'No dates',
+  'budgets.range': 'From {start} to {end}',
+  'budgets.start': 'Start',
+  'budgets.end': 'End',
+  'budgets.countsInMonth': 'Count in what is left this month',
+  'budgets.countsHint': 'On: this budget’s expenses lower what is left this month. Off: a forecast budget, tracked apart.',
+  'budgets.forecast': 'Forecast',
+  'budgets.inMonth': 'Counts in the month',
+  'budgets.create': 'Create the budget',
+  'budgets.save': 'Save',
+  'budgets.cancel': 'Cancel',
+  'budgets.planned': 'Planned',
+  'budgets.spent': 'Spent',
+  'budgets.remaining': 'Left',
+  'budgets.addExpense': 'Add an expense',
+  'budgets.addEnvelope': 'Sub-envelope',
+  'budgets.envelopeName': 'Sub-envelope name',
+  'budgets.envelopePlaceholder': 'Travel, lodging…',
+  'budgets.envelopeAdd': 'Add the sub-envelope',
+  'budgets.envelopes': 'Sub-envelopes',
+  'budgets.allocated': '{allocated} shared out of {amount}',
+  'budgets.overAllocated': '{allocated} shared out: more than the budget ({amount})',
+  'budgets.expenseIn': 'Envelope',
+  'budgets.wholeBudget': 'Whole budget',
+  'budgets.expenseAdd': 'Add the expense',
+  'budgets.recent': 'Latest expenses',
+  'budgets.noExpense': 'No expense yet.',
+  'budgets.more': 'And {count} more in your planned purchases.',
+  'budgets.deleteTitle': 'Delete “{name}”?',
+  'budgets.deleteKeep': 'Its sub-envelopes are deleted too. Its expenses stay in your planned purchases, without a budget.',
+  'budgets.deleteForecast': 'Its sub-envelopes and its forecast expenses are deleted too.',
+  'budgets.empty.title': 'No budget yet',
+  'budgets.empty.body': 'Create a budget (groceries, leisure…), then add your expenses to it: it updates itself.',
+  'projects.empty.title': 'No big budget yet',
+  'projects.empty.body': 'Plan a trip or a project: an amount, dates shown in the calendar and sub-envelopes (travel, lodging…).',
+  'budgets.chargeTo': 'Budget',
+  'budgets.none': 'No budget',
+  'wallets.new': 'New pot',
+  'wallets.name': 'Name',
+  'wallets.namePlaceholder': 'Holidays, rainy day, gift…',
+  'wallets.goal': 'Goal (optional)',
+  'wallets.hint': 'A pot keeps its balance from month to month and does not change what is left this month.',
+  'wallets.create': 'Create the pot',
+  'wallets.balance': 'Balance',
+  'wallets.goalOf': 'Goal: {goal}',
+  'wallets.deposit': 'Deposit',
+  'wallets.withdraw': 'Withdrawal',
+  'wallets.amount': 'Amount',
+  'wallets.label': 'Label',
+  'wallets.date': 'Date',
+  'wallets.add': 'Add',
+  'wallets.movements': 'Movements',
+  'wallets.noMovement': 'No movement yet.',
+  'wallets.deleteTitle': 'Delete the pot “{name}”?',
+  'wallets.deleteBody': 'The pot and its {count} movements will be deleted.',
+  'wallets.empty.title': 'No pot yet',
+  'wallets.empty.body': 'Set money aside for a project or a rainy day: every deposit and withdrawal updates the balance.',
+  'calendar.budgetStart': 'Budget starts',
+  'calendar.budgetEnd': 'Budget ends',
+  'error.invalidBudget': 'This budget cannot be found, or it cannot hold a sub-envelope.',
+  'error.invalidWallet': 'This pot cannot be found.',
+  'error.saveBudget': 'Could not save the budget.',
+  'error.saveWallet': 'Could not save the pot.',
   'learn.eyebrow': 'Learn',
   'learn.open': 'Read in Nebula News',
   'learn.loading': 'Loading the finance articles…',
@@ -813,6 +1065,8 @@ export const en: Record<TranslationKey, string> = {
 const dictionaries: Record<Language, Record<TranslationKey, string>> = { fr, en };
 
 const ERROR_CODE_TO_KEY: Record<string, TranslationKey> = {
+  ERR_INVALID_BUDGET: 'error.invalidBudget',
+  ERR_INVALID_WALLET: 'error.invalidWallet',
   ERR_INVALID_ACCOUNT_NAME: 'error.invalidAccountName',
   ERR_INVALID_PIN: 'error.invalidPin',
   ERR_INVALID_CREDENTIALS: 'error.invalidCredentials',

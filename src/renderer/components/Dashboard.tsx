@@ -5,6 +5,8 @@ import { translate } from '../i18n';
 import { formatMoney, subscriptionCategories } from '../constants';
 import { Card, FieldGroup, ListCard } from './atoms';
 import { Icon } from './Icon';
+import { BudgetSelect } from './BudgetSelect';
+import { amountTone, countsInMonth } from '@shared/budgets';
 import { LoansPanel, type LoanFormState } from './LoansPanel';
 
 type DashboardView = 'overview' | 'fixed' | 'variable' | 'loans';
@@ -19,7 +21,7 @@ function formatDate(date: string, language: Language): string {
 
 /** Amounts stay strings while typed, so "12," or "12,5" can be entered; App parses them with parseAmount on submit. */
 export interface FixedFormState { name: string; amount: string; category: string; dayOfMonth: string; kind: FixedExpenseKind }
-export interface VariableFormState { name: string; amount: string; category: string; date: string }
+export interface VariableFormState { name: string; amount: string; category: string; date: string; budgetId: string }
 
 export function Dashboard({
   activeView,
@@ -84,7 +86,7 @@ export function Dashboard({
         <Card label={t('card.fixed')} value={formatMoney(summary?.totalFixedExpenses ?? 0, language)} accent="fixed" icon="repeat" />
         <Card label={t('card.variable')} value={formatMoney(summary?.totalVariableExpenses ?? 0, language)} accent="variable" icon="bag" />
         <Card label={t('card.loans')} value={formatMoney(summary?.totalLoanPayments ?? 0, language)} accent="loans" icon="bank" />
-        <Card label={t('card.remaining')} value={formatMoney(summary?.remainingIncome ?? 0, language)} accent="remaining" icon="wallet" />
+        <Card label={t('card.remaining')} value={formatMoney(summary?.remainingIncome ?? 0, language)} accent="remaining" icon="wallet" tone={amountTone(summary?.remainingIncome ?? 0)} />
       </section>
 
       {activeView === 'overview' ? learn : null}
@@ -115,6 +117,7 @@ export function Dashboard({
             <div className="snapshot-row"><span>{t('card.fixed')}</span><strong>{formatMoney(summary?.totalFixedExpenses ?? 0, language)}</strong></div>
             <div className="snapshot-row"><span>{t('card.variable')}</span><strong>{formatMoney(summary?.totalVariableExpenses ?? 0, language)}</strong></div>
             <div className="snapshot-row"><span>{t('card.loans')}</span><strong>{formatMoney(summary?.totalLoanPayments ?? 0, language)}</strong></div>
+            <div className="snapshot-row"><span>{t('card.remaining')}</span><strong className={`amount amount-${amountTone(summary?.remainingIncome ?? 0)}`}>{formatMoney(summary?.remainingIncome ?? 0, language)}</strong></div>
             <div className="snapshot-total"><span>{t('insight.totalSpent')}</span><strong>{formatMoney(summary?.totalExpenses ?? 0, language)}</strong></div>
           </article>
         </section>
@@ -205,6 +208,7 @@ export function Dashboard({
                 {t('form.variable.date')}
                 <input type="date" value={variableForm.date} onChange={(event) => onVariableFormChange({ ...variableForm, date: event.target.value })} />
               </label>
+              <BudgetSelect snapshot={snapshot} value={variableForm.budgetId} language={language} onChange={(budgetId) => onVariableFormChange({ ...variableForm, budgetId })} />
               <button data-sound="none" onClick={onAddVariableExpense}><Icon name="plus" size={16} />{t('form.variable.submit')}</button>
             </FieldGroup>
           </section>
@@ -215,7 +219,12 @@ export function Dashboard({
               language={language}
               items={snapshot.variableExpenses
                 .filter((expense) => expense.monthKey === activeMonthKey)
-                .map((expense) => ({ id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), detail: formatDate(expense.date, language) }))}
+                .map((expense) => {
+                  const budget = expense.budgetId ? (snapshot.budgets ?? []).find((candidate) => candidate.id === expense.budgetId) : undefined;
+                  const forecast = !countsInMonth(expense, snapshot.budgets ?? []);
+                  const detail = [formatDate(expense.date, language), budget?.name, forecast ? t('budgets.forecast') : undefined].filter(Boolean).join(' · ');
+                  return { id: expense.id, name: expense.name, category: expense.category, amountLabel: formatMoney(expense.amount, language), detail };
+                })}
               onDelete={onDeleteVariableExpense}
               empty={{ icon: 'bag', title: t('empty.variable.title'), body: t('empty.variable.body') }}
             />

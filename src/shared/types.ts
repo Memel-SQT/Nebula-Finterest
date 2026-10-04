@@ -17,6 +17,8 @@ export interface VariableExpense {
   category: string;
   date: string;
   monthKey: string;
+  /** The budget (or sub-envelope) this purchase is charged to (v0.1.41); absent on older data. */
+  budgetId?: string | null;
 }
 
 export interface Loan {
@@ -29,6 +31,47 @@ export interface Loan {
   active: boolean;
 }
 
+/** Everyday envelopes ("Budgets") or large projects such as a trip ("Gros budgets"). */
+export type BudgetScale = 'regular' | 'project';
+/** Renewed every month, between two dates (shown in the calendar), or without dates. */
+export type BudgetPeriod = 'month' | 'range' | 'open';
+
+/**
+ * A budget (v0.1.41). A root budget has `parentId: null`; a sub-envelope points to its root
+ * budget and inherits its scale, period, dates and `countsInMonth` (one level only).
+ */
+export interface Budget {
+  id: string;
+  name: string;
+  scale: BudgetScale;
+  parentId: string | null;
+  /** Amount planned for the period (per month for `month`). */
+  amount: number;
+  period: BudgetPeriod;
+  /** `YYYY-MM-DD`, only for `range`. */
+  startDate: string | null;
+  endDate: string | null;
+  /** true: its purchases count in the month's "reste à vivre"; false: a forecast, tracked apart. */
+  countsInMonth: boolean;
+}
+
+/** A pot with its own balance, carried over from month to month ("Cagnotte", v0.1.41). */
+export interface Wallet {
+  id: string;
+  name: string;
+  /** Optional savings goal. */
+  goal: number | null;
+}
+
+/** Money put into (positive) or taken out of (negative) a pot. */
+export interface WalletMovement {
+  id: string;
+  walletId: string;
+  amount: number;
+  label: string;
+  date: string;
+}
+
 export interface BudgetSettings {
   income: number;
   activeMonthKey: string;
@@ -39,6 +82,10 @@ export interface BudgetSnapshot {
   fixedExpenses: FixedExpense[];
   variableExpenses: VariableExpense[];
   loans: Loan[];
+  /** v0.1.41; absent from snapshots and backups written by older versions. */
+  budgets?: Budget[];
+  wallets?: Wallet[];
+  walletMovements?: WalletMovement[];
 }
 
 export interface BudgetSummary {
@@ -67,12 +114,18 @@ export interface FullBackupFile {
 
 export interface CalendarEntry {
   id: string;
-  /** `fixed` = recurring subscription/direct debit, `purchase` = one-off planned purchase. */
-  source: 'fixed' | 'purchase';
+  /** `fixed` = recurring subscription/direct debit, `purchase` = one-off planned purchase, `budget` = start or end of a dated budget. */
+  source: 'fixed' | 'purchase' | 'budget';
   name: string;
   amount: number;
   category: string;
   kind?: FixedExpenseKind;
+  /** A purchase charged to a forecast budget: shown, but left out of the month's totals. */
+  forecast?: boolean;
+  /** For `budget` entries: the first or the last day of the budget. */
+  marker?: 'start' | 'end';
+  /** The budget a purchase is charged to (or the budget itself, for markers). */
+  budgetName?: string;
 }
 
 export interface SyncStatus {
@@ -123,4 +176,6 @@ export type ErrorCode =
   | 'ERR_INVALID_DATE'
   | 'ERR_INVALID_MONTH'
   | 'ERR_TOO_MANY_ATTEMPTS'
-  | 'ERR_SYNC_UNAVAILABLE';
+  | 'ERR_SYNC_UNAVAILABLE'
+  | 'ERR_INVALID_BUDGET'
+  | 'ERR_INVALID_WALLET';
