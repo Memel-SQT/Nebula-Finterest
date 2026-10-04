@@ -1,7 +1,7 @@
 import type { Budget, BudgetPeriod, BudgetScale, BudgetSnapshot, VariableExpense, Wallet, WalletMovement } from './types';
 
 /**
- * Budgets, sub-envelopes and pots (v0.1.40). Pure functions shared by the main process (validation
+ * Budgets, sub-envelopes and pots (v0.1.41). Pure functions shared by the main process (validation
  * before writing) and the renderer (what the screens show), so the rules live in one tested place.
  *
  * - A budget's purchases are ordinary planned purchases (`VariableExpense.budgetId`): they show in

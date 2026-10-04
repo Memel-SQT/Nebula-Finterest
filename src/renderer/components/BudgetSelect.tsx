@@ -3,7 +3,7 @@ import type { Language } from '../i18n';
 import { translate } from '../i18n';
 
 /**
- * "Charge to a budget" picker for a purchase (v0.1.40): no budget, a budget, or one of its
+ * "Charge to a budget" picker for a purchase (v0.1.41): no budget, a budget, or one of its
  * sub-envelopes, grouped into everyday budgets and large projects. Hidden when there is no budget.
  */
 export function BudgetSelect({ snapshot, value, language, onChange, id }: {

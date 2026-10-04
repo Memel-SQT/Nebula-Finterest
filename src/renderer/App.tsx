@@ -437,7 +437,7 @@ export function App() {
     return mutate(() => window.finterest.addVariableExpense({ name, amount, category, date, monthKey: date.slice(0, 7), budgetId }), 'error.saveVariable', 'success');
   }
 
-  // Budgets, sub-envelopes and pots (v0.1.40).
+  // Budgets, sub-envelopes and pots (v0.1.41).
   const budgetActions: BudgetActions = {
     saveBudget: (budget) => mutate(() => window.finterest.saveBudget(budget), 'error.saveBudget', 'success'),
     deleteBudget: (id) => mutate(() => window.finterest.deleteBudget(id), 'error.deleteItem', 'delete'),

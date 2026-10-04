@@ -400,7 +400,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('budget:deleteFixedExpense', async (_event, id: string) => accountManager.getStore().deleteFixedExpense(id));
   ipcMain.handle('budget:addVariableExpense', async (_event, expense) => accountManager.getStore().addVariableExpense(expense));
   ipcMain.handle('budget:deleteVariableExpense', async (_event, id: string) => accountManager.getStore().deleteVariableExpense(id));
-  // Budgets, sub-envelopes and pots (v0.1.40): the store validates every field.
+  // Budgets, sub-envelopes and pots (v0.1.41): the store validates every field.
   ipcMain.handle('budget:saveBudget', async (_event, budget) => accountManager.getStore().saveBudget(budget));
   ipcMain.handle('budget:deleteBudget', async (_event, id: string) => accountManager.getStore().deleteBudget(String(id)));
   ipcMain.handle('budget:saveWallet', async (_event, wallet) => accountManager.getStore().saveWallet(wallet));

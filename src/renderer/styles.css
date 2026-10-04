@@ -778,10 +778,12 @@ html { scrollbar-color: var(--line-strong) transparent; scrollbar-width: thin; }
 .skeleton-line.short { width: 60%; }
 @media (max-width: 720px) { .learn-head { flex-wrap: wrap; } .learn-open { width: 100%; } }
 
-/* v0.1.40 — Budgets, big budgets, pots; green above zero, red below. */
+/* v0.1.41 — Budgets, big budgets, pots; green above zero, red below. */
 .amount { font-variant-numeric: tabular-nums; }
 .amount-positive { color: var(--positive); }
 .amount-negative { color: var(--danger); }
+.snapshot-row strong.amount-positive { color: var(--positive); }
+.snapshot-row strong.amount-negative { color: var(--danger); }
 .summary-card strong.amount-positive, .summary-card strong.amount-negative { letter-spacing: -0.04em; }
 
 .budgets-layout { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 1rem; align-items: start; }

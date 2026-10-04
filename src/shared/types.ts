@@ -17,7 +17,7 @@ export interface VariableExpense {
   category: string;
   date: string;
   monthKey: string;
-  /** The budget (or sub-envelope) this purchase is charged to (v0.1.40); absent on older data. */
+  /** The budget (or sub-envelope) this purchase is charged to (v0.1.41); absent on older data. */
   budgetId?: string | null;
 }
 
@@ -37,7 +37,7 @@ export type BudgetScale = 'regular' | 'project';
 export type BudgetPeriod = 'month' | 'range' | 'open';
 
 /**
- * A budget (v0.1.40). A root budget has `parentId: null`; a sub-envelope points to its root
+ * A budget (v0.1.41). A root budget has `parentId: null`; a sub-envelope points to its root
  * budget and inherits its scale, period, dates and `countsInMonth` (one level only).
  */
 export interface Budget {
@@ -55,7 +55,7 @@ export interface Budget {
   countsInMonth: boolean;
 }
 
-/** A pot with its own balance, carried over from month to month ("Cagnotte", v0.1.40). */
+/** A pot with its own balance, carried over from month to month ("Cagnotte", v0.1.41). */
 export interface Wallet {
   id: string;
   name: string;
@@ -82,7 +82,7 @@ export interface BudgetSnapshot {
   fixedExpenses: FixedExpense[];
   variableExpenses: VariableExpense[];
   loans: Loan[];
-  /** v0.1.40; absent from snapshots and backups written by older versions. */
+  /** v0.1.41; absent from snapshots and backups written by older versions. */
   budgets?: Budget[];
   wallets?: Wallet[];
   walletMovements?: WalletMovement[];

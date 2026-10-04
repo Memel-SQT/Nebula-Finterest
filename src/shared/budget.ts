@@ -292,7 +292,7 @@ export function normalizeSnapshot(snapshot: BudgetSnapshot, createId: IdFactory 
       }),
     );
 
-  // Budgets, pots and their movements (v0.1.40; absent from older backups).
+  // Budgets, pots and their movements (v0.1.41; absent from older backups).
   const budgets: Budget[] = (Array.isArray(snapshot.budgets) ? snapshot.budgets : [])
     .map(asRecord)
     .filter((item): item is Record<string, unknown> => item !== null)

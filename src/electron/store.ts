@@ -184,7 +184,7 @@ export class BudgetStore {
   }
 
   /**
-   * Creates or edits a budget or a sub-envelope (v0.1.40). A sub-envelope inherits its root's
+   * Creates or edits a budget or a sub-envelope (v0.1.41). A sub-envelope inherits its root's
    * scale, period, dates and month mode, so only the root's are stored for both.
    */
   async saveBudget(input: Partial<Budget> & { name: string; amount: number }): Promise<BudgetSnapshot> {
@@ -486,7 +486,7 @@ export class BudgetStore {
     if (!columnNames.includes('kind')) {
       database.run("ALTER TABLE fixed_expenses ADD COLUMN kind TEXT NOT NULL DEFAULT 'subscription'");
     }
-    // v0.1.40: a purchase can be charged to a budget. Existing purchases keep NULL (no budget).
+    // v0.1.41: a purchase can be charged to a budget. Existing purchases keep NULL (no budget).
     const variableColumns = (database.exec('PRAGMA table_info(variable_expenses)')[0]?.values ?? []).map((row) => String(row[1]));
     if (!variableColumns.includes('budgetId')) {
       database.run('ALTER TABLE variable_expenses ADD COLUMN budgetId TEXT');

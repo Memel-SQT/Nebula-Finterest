@@ -43,7 +43,7 @@ function shortDate(date: string, language: Language): string {
 }
 
 /**
- * Budgets (v0.1.40), for everyday envelopes (`regular`) and large projects such as a trip
+ * Budgets (v0.1.41), for everyday envelopes (`regular`) and large projects such as a trip
  * (`project`, the "Gros budgets" screen). A purchase charged to a budget is an ordinary planned
  * purchase: the budget updates itself, and so do the calendar and, unless the budget is a forecast,
  * the month's "reste à vivre".

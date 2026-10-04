@@ -25,7 +25,7 @@ declare global {
       addLoan(loan: Omit<Loan, 'id'> & { id?: string }): Promise<BudgetSnapshot>;
       toggleLoan(id: string, active: boolean): Promise<BudgetSnapshot>;
       deleteLoan(id: string): Promise<BudgetSnapshot>;
-      /** Budgets, sub-envelopes and pots (v0.1.40). */
+      /** Budgets, sub-envelopes and pots (v0.1.41). */
       saveBudget(budget: Partial<Budget> & { name: string; amount: number }): Promise<BudgetSnapshot>;
       deleteBudget(id: string): Promise<BudgetSnapshot>;
       saveWallet(wallet: Partial<Wallet> & { name: string }): Promise<BudgetSnapshot>;

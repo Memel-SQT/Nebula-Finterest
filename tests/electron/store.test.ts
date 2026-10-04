@@ -108,7 +108,7 @@ describe('BudgetStore', () => {
   });
 });
 
-describe('BudgetStore budgets and pots (v0.1.40)', () => {
+describe('BudgetStore budgets and pots (v0.1.41)', () => {
   beforeEach(async () => {
     mockUserData = await tempDir();
   });

@@ -23,7 +23,7 @@ function shortDate(date: string, language: Language): string {
 }
 
 /**
- * Pots (v0.1.40): money set aside, with a balance that carries over from month to month. Each
+ * Pots (v0.1.41): money set aside, with a balance that carries over from month to month. Each
  * deposit or withdrawal is a movement; the balance is their sum, green above zero, red below.
  * Pots are kept apart from the month's budget: they never change the "reste à vivre".
  */
