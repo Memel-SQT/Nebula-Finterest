@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { BackupFile, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus } from '../shared/types';
+import type { BackupFile, Budget, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus, Wallet, WalletMovement } from '../shared/types';
 
 function subscribe<T>(channel: string, callback: (payload: T) => void): () => void {
   const listener = (_event: unknown, payload: T) => callback(payload);
@@ -28,6 +28,12 @@ contextBridge.exposeInMainWorld('finterest', {
   addLoan: (loan: Omit<Loan, 'id'> & { id?: string }) => ipcRenderer.invoke('budget:addLoan', loan),
   toggleLoan: (id: string, active: boolean) => ipcRenderer.invoke('budget:toggleLoan', id, active),
   deleteLoan: (id: string) => ipcRenderer.invoke('budget:deleteLoan', id),
+  saveBudget: (budget: Partial<Budget> & { name: string; amount: number }) => ipcRenderer.invoke('budget:saveBudget', budget),
+  deleteBudget: (id: string) => ipcRenderer.invoke('budget:deleteBudget', id),
+  saveWallet: (wallet: Partial<Wallet> & { name: string }) => ipcRenderer.invoke('budget:saveWallet', wallet),
+  deleteWallet: (id: string) => ipcRenderer.invoke('budget:deleteWallet', id),
+  addWalletMovement: (movement: Partial<WalletMovement> & { walletId: string; amount: number; date: string }) => ipcRenderer.invoke('budget:addWalletMovement', movement),
+  deleteWalletMovement: (id: string) => ipcRenderer.invoke('budget:deleteWalletMovement', id),
   exportBackup: () => ipcRenderer.invoke('budget:exportBackup'),
   importBackup: (backup: BackupFile) => ipcRenderer.invoke('budget:importBackup', backup),
   saveBackupToFile: () => ipcRenderer.invoke('budget:saveBackupToFile'),

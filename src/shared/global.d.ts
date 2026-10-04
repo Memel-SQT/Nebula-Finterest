@@ -1,4 +1,4 @@
-import type { BackupFile, BudgetSnapshot, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus } from './types';
+import type { BackupFile, Budget, BudgetSnapshot, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus, Wallet, WalletMovement } from './types';
 import type { LocalAccountSummary } from './accounts';
 import type { NewsWidget } from './nebula';
 
@@ -25,6 +25,13 @@ declare global {
       addLoan(loan: Omit<Loan, 'id'> & { id?: string }): Promise<BudgetSnapshot>;
       toggleLoan(id: string, active: boolean): Promise<BudgetSnapshot>;
       deleteLoan(id: string): Promise<BudgetSnapshot>;
+      /** Budgets, sub-envelopes and pots (v0.1.40). */
+      saveBudget(budget: Partial<Budget> & { name: string; amount: number }): Promise<BudgetSnapshot>;
+      deleteBudget(id: string): Promise<BudgetSnapshot>;
+      saveWallet(wallet: Partial<Wallet> & { name: string }): Promise<BudgetSnapshot>;
+      deleteWallet(id: string): Promise<BudgetSnapshot>;
+      addWalletMovement(movement: Partial<WalletMovement> & { walletId: string; amount: number; date: string }): Promise<BudgetSnapshot>;
+      deleteWalletMovement(id: string): Promise<BudgetSnapshot>;
       exportBackup(): Promise<BackupFile>;
       importBackup(backup: BackupFile): Promise<BudgetSnapshot>;
       saveBackupToFile(): Promise<void>;
