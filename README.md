@@ -15,6 +15,15 @@ L'application fait partie de la famille **Nebula** et en reprend l'identité vis
 - Les montants se saisissent naturellement : « 12,50 », « 1 234,56 € » ou « 12.5 » sont tous acceptés.
 - Vue d'ensemble avec anneau de progression et résumé du mois.
 
+**Budgets, gros budgets et cagnottes**
+- **Budgets** (courses, loisirs…) : un montant prévu, et chaque dépense que vous y ajoutez — depuis la carte du budget, le formulaire des achats prévus ou un jour du calendrier — met le budget à jour tout seul : prévu, dépensé, reste.
+- Chaque budget est **du mois** (ses dépenses diminuent votre reste à vivre) ou **prévisionnel** (suivi à part, sans toucher au reste à vivre).
+- Trois périodes : **chaque mois** (le budget repart à zéro chaque mois), **avec des dates** (début et fin visibles dans le calendrier), ou **sans date**.
+- **Sous-enveloppes** : un budget se découpe en parts avec leur propre montant (par exemple Voyage au Japon → Avion, Hébergement, Sur place), chacune avec son reste.
+- **Gros budgets** : un menu dédié aux voyages et aux projets, avec les mêmes outils.
+- **Cagnottes** : de l'argent mis de côté, alimenté par des versements et des retraits, avec un solde qui se reporte d'un mois à l'autre et un objectif facultatif.
+- Les soldes et les restes sont **en vert quand ils sont positifs, en rouge quand ils sont négatifs**, y compris le reste à vivre.
+
 **Outils**
 - Prêts bancaires et **Calculatrice** : un simulateur d'intérêts composés indépendant du budget, avec capital de départ, investissement mensuel régulier, taux annuel et durée — pour estimer la valeur future d'une épargne programmée. Ce calcul est fourni à titre indicatif et ne remplace pas un conseil financier.
 
@@ -101,7 +110,7 @@ npm test                         # tests Jest
 Architecture en bref :
 - `src/electron/` — process principal Electron, pont preload, couche de persistance locale (SQLite via sql.js, écritures atomiques), copie vers le dossier secondaire (`sync.ts`), sauvegardes du dossier racine (`backups.ts`) et intégration à Nebula Hub (`nebula.ts`, SDK `@nebula/link`).
 - `src/renderer/` — interface React ; `src/renderer/components/` contient la barre latérale (`Sidebar.tsx`), les écrans (compte, calendrier, prêts, calculatrice, réglages, profil, tableau de bord), le dialogue de confirmation (`Dialog.tsx`), les états vides (`ScreenState.tsx`), le jeu d'icônes Nebula (`Icon.tsx`, porté de `@nebula/design`) et les arrière-plans animés (`BackgroundFx.tsx`) ; `i18n.ts`, `theme.ts`, `appearance.ts` et `sound.ts` gèrent la langue, le thème, la personnalisation et les sons.
-- `src/shared/` — types, calculs de budget, entrées du calendrier, normalisation des sauvegardes et logique de synchronisation, partagés entre les deux processus et testés.
+- `src/shared/` — types, calculs de budget, budgets / sous-enveloppes / cagnottes (`budgets.ts`), entrées du calendrier, normalisation des sauvegardes et logique de synchronisation, partagés entre les deux processus et testés.
 - `tests/electron/` — tests du process principal (anciennes bases, ancien `accounts.json`, copie entre deux machines simulées, sauvegardes).
 - `assets/` et `build/` — logo, icônes source, et icône packagée pour Windows/macOS/Linux.
 
