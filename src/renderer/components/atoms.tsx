@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import type { Language } from '../i18n';
 import { translate } from '../i18n';
-import { categoryIcon } from '../constants';
+import { categoryIcon, formatMoney } from '../constants';
+import { amountTone } from '@shared/budgets';
 import { Icon, type IconName } from './Icon';
 import { EmptyState } from './ScreenState';
 
@@ -12,11 +13,17 @@ export function Avatar({ name, avatarUrl, size = 'md' }: { name: string; avatarU
   return <span className={`avatar avatar-${size} avatar-fallback`}>{name.slice(0, 1).toUpperCase()}</span>;
 }
 
-export function Card({ label, value, accent, icon }: { label: string; value: string; accent: 'income' | 'fixed' | 'variable' | 'loans' | 'remaining'; icon: IconName }) {
+/** A balance or a remaining amount: green above zero, red below (and a "+" on movements when `signed`). */
+export function SignedAmount({ value, language, signed = false }: { value: number; language: Language; signed?: boolean }) {
+  const tone = amountTone(value);
+  return <span className={`amount amount-${tone}`}>{signed && tone === 'positive' ? '+' : ''}{formatMoney(value, language)}</span>;
+}
+
+export function Card({ label, value, accent, icon, tone }: { label: string; value: string; accent: 'income' | 'fixed' | 'variable' | 'loans' | 'remaining'; icon: IconName; tone?: 'positive' | 'negative' | 'neutral' }) {
   return (
     <article className={`summary-card ${accent}`}>
       <div className="card-top"><span>{label}</span><i><Icon name={icon} size={18} /></i></div>
-      <strong>{value}</strong>
+      <strong className={tone ? `amount amount-${tone}` : undefined}>{value}</strong>
     </article>
   );
 }

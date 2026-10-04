@@ -7,14 +7,17 @@ import { Avatar } from './atoms';
 import { Icon, type IconName } from './Icon';
 import logoUrl from '../../../assets/nebula-logo.svg';
 
-export type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'loans' | 'calculator' | 'profile' | 'settings';
-type NavGroup = 'budget' | 'tools' | 'system';
+export type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'budgets' | 'projects' | 'wallets' | 'loans' | 'calculator' | 'profile' | 'settings';
+type NavGroup = 'budget' | 'plans' | 'tools' | 'system';
 
 export const NAV_ITEMS: Array<{ view: ActiveView; group: NavGroup; labelKey: TranslationKey; icon: IconName }> = [
   { view: 'overview', group: 'budget', labelKey: 'nav.overview', icon: 'navHome' },
   { view: 'calendar', group: 'budget', labelKey: 'nav.calendar', icon: 'calendar' },
   { view: 'fixed', group: 'budget', labelKey: 'nav.fixed', icon: 'repeat' },
   { view: 'variable', group: 'budget', labelKey: 'nav.variable', icon: 'bag' },
+  { view: 'budgets', group: 'budget', labelKey: 'nav.budgets', icon: 'layers' },
+  { view: 'projects', group: 'plans', labelKey: 'nav.projects', icon: 'rocket' },
+  { view: 'wallets', group: 'plans', labelKey: 'nav.wallets', icon: 'wallet' },
   { view: 'loans', group: 'tools', labelKey: 'nav.loans', icon: 'bank' },
   { view: 'calculator', group: 'tools', labelKey: 'nav.calculator', icon: 'calculator' },
   { view: 'settings', group: 'system', labelKey: 'nav.settings', icon: 'gear' },
@@ -22,6 +25,7 @@ export const NAV_ITEMS: Array<{ view: ActiveView; group: NavGroup; labelKey: Tra
 
 const GROUP_TITLES: Record<Exclude<NavGroup, 'system'>, TranslationKey> = {
   budget: 'nav.group.budget',
+  plans: 'nav.group.plans',
   tools: 'nav.group.tools',
 };
 

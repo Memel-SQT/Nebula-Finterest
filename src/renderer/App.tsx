@@ -21,20 +21,22 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { SplashScreen } from './components/SplashScreen';
 import { BackgroundFx } from './components/BackgroundFx';
 import { Dialog } from './components/Dialog';
+import { BudgetsPanel, type BudgetActions } from './components/BudgetsPanel';
+import { WalletsPanel, type WalletActions } from './components/WalletsPanel';
 import { LearnCard, type LearnState } from './components/LearnCard';
 
 /** Injected by Vite from package.json (vite.config.ts); empty under Jest. */
 const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '';
 
 const emptyFixedForm = (): FixedFormState => ({ name: '', amount: '', category: '', dayOfMonth: '', kind: 'subscription' });
-const emptyVariableForm = (): VariableFormState => ({ name: '', amount: '', category: '', date: formatLocalDate(new Date()) });
+const emptyVariableForm = (): VariableFormState => ({ name: '', amount: '', category: '', date: formatLocalDate(new Date()), budgetId: '' });
 const emptyLoanForm: LoanFormState = { name: '', principal: '', monthlyPayment: '', rate: '', remainingMonths: '' };
 
 /** Nebula News refreshes its widgets every 15 minutes; the main process caches as long. */
 const LEARN_REFRESH_MS = 15 * 60 * 1000;
 
 /** Views that work on one month: they show the "Month" control in the page header. */
-const MONTH_VIEWS: ActiveView[] = ['overview', 'calendar', 'fixed', 'variable', 'loans'];
+const MONTH_VIEWS: ActiveView[] = ['overview', 'calendar', 'fixed', 'variable', 'budgets', 'loans'];
 
 export function App() {
   const [language, setLanguage] = useLanguage();
@@ -431,9 +433,23 @@ export function App() {
     return mutate(() => window.finterest.addFixedExpense({ name, amount, category, dayOfMonth, active: true, kind }), 'error.saveFixed', 'success');
   }
 
-  function handleAddCalendarPurchase(name: string, amount: number, category: string, date: string): Promise<boolean> {
-    return mutate(() => window.finterest.addVariableExpense({ name, amount, category, date, monthKey: date.slice(0, 7) }), 'error.saveVariable', 'success');
+  function handleAddCalendarPurchase(name: string, amount: number, category: string, date: string, budgetId: string | null): Promise<boolean> {
+    return mutate(() => window.finterest.addVariableExpense({ name, amount, category, date, monthKey: date.slice(0, 7), budgetId }), 'error.saveVariable', 'success');
   }
+
+  // Budgets, sub-envelopes and pots (v0.1.40).
+  const budgetActions: BudgetActions = {
+    saveBudget: (budget) => mutate(() => window.finterest.saveBudget(budget), 'error.saveBudget', 'success'),
+    deleteBudget: (id) => mutate(() => window.finterest.deleteBudget(id), 'error.deleteItem', 'delete'),
+    addExpense: ({ name, amount, date, budgetId }) => mutate(() => window.finterest.addVariableExpense({ name, amount, category: '', date, monthKey: date.slice(0, 7), budgetId }), 'error.saveVariable', 'success'),
+    deleteExpense: (id) => mutate(() => window.finterest.deleteVariableExpense(id), 'error.deleteItem', 'delete'),
+  };
+  const walletActions: WalletActions = {
+    saveWallet: (wallet) => mutate(() => window.finterest.saveWallet(wallet), 'error.saveWallet', 'success'),
+    deleteWallet: (id) => mutate(() => window.finterest.deleteWallet(id), 'error.deleteItem', 'delete'),
+    addMovement: (movement) => mutate(() => window.finterest.addWalletMovement(movement), 'error.saveWallet', 'success'),
+    deleteMovement: (id) => mutate(() => window.finterest.deleteWalletMovement(id), 'error.deleteItem', 'delete'),
+  };
 
   async function handleDeleteCalendarEntry(entry: CalendarEntry): Promise<void> {
     await mutate(
@@ -450,7 +466,7 @@ export function App() {
       return;
     }
     const saved = await mutate(
-      () => window.finterest.addVariableExpense({ name: variableForm.name, amount, category: variableForm.category, date: variableForm.date, monthKey: variableForm.date.slice(0, 7) }),
+      () => window.finterest.addVariableExpense({ name: variableForm.name, amount, category: variableForm.category, date: variableForm.date, monthKey: variableForm.date.slice(0, 7), budgetId: variableForm.budgetId || null }),
       'error.saveVariable',
       'success',
     );
@@ -591,6 +607,9 @@ export function App() {
     profile: { eyebrow: 'view.profile.eyebrow', title: 'view.profile.title' },
     settings: { eyebrow: 'view.settings.eyebrow', title: 'view.settings.title' },
     calculator: { eyebrow: 'view.advanced.eyebrow', title: 'view.advanced.title' },
+    budgets: { eyebrow: 'view.budgets.eyebrow', title: 'view.budgets.title' },
+    projects: { eyebrow: 'view.projects.eyebrow', title: 'view.projects.title' },
+    wallets: { eyebrow: 'view.wallets.eyebrow', title: 'view.wallets.title' },
   };
 
   const showKpis = ['overview', 'fixed', 'variable', 'loans'].includes(activeView);
@@ -688,6 +707,12 @@ export function App() {
           ) : null}
 
           {activeView === 'calculator' ? <AdvancedCalculator form={interestForm} language={language} onChange={setInterestForm} /> : null}
+
+          {activeView === 'budgets' || activeView === 'projects' ? (
+            <BudgetsPanel key={activeView} scale={activeView === 'budgets' ? 'regular' : 'project'} snapshot={snapshot} monthKey={activeMonthKey} language={language} actions={budgetActions} />
+          ) : null}
+
+          {activeView === 'wallets' ? <WalletsPanel snapshot={snapshot} language={language} actions={walletActions} /> : null}
 
           {activeView === 'calendar' ? (
             <BudgetCalendar
