@@ -1,3 +1,9 @@
+## [2026-10-04] - Nebula Finterest Change Session #48
+- Files modified: `package.json` / `package-lock.json` (0.1.40), `src/electron/main.ts`, `src/shared/{nebula,nebula.test}.ts`, `src/renderer/styles.css`, `DEV_CHANGES.md`.
+- **Hub mode: the window stayed behind Nebula Hub** (user report: "… s'affiche ici" but the page never appears; force-closing the Hub reveals the app, working). The Hub delivered every `nebula.hub.dock` message; Windows ignores `moveTop()` from an app without the foreground right, which is the case as soon as the Hub is active. The docked window is now raised with `raiseDockedWindow` (`setAlwaysOnTop(true)`, `moveTop()`, `setAlwaysOnTop(false)`): on `raise`, whenever it reappears, and once its page is shown (`ready-to-show`). `dockedWindowSteps` (shared, pure, tested) decides show / raise. A docked page that never finishes loading no longer holds back the dock queue (8 s, `DOCK_LOAD_TIMEOUT_MS`). Nebula Hub ADR-032; applied by the Hub session from its `docs/PROMPT_DOCK_FIX.md`.
+- **Full width**: `.workspace-inner` loses its max width (and `.settings-panel` its 1080 px), docked in the Hub as on ultrawide screens; long texts keep their own reading width.
+- Validation: typecheck, lint, 173 tests, build.
+
 ## [2026-10-03] - Nebula Finterest Change Session #47
 - Files added: `src/renderer/components/LearnCard.tsx`, `tests/electron/nebula-news.test.ts`.
 - Files modified: `package.json` / `package-lock.json` (0.1.39), `nebula.app.json`, `src/electron/{nebula,main,preload}.ts`, `src/shared/{nebula,nebula.test,types,global.d}.ts`, `src/renderer/{App,i18n,styles}.*`, `src/renderer/components/{Dashboard,SettingsPanel}.tsx`, `README.md`, `DEV_CHANGES.md`.
