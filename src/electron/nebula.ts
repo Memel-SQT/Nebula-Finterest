@@ -51,6 +51,8 @@ const DEFAULT_SETTINGS: NebulaSettings = { updatesByHub: false, notified: [], ne
 const DEBIT_CHECK_MS = 60 * 60 * 1000;
 /** News refreshes its widgets every 900 s; Finterest never asks more often than that. */
 export const NEWS_REFRESH_MS = 15 * 60 * 1000;
+/** No answer from News (Hub or News absent, News still starting, timeout): asked again this soon. */
+export const NEWS_RETRY_MS = 30 * 1000;
 export const NEWS_FINANCE_CAPABILITY = 'news.finance.today';
 
 export class NebulaIntegration {
@@ -59,7 +61,8 @@ export class NebulaIntegration {
   private hub: { hubVersion: string; managesUpdates: boolean } | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private stopDock: (() => void) | null = null;
-  private news: { at: number; value: NewsWidget | null } | null = null;
+  /** The last answer and until when it is reused (15 min after an answer, 30 s after none). */
+  private news: { until: number; value: NewsWidget | null } | null = null;
   private newsInflight: Promise<NewsWidget | null> | null = null;
 
   constructor(private readonly deps: NebulaDeps) {
@@ -150,25 +153,28 @@ export class NebulaIntegration {
   /**
    * The "Learn" card: Nebula News' finance articles of the day, or null whenever there is nothing
    * to show (setting off, no unlocked profile, hidden window, Hub or News absent, timeout, consent
-   * refused, empty theme, invalid payload). Never throws, never logs the content, and asks News at
-   * most once per NEWS_REFRESH_MS, whatever the renderer does.
+   * refused, empty theme, invalid payload). Never throws, never logs the content. News is asked at
+   * most once per NEWS_REFRESH_MS after it answered, and again after NEWS_RETRY_MS when it did not
+   * (absent or still starting), whatever the renderer does: the card then appears on its own.
    */
   async financeNews(now = Date.now()): Promise<NewsWidget | null> {
     if (!this.settings.newsFinance || !this.deps.openProfileId() || !this.deps.windowVisible() || this.link.status !== 'connected') {
       return null;
     }
-    if (this.news && now - this.news.at < NEWS_REFRESH_MS) return this.news.value;
+    if (this.news && now < this.news.until) return this.news.value;
     if (this.newsInflight) return this.newsInflight;
     this.newsInflight = (async () => {
       let value: NewsWidget | null = null;
+      let answered = false;
       try {
         // No parameter at all: the request carries nothing from the profile.
         const result = await this.link.query(NEWS_FINANCE_CAPABILITY);
+        answered = result.ok;
         value = result.ok && validateSchema('WidgetV1', result.value) ? parseNewsWidget(result.value) : null;
       } catch {
         value = null;
       }
-      this.news = { at: now, value };
+      this.news = { until: now + (answered ? NEWS_REFRESH_MS : NEWS_RETRY_MS), value };
       return value;
     })().finally(() => {
       this.newsInflight = null;

@@ -1,3 +1,11 @@
+## [2026-10-07] - Nebula Finterest Change Session #50
+- Files modified: `package.json` / `package-lock.json` (0.1.42), `src/electron/nebula.ts`, `src/renderer/App.tsx`, `tests/electron/nebula-news.test.ts`, `README.md`, `DEV_CHANGES.md`.
+- **User report**: Nebula News' articles never showed in the app. The Hub's Link journal showed that Finterest had not asked News once since 2026-10-04, although News ran in the background. Reproduced on throwaway profiles: in the Hub mode, the window is often still hidden when the overview mounts; the first try returned nothing, and the renderer only tried again 15 minutes later. A failed answer (News still starting) was also kept for 15 minutes.
+- **Fix, the card now appears on its own**:
+  - `NebulaIntegration.financeNews` keeps an answer of News for `NEWS_REFRESH_MS` (15 min, even an empty theme) and no answer (Hub or News absent, timeout, SDK error) only for `NEWS_RETRY_MS` (30 s). A call made while the window is hidden is still never remembered.
+  - The renderer asks every 30 s (`LEARN_POLL_MS`) and when the window comes back; the main process stays the only rate limiter.
+- **Verification**: typecheck, lint, 192 tests (+3 in `nebula-news.test.ts`: retry after 30 s then 15 min after an answer, an empty answer kept 15 min, asked as soon as the window is visible again).
+
 ## [2026-10-04] - Nebula Finterest Change Session #49
 - Files added: `src/shared/budgets.ts`, `src/shared/budgets.test.ts`, `src/renderer/components/{BudgetsPanel,WalletsPanel,BudgetSelect}.tsx`.
 - Files modified: `package.json` / `package-lock.json` (0.1.41), `src/shared/{types,budget,global.d}.ts`, `src/electron/{store,main,preload}.ts`, `src/renderer/{App,i18n,styles}.*`, `src/renderer/components/{atoms,Dashboard,Sidebar,BudgetCalendar}.tsx`, `tests/electron/store.test.ts`, `README.md`, `DEV_CHANGES.md`.

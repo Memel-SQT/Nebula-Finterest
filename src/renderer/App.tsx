@@ -33,7 +33,9 @@ const emptyVariableForm = (): VariableFormState => ({ name: '', amount: '', cate
 const emptyLoanForm: LoanFormState = { name: '', principal: '', monthlyPayment: '', rate: '', remainingMonths: '' };
 
 /** Nebula News refreshes its widgets every 15 minutes; the main process caches as long. */
-const LEARN_REFRESH_MS = 15 * 60 * 1000;
+// The main process decides when News is really asked (15 min after an answer, 30 s after none):
+// asking it this often costs nothing and lets the card appear on its own once News is there.
+const LEARN_POLL_MS = 30 * 1000;
 
 /** Views that work on one month: they show the "Month" control in the page header. */
 const MONTH_VIEWS: ActiveView[] = ['overview', 'calendar', 'fixed', 'variable', 'budgets', 'loans'];
@@ -172,7 +174,8 @@ export function App() {
 
   // "Learn" card (Nebula News, news.finance.today): only on the overview of a real unlocked profile
   // (never on the gate, profile creation or a guest session), with the Hub connected and the
-  // setting on; refreshed every 15 minutes while the window is visible. The main process asks
+  // setting on; asked again every 30 s and when the window comes back while it is visible (the main
+  // process only asks News 15 min after an answer, 30 s after none). The main process asks
   // News without any parameter, checks the payload and caches it; null hides the card.
   const learnActive = Boolean(snapshot) && Boolean(activeAccount) && activeAccount?.id !== GUEST_ACCOUNT_ID
     && activeView === 'overview' && nebulaState?.connected === true && nebulaState.newsFinance !== false;
@@ -197,7 +200,7 @@ export function App() {
         });
     };
     load();
-    const timer = window.setInterval(load, LEARN_REFRESH_MS);
+    const timer = window.setInterval(load, LEARN_POLL_MS);
     const onVisibility = () => {
       if (!document.hidden) load();
     };

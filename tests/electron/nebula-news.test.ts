@@ -24,7 +24,7 @@ jest.mock('@nebula/link', () => ({
   validateSchema: jest.requireActual('@nebula/link').validateSchema,
 }));
 
-import { NebulaIntegration, NEWS_FINANCE_CAPABILITY, NEWS_REFRESH_MS } from '../../src/electron/nebula';
+import { NebulaIntegration, NEWS_FINANCE_CAPABILITY, NEWS_REFRESH_MS, NEWS_RETRY_MS } from '../../src/electron/nebula';
 
 const WIDGET = {
   title: 'Finance du jour',
@@ -129,6 +129,39 @@ describe('Nebula News "Learn" card (news.finance.today)', () => {
     nebula.clearNews();
     await nebula.financeNews(start + NEWS_REFRESH_MS + 1);
     expect(mockLink.query).toHaveBeenCalledTimes(3);
+  });
+
+  it('asks again 30 s after News did not answer (absent or still starting), so the card appears on its own', async () => {
+    mockLink.query.mockResolvedValueOnce({ ok: false, error: 'provider-offline' });
+    const nebula = integration();
+    const start = 1_000_000;
+    expect(await nebula.financeNews(start)).toBeNull();
+    expect(await nebula.financeNews(start + NEWS_RETRY_MS - 1)).toBeNull();
+    expect(mockLink.query).toHaveBeenCalledTimes(1);
+    mockLink.query.mockResolvedValue({ ok: true, value: WIDGET });
+    expect(await nebula.financeNews(start + NEWS_RETRY_MS)).toEqual(WIDGET);
+    expect(mockLink.query).toHaveBeenCalledTimes(2);
+    // An answer is kept for 15 minutes.
+    await nebula.financeNews(start + NEWS_RETRY_MS + 60_000);
+    expect(mockLink.query).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps an answer without articles for 15 minutes (News answered)', async () => {
+    mockLink.query.mockResolvedValue({ ok: true, value: null });
+    const nebula = integration();
+    await nebula.financeNews(1_000_000);
+    await nebula.financeNews(1_000_000 + NEWS_RETRY_MS);
+    expect(mockLink.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks as soon as the window is visible again (a hidden window is never remembered)', async () => {
+    mockLink.query.mockResolvedValue({ ok: true, value: WIDGET });
+    const nebula = integration();
+    visible = false;
+    expect(await nebula.financeNews(1_000_000)).toBeNull();
+    visible = true;
+    expect(await nebula.financeNews(1_000_001)).toEqual(WIDGET);
+    expect(mockLink.query).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the setting on for settings files written before v0.1.39', async () => {
