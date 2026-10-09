@@ -90,6 +90,17 @@ export type TranslationKey =
   | 'error.saveBudget'
   | 'error.saveWallet'
   | 'learn.eyebrow'
+  | 'nav.news'
+  | 'view.news.eyebrow'
+  | 'view.news.title'
+  | 'newsTab.loading'
+  | 'newsTab.refresh'
+  | 'newsTab.unavailable.title'
+  | 'newsTab.unavailable.body'
+  | 'newsTab.empty.title'
+  | 'newsTab.empty.body'
+  | 'newsTab.off.title'
+  | 'newsTab.off.body'
   | 'learn.open'
   | 'learn.loading'
   | 'learn.unavailable'
@@ -337,6 +348,17 @@ export const fr: Record<TranslationKey, string> = {
   'error.saveWallet': 'Impossible d’enregistrer la cagnotte.',
   'learn.eyebrow': 'Apprendre',
   'learn.open': 'Lire dans Nebula News',
+  'nav.news': 'Nebula News',
+  'view.news.eyebrow': 'Nebula News',
+  'view.news.title': 'Actus finance',
+  'newsTab.loading': 'Chargement des articles',
+  'newsTab.refresh': 'Actualiser',
+  'newsTab.unavailable.title': 'Nebula News se prépare',
+  'newsTab.unavailable.body': 'Les articles de finance apparaîtront ici dès que Nebula News répond. Nebula Finterest réessaie toute seule.',
+  'newsTab.empty.title': 'Pas encore d’article de finance',
+  'newsTab.empty.body': 'Nebula News n’a encore rien trouvé pour ce thème aujourd’hui. La liste se met à jour toute seule.',
+  'newsTab.off.title': 'Articles de Nebula News désactivés',
+  'newsTab.off.body': 'Réactivez « Articles de finance de Nebula News » dans Réglages → Nebula Hub pour les voir ici.',
   'learn.loading': 'Chargement des articles de finance…',
   'learn.unavailable': 'Nebula News ne peut pas être ouverte : Nebula Hub doit être installé.',
   'nebula.newsFinance': 'Articles de finance de Nebula News',
@@ -743,6 +765,17 @@ export const en: Record<TranslationKey, string> = {
   'error.saveWallet': 'Could not save the pot.',
   'learn.eyebrow': 'Learn',
   'learn.open': 'Read in Nebula News',
+  'nav.news': 'Nebula News',
+  'view.news.eyebrow': 'Nebula News',
+  'view.news.title': 'Finance news',
+  'newsTab.loading': 'Loading the articles',
+  'newsTab.refresh': 'Refresh',
+  'newsTab.unavailable.title': 'Nebula News is getting ready',
+  'newsTab.unavailable.body': 'The finance articles show up here as soon as Nebula News answers. Nebula Finterest keeps trying on its own.',
+  'newsTab.empty.title': 'No finance article yet',
+  'newsTab.empty.body': 'Nebula News has not found anything for this theme today. The list updates on its own.',
+  'newsTab.off.title': 'Nebula News articles are off',
+  'newsTab.off.body': 'Turn “Finance articles from Nebula News” back on in Settings → Nebula Hub to see them here.',
   'learn.loading': 'Loading the finance articles…',
   'learn.unavailable': 'Nebula News cannot be opened: Nebula Hub must be installed.',
   'nebula.newsFinance': 'Finance articles from Nebula News',

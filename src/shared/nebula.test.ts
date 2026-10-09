@@ -1,5 +1,5 @@
 import { createEmptySnapshot } from './budget';
-import { budgetWidget, debitNotification, debitsDueTomorrow, dockedWindowSteps, isNewsDeepLink, parseNewsWidget } from './nebula';
+import { budgetWidget, debitNotification, debitsDueTomorrow, dockedWindowSteps, isNewsDeepLink, NEWS_ARTICLES_MAX, parseNewsArticles, parseNewsWidget } from './nebula';
 
 function snapshot() {
   const value = createEmptySnapshot();
@@ -96,5 +96,31 @@ describe('Hub mode: showing and raising the docked window (Nebula Hub ADR-032)',
     expect(dockedWindowSteps(false, true)).toEqual({ show: true, raise: true });
     expect(dockedWindowSteps(true, true)).toEqual({ show: false, raise: true });
     expect(dockedWindowSteps(true, false)).toEqual({ show: false, raise: false });
+  });
+});
+
+describe('Nebula News "Nebula News" tab (news.finance.articles)', () => {
+  const article = { title: 'Comprendre le taux d’usure', source: 'Le Monde', publishedAt: '2026-10-09T06:00:00.000Z', summary: 'Un résumé court.', deepLink: 'nebula://news/article?id=clx0abc123def456' };
+  const list = (items: unknown[]) => ({ title: 'Finance', updatedAt: '2026-10-09T08:00:00.000Z', items });
+
+  it('keeps a valid list as plain data', () => {
+    expect(parseNewsArticles(list([article, { ...article, summary: undefined, deepLink: 'nebula://news/article?id=clx0abc123def457' }]))).toEqual({
+      title: 'Finance',
+      updatedAt: '2026-10-09T08:00:00.000Z',
+      items: [article, { title: article.title, source: 'Le Monde', publishedAt: article.publishedAt, deepLink: 'nebula://news/article?id=clx0abc123def457' }],
+    });
+  });
+
+  it.each([
+    ['markup in a title', list([{ ...article, title: '<img src=x onerror=alert(1)>' }])],
+    ['a link outside News', list([{ ...article, deepLink: 'https://example.com/a' }])],
+    ['a title too long', list([{ ...article, title: 't'.repeat(201) }])],
+    ['a summary too long', list([{ ...article, summary: 's'.repeat(401) }])],
+    ['an invalid date', list([{ ...article, publishedAt: 'hier' }])],
+    ['too many articles', list(Array.from({ length: NEWS_ARTICLES_MAX + 1 }, () => article))],
+    ['no article', list([])],
+    ['not an object', 'Finance'],
+  ])('rejects the whole list for %s', (_label, value) => {
+    expect(parseNewsArticles(value)).toBeNull();
   });
 });

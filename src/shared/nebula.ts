@@ -142,6 +142,59 @@ export function parseNewsWidget(value: unknown): NewsWidget | null {
   return { title, ...(caption ? { caption } : {}), items: items.slice(0, NEWS_MAX_ITEMS), deepLink: record.deepLink, updatedAt: record.updatedAt };
 }
 
+/** One article of the "Nebula News" tab (Nebula Hub ADR-036, `ArticlesV1`). */
+export interface NewsArticle {
+  title: string;
+  source: string;
+  publishedAt: string;
+  summary?: string;
+  deepLink: string;
+}
+
+export interface NewsArticles {
+  title: string;
+  updatedAt: string;
+  items: NewsArticle[];
+}
+
+/** `ready`: articles to show; `empty`: News has none yet; `unavailable`: no answer from News (yet); `off`: the setting is off. */
+export type NewsTab = { state: 'ready'; articles: NewsArticles } | { state: 'empty' | 'unavailable' | 'off' };
+
+export const NEWS_ARTICLES_CAPABILITY = 'news.finance.articles';
+export const NEWS_ARTICLES_MAX = 20;
+
+function boundedText(value: unknown, max: number): string | null {
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  if (!text || text.length > max || UNSAFE_TEXT.test(text)) return null;
+  return text;
+}
+
+/**
+ * Checks what Nebula News returned for `news.finance.articles` (the "Nebula News" tab). Same
+ * contract as `parseNewsWidget`: anything unexpected in the list (markup, a text too long, a link
+ * outside `nebula://news/`, an invalid date, too many items) rejects it whole; null means "nothing".
+ */
+export function parseNewsArticles(value: unknown): NewsArticles | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const title = boundedText(record.title, 80);
+  if (!title || typeof record.updatedAt !== 'string' || !Number.isFinite(Date.parse(record.updatedAt))) return null;
+  if (!Array.isArray(record.items) || record.items.length === 0 || record.items.length > NEWS_ARTICLES_MAX) return null;
+  const items: NewsArticle[] = [];
+  for (const raw of record.items) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    const item = raw as Record<string, unknown>;
+    const itemTitle = boundedText(item.title, 200);
+    const source = boundedText(item.source, 80);
+    const summary = item.summary === undefined ? undefined : boundedText(item.summary, 400);
+    if (!itemTitle || !source || summary === null || !isNewsDeepLink(item.deepLink)) return null;
+    if (typeof item.publishedAt !== 'string' || !Number.isFinite(Date.parse(item.publishedAt))) return null;
+    items.push({ title: itemTitle, source, publishedAt: item.publishedAt, ...(summary ? { summary } : {}), deepLink: item.deepLink });
+  }
+  return { title, updatedAt: record.updatedAt, items };
+}
+
 /**
  * Hub mode (Nebula Hub ADR-032): what the docked window does for a visible `nebula.hub.dock`
  * message. It is shown again if it was hidden, and raised above the Hub when it reappears or when

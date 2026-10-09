@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { NebulaLink, validateSchema, type Intent } from '@nebula/link';
-import { budgetWidget, debitNotification, debitsDueTomorrow, parseNewsWidget, type NewsWidget } from '../shared/nebula';
+import { budgetWidget, debitNotification, debitsDueTomorrow, NEWS_ARTICLES_CAPABILITY, parseNewsArticles, parseNewsWidget, type NewsTab, type NewsWidget } from '../shared/nebula';
 import { isValidMonthKey } from '../shared/budget';
 import type { BudgetSnapshot, NebulaState } from '../shared/types';
 import { writeFileAtomic } from './fsutil';
@@ -31,6 +31,11 @@ export interface NebulaDeps {
   /** The unlocked profile's snapshot, or null when the app is locked (or in guest mode). */
   openSnapshot(): Promise<BudgetSnapshot | null>;
   openProfileId(): string | null;
+  /**
+   * A profile or a guest session is open. Enough for the "Learn" card: it asks News without any
+   * parameter and only receives public articles, so nothing of the session is involved.
+   */
+  sessionOpen(): boolean;
   send(channel: string, payload: unknown): void;
   focusWindow(): void;
   onDock(payload: unknown): void;
@@ -54,6 +59,8 @@ export const NEWS_REFRESH_MS = 15 * 60 * 1000;
 /** No answer from News (Hub or News absent, News still starting, timeout): asked again this soon. */
 export const NEWS_RETRY_MS = 30 * 1000;
 export const NEWS_FINANCE_CAPABILITY = 'news.finance.today';
+/** The "Nebula News" tab keeps an answer of News this long (News refreshes its themes every 15 min). */
+export const NEWS_TAB_REFRESH_MS = 5 * 60 * 1000;
 
 export class NebulaIntegration {
   readonly link: NebulaLink;
@@ -64,6 +71,9 @@ export class NebulaIntegration {
   /** The last answer and until when it is reused (15 min after an answer, 30 s after none). */
   private news: { until: number; value: NewsWidget | null } | null = null;
   private newsInflight: Promise<NewsWidget | null> | null = null;
+  /** The "Nebula News" tab: last answer and until when it is reused (5 min after an answer, 30 s after none). */
+  private articles: { until: number; value: NewsTab } | null = null;
+  private articlesInflight: Promise<NewsTab> | null = null;
 
   constructor(private readonly deps: NebulaDeps) {
     // NEBULA_LINK_SESSION_FILE points a manual test at a test-mode Hub; never set in a packaged install.
@@ -148,6 +158,37 @@ export class NebulaIntegration {
   /** Forgets the cached articles (profile locked, setting turned off). */
   clearNews(): void {
     this.news = null;
+    this.articles = null;
+  }
+
+  /**
+   * The "Nebula News" tab (Nebula Hub ADR-036): the latest finance articles of Nebula News, checked
+   * here (`parseNewsArticles`). Same rules as the "Learn" card: no parameter, any open session
+   * (profile or guest), only while the window is visible; asked again 5 minutes after an answer and
+   * 30 s after none, so the list appears on its own once News is there. Never throws.
+   */
+  async financeArticles(now = Date.now()): Promise<NewsTab> {
+    if (!this.settings.newsFinance) return { state: 'off' };
+    if (!this.deps.sessionOpen() || !this.deps.windowVisible() || this.link.status !== 'connected') return { state: 'unavailable' };
+    if (this.articles && now < this.articles.until) return this.articles.value;
+    if (this.articlesInflight) return this.articlesInflight;
+    this.articlesInflight = (async () => {
+      let value: NewsTab = { state: 'unavailable' };
+      try {
+        const result = await this.link.query(NEWS_ARTICLES_CAPABILITY);
+        if (result.ok) {
+          const articles = parseNewsArticles(result.value);
+          value = articles ? { state: 'ready', articles } : { state: 'empty' };
+        }
+      } catch {
+        value = { state: 'unavailable' };
+      }
+      this.articles = { until: now + (value.state === 'unavailable' ? NEWS_RETRY_MS : NEWS_TAB_REFRESH_MS), value };
+      return value;
+    })().finally(() => {
+      this.articlesInflight = null;
+    });
+    return this.articlesInflight;
   }
 
   /**
@@ -158,7 +199,7 @@ export class NebulaIntegration {
    * (absent or still starting), whatever the renderer does: the card then appears on its own.
    */
   async financeNews(now = Date.now()): Promise<NewsWidget | null> {
-    if (!this.settings.newsFinance || !this.deps.openProfileId() || !this.deps.windowVisible() || this.link.status !== 'connected') {
+    if (!this.settings.newsFinance || !this.deps.sessionOpen() || !this.deps.windowVisible() || this.link.status !== 'connected') {
       return null;
     }
     if (this.news && now < this.news.until) return this.news.value;

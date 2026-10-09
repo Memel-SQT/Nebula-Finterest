@@ -871,3 +871,24 @@ button.ghost.pressed { border-color: var(--accent); background: var(--accent-sof
 }
 .budget-inline-form button[type='submit'] { grid-column: 1 / -1; justify-self: start; }
 .budget-form .switch { justify-content: flex-start; justify-self: start; }
+
+/* "Nebula News" tab (Nebula Hub ADR-036): one card per article, tokens only. */
+.news-tab { display: grid; gap: 1rem; }
+.news-tab-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.news-tab-head h2 { margin: 0; font-size: 1.1rem; }
+.news-tab-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.9rem; margin: 0; padding: 0; list-style: none; }
+.news-tab-item { display: grid; align-content: start; gap: 0.5rem; width: 100%; height: 100%; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); color: var(--ink); text-align: left; cursor: pointer; transition: transform var(--motion-fast) var(--ease-out), opacity var(--motion-fast) var(--ease-out); }
+.news-tab-item:hover { transform: translateY(-2px); }
+.news-tab-item:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+:root[data-theme^='glass-'] .news-tab-item { background: linear-gradient(145deg, var(--glass-hi), var(--glass-lo)); -webkit-backdrop-filter: blur(22px) saturate(175%); backdrop-filter: blur(22px) saturate(175%); box-shadow: inset 0 1px 0 var(--glass-edge), var(--shadow); }
+.news-tab-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.4rem; color: var(--muted); font-size: 0.78rem; }
+.news-tab-meta strong { color: var(--accent-hover); font-weight: 600; }
+.news-tab-title { font-size: 1rem; font-weight: 650; line-height: 1.4; }
+.news-tab-summary { color: var(--muted); font-size: 0.85rem; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.news-tab-open { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-size: 0.8rem; font-weight: 600; }
+.news-tab-empty { justify-items: center; max-width: 560px; margin: 2rem auto; text-align: center; }
+.news-tab-empty h2 { margin: 0; font-size: 1.1rem; }
+.news-tab-empty p { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+.news-tab-icon { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 18px; background: var(--accent-soft); color: var(--accent-hover); }
+:root[data-motion='off'] .news-tab-item:hover { transform: none; }
+@media (prefers-reduced-motion: reduce) { .news-tab-item, .news-tab-item:hover { transition: none; transform: none; } }

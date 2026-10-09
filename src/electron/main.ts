@@ -42,6 +42,7 @@ const nebula = new NebulaIntegration({
   settingsPath: path.join(app.getPath('userData'), 'nebula-hub.json'),
   openSnapshot: async () => (accountManager.getActive() && !accountManager.isActiveGuest() ? accountManager.getStore().getSnapshot() : null),
   openProfileId: () => (accountManager.isActiveGuest() ? null : accountManager.getActive()?.id ?? null),
+  sessionOpen: () => accountManager.getActive() !== null,
   send: (channel, payload) => {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
   },
@@ -502,6 +503,8 @@ function registerIpcHandlers(): void {
   });
   // Nebula News' "Learn" card (news.finance.today): the main process asks, checks and caches it.
   ipcMain.handle('nebula:getFinanceNews', () => nebula.financeNews());
+  // The "Nebula News" tab (news.finance.articles), checked and cached by the main process too.
+  ipcMain.handle('nebula:getFinanceArticles', () => nebula.financeArticles());
   ipcMain.handle('nebula:setNewsFinance', async (_event, enabled: unknown) => {
     await nebula.setNewsFinance(enabled === true);
     return nebula.state();

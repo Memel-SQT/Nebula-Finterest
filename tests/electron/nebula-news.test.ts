@@ -24,7 +24,7 @@ jest.mock('@nebula/link', () => ({
   validateSchema: jest.requireActual('@nebula/link').validateSchema,
 }));
 
-import { NebulaIntegration, NEWS_FINANCE_CAPABILITY, NEWS_REFRESH_MS, NEWS_RETRY_MS } from '../../src/electron/nebula';
+import { NebulaIntegration, NEWS_FINANCE_CAPABILITY, NEWS_REFRESH_MS, NEWS_RETRY_MS, NEWS_TAB_REFRESH_MS } from '../../src/electron/nebula';
 
 const WIDGET = {
   title: 'Finance du jour',
@@ -36,6 +36,8 @@ const WIDGET = {
 
 let dir = '';
 let profile: string | null = 'profile-1';
+/** Open session: 'profile', 'guest' or null (locked app). */
+let session: 'profile' | 'guest' | null = 'profile';
 let visible = true;
 
 function integration(): NebulaIntegration {
@@ -45,6 +47,7 @@ function integration(): NebulaIntegration {
     settingsPath: path.join(dir, 'nebula-hub.json'),
     openSnapshot: async () => null,
     openProfileId: () => profile,
+    sessionOpen: () => session !== null,
     send: () => undefined,
     focusWindow: () => undefined,
     onDock: () => undefined,
@@ -56,6 +59,7 @@ describe('Nebula News "Learn" card (news.finance.today)', () => {
   beforeEach(async () => {
     dir = await fs.mkdtemp(path.join(os.tmpdir(), 'finterest-news-'));
     profile = 'profile-1';
+    session = 'profile';
     visible = true;
     mockLink.status = 'connected';
     mockLink.query.mockReset();
@@ -97,10 +101,12 @@ describe('Nebula News "Learn" card (news.finance.today)', () => {
     expect(await integration().financeNews()).toBeNull();
   });
 
-  it('never asks while no real profile is unlocked (locked app, guest session) or the window is hidden', async () => {
+  it('never asks while the app is locked or the window is hidden', async () => {
     mockLink.query.mockResolvedValue({ ok: true, value: WIDGET });
     profile = null;
+    session = null;
     expect(await integration().financeNews()).toBeNull();
+    session = 'profile';
     profile = 'profile-1';
     visible = false;
     expect(await integration().financeNews()).toBeNull();
@@ -129,6 +135,14 @@ describe('Nebula News "Learn" card (news.finance.today)', () => {
     nebula.clearNews();
     await nebula.financeNews(start + NEWS_REFRESH_MS + 1);
     expect(mockLink.query).toHaveBeenCalledTimes(3);
+  });
+
+  it('shows the articles in a guest session too (the request carries nothing of the session)', async () => {
+    mockLink.query.mockResolvedValue({ ok: true, value: WIDGET });
+    profile = null;
+    session = 'guest';
+    expect(await integration().financeNews()).toEqual(WIDGET);
+    expect(mockLink.query.mock.calls[0]).toEqual([NEWS_FINANCE_CAPABILITY]);
   });
 
   it('asks again 30 s after News did not answer (absent or still starting), so the card appears on its own', async () => {
@@ -171,5 +185,60 @@ describe('Nebula News "Learn" card (news.finance.today)', () => {
     await nebula.start();
     expect(nebula.state()).toMatchObject({ updatesByHub: true, newsFinance: true });
     nebula.dispose();
+  });
+});
+
+describe('"Nebula News" tab (news.finance.articles)', () => {
+  const ARTICLES = { title: 'Finance', updatedAt: '2026-10-09T08:00:00.000Z', items: [{ title: 'Livret A : ce qui change', source: 'La finance pour tous', publishedAt: '2026-10-09T06:00:00.000Z', deepLink: 'nebula://news/article?id=clx0abc123def456' }] };
+
+  beforeEach(async () => {
+    dir = await fs.mkdtemp(path.join(os.tmpdir(), 'finterest-news-'));
+    profile = 'profile-1';
+    session = 'profile';
+    visible = true;
+    mockLink.status = 'connected';
+    mockLink.query.mockReset();
+  });
+
+  afterEach(async () => {
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it('asks News without any parameter, also in a guest session, and returns the checked list', async () => {
+    mockLink.query.mockResolvedValue({ ok: true, value: ARTICLES });
+    profile = null;
+    session = 'guest';
+    expect(await integration().financeArticles()).toEqual({ state: 'ready', articles: ARTICLES });
+    expect(mockLink.query.mock.calls[0]).toEqual(['news.finance.articles']);
+  });
+
+  it('asks again 30 s after no answer, then keeps an answer 5 minutes', async () => {
+    mockLink.query.mockResolvedValueOnce({ ok: false, error: 'provider-offline' });
+    const nebula = integration();
+    const start = 1_000_000;
+    expect(await nebula.financeArticles(start)).toEqual({ state: 'unavailable' });
+    await nebula.financeArticles(start + NEWS_RETRY_MS - 1);
+    expect(mockLink.query).toHaveBeenCalledTimes(1);
+    mockLink.query.mockResolvedValue({ ok: true, value: ARTICLES });
+    expect((await nebula.financeArticles(start + NEWS_RETRY_MS)).state).toBe('ready');
+    await nebula.financeArticles(start + NEWS_RETRY_MS + NEWS_TAB_REFRESH_MS - 1);
+    expect(mockLink.query).toHaveBeenCalledTimes(2);
+  });
+
+  it('is empty when News has nothing or sends something invalid, off with the setting off, unavailable when locked or hidden', async () => {
+    mockLink.query.mockResolvedValue({ ok: true, value: null });
+    expect(await integration().financeArticles()).toEqual({ state: 'empty' });
+    mockLink.query.mockResolvedValue({ ok: true, value: { ...ARTICLES, items: [{ ...ARTICLES.items[0], deepLink: 'https://example.com' }] } });
+    expect(await integration().financeArticles()).toEqual({ state: 'empty' });
+    const off = integration();
+    await off.setNewsFinance(false);
+    expect(await off.financeArticles()).toEqual({ state: 'off' });
+    session = null;
+    expect(await integration().financeArticles()).toEqual({ state: 'unavailable' });
+    session = 'profile';
+    visible = false;
+    mockLink.query.mockClear();
+    expect(await integration().financeArticles()).toEqual({ state: 'unavailable' });
+    expect(mockLink.query).not.toHaveBeenCalled();
   });
 });

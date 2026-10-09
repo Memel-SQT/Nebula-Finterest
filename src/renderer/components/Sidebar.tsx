@@ -7,7 +7,7 @@ import { Avatar } from './atoms';
 import { Icon, type IconName } from './Icon';
 import logoUrl from '../../../assets/nebula-logo.svg';
 
-export type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'budgets' | 'projects' | 'wallets' | 'loans' | 'calculator' | 'profile' | 'settings';
+export type ActiveView = 'overview' | 'calendar' | 'fixed' | 'variable' | 'budgets' | 'projects' | 'wallets' | 'loans' | 'calculator' | 'news' | 'profile' | 'settings';
 type NavGroup = 'budget' | 'plans' | 'tools' | 'system';
 
 export const NAV_ITEMS: Array<{ view: ActiveView; group: NavGroup; labelKey: TranslationKey; icon: IconName }> = [
@@ -20,6 +20,8 @@ export const NAV_ITEMS: Array<{ view: ActiveView; group: NavGroup; labelKey: Tra
   { view: 'wallets', group: 'plans', labelKey: 'nav.wallets', icon: 'wallet' },
   { view: 'loans', group: 'tools', labelKey: 'nav.loans', icon: 'bank' },
   { view: 'calculator', group: 'tools', labelKey: 'nav.calculator', icon: 'calculator' },
+  // Nebula News' finance articles (Nebula Hub ADR-036): offered while Nebula Hub is there.
+  { view: 'news', group: 'tools', labelKey: 'nav.news', icon: 'newspaper' },
   { view: 'settings', group: 'system', labelKey: 'nav.settings', icon: 'gear' },
 ];
 
@@ -114,7 +116,7 @@ export function Sidebar({ active, account, nebulaState, syncError, version, lang
         {(Object.keys(GROUP_TITLES) as Array<keyof typeof GROUP_TITLES>).map((group) => (
           <div key={group} className="nav-group" role="group" aria-labelledby={`nav-group-${group}`}>
             <p className="nav-group-title" id={`nav-group-${group}`}>{t(GROUP_TITLES[group])}</p>
-            {NAV_ITEMS.filter((item) => item.group === group).map(navItem)}
+            {NAV_ITEMS.filter((item) => item.group === group && (item.view !== 'news' || connected)).map(navItem)}
           </div>
         ))}
         <div className="nav-group nav-group-system">

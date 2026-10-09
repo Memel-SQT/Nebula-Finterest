@@ -24,6 +24,7 @@ import { Dialog } from './components/Dialog';
 import { BudgetsPanel, type BudgetActions } from './components/BudgetsPanel';
 import { WalletsPanel, type WalletActions } from './components/WalletsPanel';
 import { LearnCard, type LearnState } from './components/LearnCard';
+import { NewsPanel } from './components/NewsPanel';
 
 /** Injected by Vite from package.json (vite.config.ts); empty under Jest. */
 const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '';
@@ -172,12 +173,12 @@ export function App() {
 
   const summary = useMemo(() => (snapshot ? computeBudgetSummary(snapshot, activeMonthKey) : null), [snapshot, activeMonthKey]);
 
-  // "Learn" card (Nebula News, news.finance.today): only on the overview of a real unlocked profile
-  // (never on the gate, profile creation or a guest session), with the Hub connected and the
+  // "Learn" card (Nebula News, news.finance.today): on the overview of an open session, profile or
+  // guest (never on the gate or profile creation), with the Hub connected and the
   // setting on; asked again every 30 s and when the window comes back while it is visible (the main
   // process only asks News 15 min after an answer, 30 s after none). The main process asks
   // News without any parameter, checks the payload and caches it; null hides the card.
-  const learnActive = Boolean(snapshot) && Boolean(activeAccount) && activeAccount?.id !== GUEST_ACCOUNT_ID
+  const learnActive = Boolean(snapshot) && Boolean(activeAccount)
     && activeView === 'overview' && nebulaState?.connected === true && nebulaState.newsFinance !== false;
   useEffect(() => {
     if (!learnActive) {
@@ -613,6 +614,7 @@ export function App() {
     budgets: { eyebrow: 'view.budgets.eyebrow', title: 'view.budgets.title' },
     projects: { eyebrow: 'view.projects.eyebrow', title: 'view.projects.title' },
     wallets: { eyebrow: 'view.wallets.eyebrow', title: 'view.wallets.title' },
+    news: { eyebrow: 'view.news.eyebrow', title: 'view.news.title' },
   };
 
   const showKpis = ['overview', 'fixed', 'variable', 'loans'].includes(activeView);
@@ -710,6 +712,8 @@ export function App() {
           ) : null}
 
           {activeView === 'calculator' ? <AdvancedCalculator form={interestForm} language={language} onChange={setInterestForm} /> : null}
+
+          {activeView === 'news' ? <NewsPanel language={language} onOpen={(deepLink) => void handleOpenNews(deepLink)} /> : null}
 
           {activeView === 'budgets' || activeView === 'projects' ? (
             <BudgetsPanel key={activeView} scale={activeView === 'budgets' ? 'regular' : 'project'} snapshot={snapshot} monthKey={activeMonthKey} language={language} actions={budgetActions} />

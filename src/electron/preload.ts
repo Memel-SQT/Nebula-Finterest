@@ -62,6 +62,7 @@ contextBridge.exposeInMainWorld('finterest', {
   onOpenMonth: (callback: (monthKey: string) => void) => subscribe('nebula:open-month', callback),
   openNebulaHub: () => ipcRenderer.invoke('nebula:openHub'),
   getFinanceNews: () => ipcRenderer.invoke('nebula:getFinanceNews'),
+  getFinanceArticles: () => ipcRenderer.invoke('nebula:getFinanceArticles'),
   setNewsFinance: (enabled: boolean) => ipcRenderer.invoke('nebula:setNewsFinance', enabled),
   openNewsLink: (deepLink: string) => ipcRenderer.invoke('nebula:openNewsLink', deepLink),
   isDocked: () => ipcRenderer.invoke('nebula:isDocked'),
