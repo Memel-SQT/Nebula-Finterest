@@ -38,7 +38,7 @@ const GROUP_TITLES: Record<Exclude<NavGroup, 'system'>, TranslationKey> = {
  * 1100 px it becomes an icon rail (labels stay as tooltips and for screen readers), below 720 px
  * a bar at the top (styles.css).
  */
-export function Sidebar({ active, account, nebulaState, syncError, version, language, onNavigate, onLock, onOpenHub }: {
+export function Sidebar({ active, account, nebulaState, syncError, version, language, onNavigate, onLock, onOpenHub, brandName, logo }: {
   active: ActiveView;
   account: LocalAccountSummary | null;
   nebulaState: NebulaState | null;
@@ -48,6 +48,9 @@ export function Sidebar({ active, account, nebulaState, syncError, version, lang
   onNavigate: (view: ActiveView) => void;
   onLock: () => void;
   onOpenHub: () => void;
+  /** The app's name and logo, from an active appearance pack when there is one. */
+  brandName?: string;
+  logo?: string | null;
 }) {
   const t = (key: TranslationKey, params?: Record<string, string>) => translate(language, key, params);
   const connected = Boolean(nebulaState?.connected);
@@ -76,9 +79,9 @@ export function Sidebar({ active, account, nebulaState, syncError, version, lang
   return (
     <aside className="sidebar">
       <div className="brand-lockup">
-        <img src={logoUrl} alt="" width={40} height={40} />
+        <img src={logo ?? logoUrl} alt="" width={40} height={40} />
         <div>
-          <strong>{t('app.name')}</strong>
+          <strong>{brandName ?? t('app.name')}</strong>
           <span>{t('app.tagline')}</span>
         </div>
       </div>

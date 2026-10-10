@@ -1,6 +1,7 @@
 import type { BackupFile, Budget, BudgetSnapshot, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus, Wallet, WalletMovement } from './types';
 import type { LocalAccountSummary } from './accounts';
 import type { NewsTab, NewsWidget } from './nebula';
+import type { PackView } from './packs';
 
 declare global {
   interface Window {
@@ -41,6 +42,9 @@ declare global {
       installUpdate(): Promise<void>;
       /** Tints the native window controls of the frameless window; only known theme names are accepted. */
       setWindowTheme(theme: string): Promise<void>;
+      /** Appearance packs of installed Nebula apps (Nebula Hub NEBULA_LINK.md § 18). */
+      getAppearancePacks(): Promise<PackView[]>;
+      onAppearancePacks(callback: (packs: PackView[]) => void): () => void;
       checkForUpdates(): Promise<void>;
       getSyncStatus(): Promise<SyncStatus>;
       /** `reloaded` tells the renderer to re-read accounts and the snapshot, which the sync may have replaced. */

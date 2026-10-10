@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { packLabel, type PackView } from '@shared/packs';
 import type { NebulaState, SyncStatus, UpdateStatus } from '@shared/types';
 import type { LocalAccountSummary } from '@shared/accounts';
 import { useEffect } from 'react';
@@ -58,6 +59,9 @@ export function SettingsPanel({
   onSyncNow,
   restorable = [],
   onRefreshRestorable,
+  packs = [],
+  packThemeId = null,
+  onPackThemeChange,
   onRestoreProfile,
   nebulaState,
   followNebula = true,
@@ -88,6 +92,10 @@ export function SettingsPanel({
   /** Profiles in the copy folder that this computer does not have (v0.1.37). */
   restorable?: LocalAccountSummary[];
   onRefreshRestorable?: () => Promise<void>;
+  /** Themes shared by installed Nebula apps (Nebula Hub NEBULA_LINK.md § 18), after the family's own. */
+  packs?: PackView[];
+  packThemeId?: string | null;
+  onPackThemeChange?: (themeId: string) => void;
   onRestoreProfile?: (id: string) => Promise<void>;
   nebulaState?: NebulaState | null;
   followNebula?: boolean;
@@ -131,15 +139,20 @@ export function SettingsPanel({
           <p className="settings-label" id="settings-theme-label">{t('settings.theme')}</p>
           <div className="segmented" role="radiogroup" aria-labelledby="settings-theme-label">
             {FAMILY_THEMES.map((option) => (
-              <button key={option.id} type="button" role="radio" aria-checked={theme === option.id} className={theme === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onThemeChange(option.id)}>
+              <button key={option.id} type="button" role="radio" aria-checked={!packThemeId && theme === option.id} className={!packThemeId && theme === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onThemeChange(option.id)}>
                 {t(option.labelKey)}
+              </button>
+            ))}
+            {packs.flatMap((pack) => pack.themes).map((option) => (
+              <button key={option.id} type="button" role="radio" aria-checked={packThemeId === option.id} className={packThemeId === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onPackThemeChange?.(option.id)}>
+                {packLabel(option.label, language)}
               </button>
             ))}
           </div>
           <p className="settings-sublabel" id="settings-historic-label">{t('settings.historicThemes')}</p>
           <div className="segmented segmented-quiet" role="radiogroup" aria-labelledby="settings-historic-label">
             {HISTORIC_THEMES.map((option) => (
-              <button key={option.id} type="button" role="radio" aria-checked={theme === option.id} className={theme === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onThemeChange(option.id)}>
+              <button key={option.id} type="button" role="radio" aria-checked={!packThemeId && theme === option.id} className={!packThemeId && theme === option.id ? 'active' : ''} data-sound="toggle" onClick={() => onThemeChange(option.id)}>
                 {t(option.labelKey)}
               </button>
             ))}
@@ -158,6 +171,7 @@ export function SettingsPanel({
           ) : null}
 
           <p className="settings-label">{t('settings.accent')}</p>
+          {packThemeId ? <p className="settings-hint">{t('settings.packAccentHint')}</p> : null}
           <div className="swatch-row" role="radiogroup" aria-label={t('settings.accent')}>
             {ACCENT_PRESETS.map((preset) => (
               <button

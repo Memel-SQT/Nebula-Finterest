@@ -25,6 +25,8 @@ import { BudgetsPanel, type BudgetActions } from './components/BudgetsPanel';
 import { WalletsPanel, type WalletActions } from './components/WalletsPanel';
 import { LearnCard, type LearnState } from './components/LearnCard';
 import { NewsPanel } from './components/NewsPanel';
+import { useAppearancePacks, useAppliedPackTheme, usePackThemeChoice } from './packTheme';
+import { findPackTheme } from '@shared/packs';
 
 /** Injected by Vite from package.json (vite.config.ts); empty under Jest. */
 const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '';
@@ -45,6 +47,12 @@ export function App() {
   const [language, setLanguage] = useLanguage();
   const [theme, setTheme, resolvedTheme] = useTheme();
   const [appearance, updateAppearance] = useAppearance(resolvedTheme);
+  // Appearance packs of installed Nebula apps (Nebula Hub NEBULA_LINK.md § 18): a pack theme is
+  // drawn over the built-in one, with this app's name and logo from the pack.
+  const packs = useAppearancePacks();
+  const [packThemeId, setPackThemeId] = usePackThemeChoice();
+  const activePack = useMemo(() => findPackTheme(packs, packThemeId), [packs, packThemeId]);
+  useAppliedPackTheme(activePack, resolvedTheme, appearance);
   const t = (key: TranslationKey, params?: Record<string, string>) => translate(language, key, params);
 
   const [snapshot, setSnapshot] = useState<BudgetSnapshot | null>(null);
@@ -86,8 +94,14 @@ export function App() {
 
   // The frameless window keeps Windows' own controls: tint them like the page.
   useEffect(() => {
-    void window.finterest?.setWindowTheme?.(resolvedTheme).catch(() => undefined);
-  }, [resolvedTheme]);
+    void window.finterest?.setWindowTheme?.(activePack?.theme.id ?? resolvedTheme).catch(() => undefined);
+  }, [resolvedTheme, activePack]);
+
+  // The window title (taskbar, Alt+Tab) and the brand follow the pack's name for this app.
+  const brandName = activePack?.pack.name ?? t('app.name');
+  useEffect(() => {
+    document.title = brandName;
+  }, [brandName]);
 
   useEffect(() => {
     configureSounds({ enabled: appearance.soundEnabled, volume: appearance.soundVolume });
@@ -123,12 +137,13 @@ export function App() {
   useEffect(() => {
     if (!followNebula) return undefined;
     return window.finterest?.onNebulaAppearance((payload) => {
-      const patch = nebulaAppearancePatch(payload, theme);
+      const patch = nebulaAppearancePatch(payload, theme, packs);
       if (patch.theme) setTheme(patch.theme);
+      if (patch.packTheme !== undefined) setPackThemeId(patch.packTheme);
       updateAppearance(patch.appearance);
       if (patch.language) setLanguage(patch.language);
     });
-  }, [followNebula, theme, setTheme, updateAppearance, setLanguage]);
+  }, [followNebula, theme, setTheme, updateAppearance, setLanguage, packs, setPackThemeId]);
 
   // After a reinstall, the profile created on this computer is offered the latest backup of
   // Documents\Nebula Finterest, once (new profiles start with example data: "empty" cannot tell).
@@ -634,6 +649,8 @@ export function App() {
           onNavigate={setActiveView}
           onLock={() => void handleSwitchAccount()}
           onOpenHub={() => void handleOpenNebulaHub()}
+          brandName={brandName}
+          logo={activePack?.pack.markUrl ?? null}
         />
 
         <div className="workspace-column">
@@ -748,7 +765,13 @@ export function App() {
               onExport={handleExportBackup}
               onImport={handleImportBackup}
               onLanguageChange={setLanguage}
-              onThemeChange={setTheme}
+              onThemeChange={(next) => {
+                setTheme(next);
+                setPackThemeId(null);
+              }}
+              packs={packs}
+              packThemeId={activePack?.theme.id ?? null}
+              onPackThemeChange={setPackThemeId}
               onAppearanceChange={updateAppearance}
               onCheckForUpdates={() => window.finterest.checkForUpdates()}
               onInstallUpdate={() => window.finterest.installUpdate()}

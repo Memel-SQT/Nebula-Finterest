@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { parseAppearance, type Appearance } from './appearance';
 import type { Language } from './i18n';
 import { isLegacyTheme, type ResolvedTheme, type Theme } from './theme';
+import { findPackTheme, type PackView } from '@shared/packs';
 
 /**
  * Nebula Hub, renderer side (v0.1.37): the "Follow the Nebula appearance" choice and how the
@@ -35,12 +36,15 @@ export function useFollowNebula(): [boolean, (follow: boolean) => void] {
  * parser (an unknown value never applies). An `old-*` theme chosen here stays: it is a local choice
  * the Hub never imposes, only the rest follows.
  */
-export function nebulaAppearancePatch(payload: unknown, currentTheme: Theme | ResolvedTheme): { theme?: Theme; appearance: Appearance; language?: Language } {
+export function nebulaAppearancePatch(payload: unknown, currentTheme: Theme | ResolvedTheme, packs: readonly PackView[] = []): { theme?: Theme; packTheme?: string | null; appearance: Appearance; language?: Language } {
   const record = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {};
   const appearance = parseAppearance(JSON.stringify(record));
-  const theme = HUB_THEMES.includes(record.theme as Theme) && !(currentTheme !== 'system' && isLegacyTheme(currentTheme)) ? (record.theme as Theme) : undefined;
   const language = record.language === 'fr' || record.language === 'en' ? record.language : undefined;
-  return { theme, appearance, language };
+  // A theme of an installed appearance pack (Nebula Hub NEBULA_LINK.md § 18): applied over the
+  // built-in theme, which stays as it is (the fallback when the pack goes).
+  if (typeof record.theme === 'string' && findPackTheme(packs, record.theme)) return { packTheme: record.theme, appearance, language };
+  const theme = HUB_THEMES.includes(record.theme as Theme) && !(currentTheme !== 'system' && isLegacyTheme(currentTheme)) ? (record.theme as Theme) : undefined;
+  return { theme, ...(theme ? { packTheme: null } : {}), appearance, language };
 }
 
 /** The window shown inside Nebula Hub (Hub mode), or recreated when leaving it: no splash then. */

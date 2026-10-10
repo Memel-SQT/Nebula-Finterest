@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { PackView } from '../shared/packs';
 import type { BackupFile, Budget, Loan, NebulaState, PendingBackup, SyncStatus, UpdateStatus, Wallet, WalletMovement } from '../shared/types';
 
 function subscribe<T>(channel: string, callback: (payload: T) => void): () => void {
@@ -42,6 +43,8 @@ contextBridge.exposeInMainWorld('finterest', {
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => subscribe('update:status', callback),
   installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
   setWindowTheme: (theme: string) => ipcRenderer.invoke('app:setWindowTheme', theme),
+  getAppearancePacks: () => ipcRenderer.invoke('packs:get'),
+  onAppearancePacks: (callback: (packs: PackView[]) => void) => subscribe<PackView[]>('packs:changed', callback),
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
   getSyncStatus: () => ipcRenderer.invoke('sync:getStatus'),
   chooseSyncDirectory: () => ipcRenderer.invoke('sync:chooseDirectory'),

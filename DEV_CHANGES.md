@@ -1,3 +1,11 @@
+## [2026-10-10] - Nebula Finterest Change Session #52
+- Files added: `src/shared/packs.ts` (+ test), `src/electron/packs.ts`, `src/renderer/packTheme.ts`.
+- Files modified: `package.json` / `package-lock.json` (0.1.44, `@nebula/link` 1.2.0), `src/electron/{main,preload}.ts`, `src/shared/global.d.ts`, `src/renderer/{App,nebula,nebula.test,i18n}.ts*`, `src/renderer/components/{Sidebar,SettingsPanel}.tsx`, `README.md`, `DEV_CHANGES.md`.
+- **Appearance packs** (Nebula Hub NEBULA_LINK.md § 18, ADR-035): an installed Nebula app can share extra themes, display names and logos with the family.
+  - Main process: `readPackViews` reads them with the SDK (`readAppearancePacks`: strict check, owner installed), from the family's shared folder or next to a test-mode Hub's session file; at startup and when the window comes back; `packs:get` / `packs:changed`. Only what the renderer shows crosses (themes, this app's name and logo as a `data:` image URL), never the owner's path. `setWindowTheme` also accepts a pack theme (its own chrome colours).
+  - Renderer: the pack theme is kept apart from the built-in theme (`finterest-pack-theme`), offered in Settings after the family's themes (accent colours do not apply to it, a note says so), drawn over the built-in theme of its scheme (`data-theme` kept, `data-pack-theme`, inline tokens; the previous inline accent values are restored when it goes); the window title, the sidebar name and logo follow the pack; an appearance from the Hub naming a pack theme installed here applies it, a built-in one leaves it. Without the pack, nothing changes.
+- **Verification**: typecheck, lint, 210 tests (+4: pack view keeps only this app's name and logo, theme found only with its pack, Hub appearance with a pack theme / unknown pack theme). Run end to end on a throwaway profile with a test pack: offered in Settings, applied (colours, name, logo, title), back to a built-in theme cleanly.
+
 ## [2026-10-09] - Nebula Finterest Change Session #51
 - Files added: `src/renderer/components/NewsPanel.tsx`.
 - Files modified: `package.json` / `package-lock.json` (0.1.43), `nebula.app.json`, `src/shared/{nebula,nebula.test,global.d}.ts`, `src/electron/{nebula,main,preload}.ts`, `src/renderer/{App,i18n,styles}.*`, `src/renderer/components/{Sidebar,Icon}.tsx`, `tests/electron/nebula-news.test.ts`, `README.md`, `DEV_CHANGES.md`.

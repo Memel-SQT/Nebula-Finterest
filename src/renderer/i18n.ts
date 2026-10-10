@@ -90,6 +90,7 @@ export type TranslationKey =
   | 'error.saveBudget'
   | 'error.saveWallet'
   | 'learn.eyebrow'
+  | 'settings.packAccentHint'
   | 'nav.news'
   | 'view.news.eyebrow'
   | 'view.news.title'
@@ -348,6 +349,7 @@ export const fr: Record<TranslationKey, string> = {
   'error.saveWallet': 'Impossible d’enregistrer la cagnotte.',
   'learn.eyebrow': 'Apprendre',
   'learn.open': 'Lire dans Nebula News',
+  'settings.packAccentHint': 'Ce thème a ses propres couleurs : les couleurs d’accent ne s’y appliquent pas.',
   'nav.news': 'Nebula News',
   'view.news.eyebrow': 'Nebula News',
   'view.news.title': 'Actus finance',
@@ -765,6 +767,7 @@ export const en: Record<TranslationKey, string> = {
   'error.saveWallet': 'Could not save the pot.',
   'learn.eyebrow': 'Learn',
   'learn.open': 'Read in Nebula News',
+  'settings.packAccentHint': 'This theme has its own colors: accent colors do not apply to it.',
   'nav.news': 'Nebula News',
   'view.news.eyebrow': 'Nebula News',
   'view.news.title': 'Finance news',

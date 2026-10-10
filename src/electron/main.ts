@@ -5,6 +5,8 @@ import { DOCK_LOAD_TIMEOUT_MS, dockedWindowSteps, isNewsDeepLink } from '../shar
 import { autoUpdater } from 'electron-updater';
 import { AccountManager } from './accounts';
 import { backupFileName, readBackupSummary, latestBackup, rotateExisting, type BackupSummary } from './backups';
+import { packChrome, readPackViews } from './packs';
+import type { PackView } from '../shared/packs';
 import { NebulaIntegration } from './nebula';
 import type { SyncStatus, UpdateStatus } from '../shared/types';
 
@@ -73,6 +75,8 @@ if (!isBackupRun && !app.requestSingleInstanceLock()) {
 
     registerIpcHandlers();
     await accountManager.initialize();
+    refreshPacks();
+    app.on('browser-window-focus', () => refreshPacks());
     await createWindow();
     await nebula.start().catch(() => undefined);
     nebula.routeArgv(process.argv);
@@ -118,19 +122,35 @@ const WINDOW_CHROME: Record<string, { page: string; ink: string }> = {
 };
 /** Height of the drag strip (.titlebar-drag in styles.css) and of the window controls. */
 const TITLE_BAR_HEIGHT = 36;
-let windowTheme = 'nebula-dark';
+let windowChrome = WINDOW_CHROME['nebula-dark'];
+
+/**
+ * Appearance packs shared by installed Nebula apps (Nebula Hub NEBULA_LINK.md § 18): read at
+ * startup and whenever the window comes back, pushed to the renderer when they change.
+ */
+let packs: PackView[] = [];
+
+function refreshPacks(): void {
+  const next = readPackViews(process.env);
+  if (JSON.stringify(next) === JSON.stringify(packs)) return;
+  packs = next;
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('packs:changed', packs);
+}
 
 function titleBarOverlay(): Electron.TitleBarOverlayOptions {
   // Transparent: the app's own background (and its animated glow) shows behind the controls.
-  return { color: 'rgba(0, 0, 0, 0)', symbolColor: WINDOW_CHROME[windowTheme].ink, height: TITLE_BAR_HEIGHT };
+  return { color: 'rgba(0, 0, 0, 0)', symbolColor: windowChrome.ink, height: TITLE_BAR_HEIGHT };
 }
 
 function setWindowTheme(theme: unknown): void {
-  if (typeof theme !== 'string' || !Object.hasOwn(WINDOW_CHROME, theme)) return;
-  windowTheme = theme;
+  if (typeof theme !== 'string') return;
+  // A built-in theme from the table, or a theme of an installed appearance pack.
+  const chrome = Object.hasOwn(WINDOW_CHROME, theme) ? WINDOW_CHROME[theme] : packChrome(packs, theme);
+  if (!chrome) return;
+  windowChrome = chrome;
   const window = mainWindow;
   if (!window || window.isDestroyed()) return;
-  window.setBackgroundColor(WINDOW_CHROME[theme].page);
+  window.setBackgroundColor(chrome.page);
   // The docked window has no frame at all, so no controls to tint.
   if (!dock.docked) window.setTitleBarOverlay(titleBarOverlay());
 }
@@ -220,7 +240,7 @@ async function createWindow(options: { docked?: boolean; bounds?: Bounds; restor
     // moves and sizes it.
     ...(docked ? { thickFrame: false, resizable: false, movable: false, minimizable: false, maximizable: false, fullscreenable: false } : {}),
     show: false,
-    backgroundColor: WINDOW_CHROME[windowTheme].page,
+    backgroundColor: windowChrome.page,
     title: 'Nebula Finterest',
     icon: path.join(__dirname, '../../assets/icon.png'),
     webPreferences: {
@@ -415,6 +435,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('budget:importBackup', async (_event, backup: unknown) => accountManager.getStore().importBackup(backup, accountManager.getActiveName()));
   ipcMain.handle('budget:getDatabasePath', async () => accountManager.getStore().getDatabasePath());
   ipcMain.handle('app:setWindowTheme', (_event, theme: unknown) => setWindowTheme(theme));
+  ipcMain.handle('packs:get', () => packs);
   ipcMain.handle('app:installUpdate', () => {
     autoUpdater.quitAndInstall();
   });
