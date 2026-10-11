@@ -72,6 +72,10 @@ declare global {
       getFinanceNews(): Promise<NewsWidget | null>;
       /** The "Nebula News" tab: Nebula News' finance articles (news.finance.articles), checked in the main process. */
       getFinanceArticles(): Promise<NewsTab>;
+      /** The recovery key of the family's save key (ADR-040), for an open profile only. */
+      getSaveRecoveryCode(): Promise<string | null>;
+      /** Adds another computer's save key; false when the code is not a recovery key. */
+      importSaveRecoveryCode(code: string): Promise<boolean>;
       setNewsFinance(enabled: boolean): Promise<NebulaState>;
       /** Opens a nebula://news/ link (re-checked in the main process); false when it cannot. */
       openNewsLink(deepLink: string): Promise<boolean>;

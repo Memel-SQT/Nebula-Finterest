@@ -252,7 +252,7 @@ export type TranslationKey =
   | 'sync.lastSync'
   | 'sync.warning'
   | 'sync.guestNote'
-  | 'sync.restorable' | 'sync.restore' | 'sync.restoreNote' | 'sync.restored' | 'backup.rootNote' | 'import.pending.title' | 'import.latest.title' | 'import.pending.body' | 'import.latest.body' | 'import.pending.source' | 'import.pending.confirm' | 'import.pending.dismiss' | 'import.pending.locked' | 'import.done' | 'nebula.title' | 'nebula.connected' | 'nebula.offline' | 'nebula.follow' | 'nebula.followHint' | 'nebula.updatesByHub' | 'nebula.updatesByHubHint' | 'nebula.privacy' | 'nebula.apps' | 'nebula.notInstalled' | 'dock.bar' | 'dock.detach'
+  | 'sync.restorable' | 'sync.restore' | 'sync.restoreNote' | 'sync.restored' | 'backup.rootNote' | 'saveKey.title' | 'saveKey.hint' | 'saveKey.show' | 'saveKey.hide' | 'saveKey.warning' | 'saveKey.import' | 'saveKey.add' | 'saveKey.added' | 'saveKey.invalid' | 'saveKey.error' | 'error.backupKeyUnknown' | 'import.pending.title' | 'import.latest.title' | 'import.pending.body' | 'import.latest.body' | 'import.pending.source' | 'import.pending.confirm' | 'import.pending.dismiss' | 'import.pending.locked' | 'import.done' | 'nebula.title' | 'nebula.connected' | 'nebula.offline' | 'nebula.follow' | 'nebula.followHint' | 'nebula.updatesByHub' | 'nebula.updatesByHubHint' | 'nebula.privacy' | 'nebula.apps' | 'nebula.notInstalled' | 'dock.bar' | 'dock.detach'
   | 'error.invalidName'
   | 'error.invalidDate'
   | 'error.invalidMonth'
@@ -567,6 +567,17 @@ export const fr: Record<TranslationKey, string> = {
   'error.negativeAmount': 'Le montant doit être un nombre positif.',
   'error.storeNotInitialized': "Le budget n'est pas encore prêt.",
   'error.invalidBackup': 'Le fichier de sauvegarde est invalide.',
+  'error.backupKeyUnknown': 'Cette sauvegarde a été chiffrée sur un autre ordinateur. Ajoutez sa clé de récupération (Réglages, Données) pour l’ouvrir.',
+  'saveKey.title': 'Clé de sauvegarde',
+  'saveKey.hint': 'Vos sauvegardes, exports et copies sont chiffrés avec la clé de sauvegarde des apps Nebula, protégée par Windows pour votre compte. Pour les rouvrir sur un autre ordinateur, notez la clé de récupération.',
+  'saveKey.show': 'Afficher la clé de récupération',
+  'saveKey.hide': 'Masquer la clé',
+  'saveKey.warning': 'Gardez-la en lieu sûr : elle ouvre toutes vos sauvegardes Nebula.',
+  'saveKey.import': 'Ajouter la clé d’un autre ordinateur',
+  'saveKey.add': 'Ajouter',
+  'saveKey.added': 'Clé ajoutée : les sauvegardes de cet ordinateur s’ouvrent maintenant ici.',
+  'saveKey.invalid': 'Ce n’est pas une clé de récupération valide (64 caractères 0-9 et A-F).',
+  'saveKey.error': 'La clé n’a pas pu être enregistrée.',
   'error.openAccount': "Impossible d'ouvrir ce compte.",
   'error.loadBudget': 'Impossible de charger le budget.',
   'error.saveIncome': "Impossible d'enregistrer le revenu.",
@@ -985,6 +996,17 @@ export const en: Record<TranslationKey, string> = {
   'error.negativeAmount': 'The amount must be a positive number.',
   'error.storeNotInitialized': 'The budget is not ready yet.',
   'error.invalidBackup': 'The backup file is invalid.',
+  'error.backupKeyUnknown': 'This backup was encrypted on another computer. Add its recovery key (Settings, Data) to open it.',
+  'saveKey.title': 'Backup key',
+  'saveKey.hint': 'Your backups, exports and copies are encrypted with the Nebula apps’ backup key, protected by Windows for your account. To open them on another computer, write down the recovery key.',
+  'saveKey.show': 'Show the recovery key',
+  'saveKey.hide': 'Hide the key',
+  'saveKey.warning': 'Keep it somewhere safe: it opens all your Nebula backups.',
+  'saveKey.import': 'Add another computer’s key',
+  'saveKey.add': 'Add',
+  'saveKey.added': 'Key added: that computer’s backups now open here.',
+  'saveKey.invalid': 'This is not a valid recovery key (64 characters 0-9 and A-F).',
+  'saveKey.error': 'The key could not be saved.',
   'error.openAccount': 'Unable to open this account.',
   'error.loadBudget': 'Unable to load the budget.',
   'error.saveIncome': 'Unable to save the income.',
@@ -1110,6 +1132,7 @@ const ERROR_CODE_TO_KEY: Record<string, TranslationKey> = {
   ERR_NEGATIVE_AMOUNT: 'error.negativeAmount',
   ERR_STORE_NOT_INITIALIZED: 'error.storeNotInitialized',
   ERR_INVALID_BACKUP: 'error.invalidBackup',
+  ERR_BACKUP_KEY_UNKNOWN: 'error.backupKeyUnknown',
   ERR_GUEST_READONLY: 'error.guestReadonly',
   ERR_INVALID_NAME: 'error.invalidName',
   ERR_INVALID_DATE: 'error.invalidDate',

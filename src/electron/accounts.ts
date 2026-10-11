@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { app } from 'electron';
 import { BudgetStore } from './store';
 import { SyncManager } from './sync';
+import type { SaveSealer } from './saves';
 import { writeFileAtomic } from './fsutil';
 import type { BudgetSnapshot, FullBackupFile, SyncStatus } from '../shared/types';
 import { GUEST_ACCOUNT_ID } from '../shared/accounts';
@@ -35,8 +36,8 @@ export class AccountManager {
   private active: { record: AccountRecord; store: BudgetStore } | null = null;
   private readonly failedAttempts = new Map<string, { count: number; lockedUntil: number }>();
 
-  constructor(onSyncStatus?: (status: SyncStatus) => void) {
-    this.sync = new SyncManager(path.join(this.userData, 'sync-settings.json'), onSyncStatus);
+  constructor(onSyncStatus?: (status: SyncStatus) => void, sealer: SaveSealer | null = null) {
+    this.sync = new SyncManager(path.join(this.userData, 'sync-settings.json'), onSyncStatus, sealer);
   }
 
   /** `withSync: false` is used by the headless pre-uninstall backup, which must only read local data. */

@@ -9,6 +9,7 @@ import { isLegacyTheme, type ResolvedTheme, type Theme } from '../theme';
 import { ACCENT_PRESETS, DEFAULT_APPEARANCE, type Appearance, type BackgroundEffect, type MotionLevel } from '../appearance';
 import { playSound } from '../sound';
 import { Icon, type IconName } from './Icon';
+import { SaveKeySection } from './SaveKeySection';
 
 const BACKGROUNDS: Array<{ id: BackgroundEffect; icon: IconName }> = [
   { id: 'glow', icon: 'sparkles' },
@@ -306,6 +307,8 @@ export function SettingsPanel({
               </div>
               <small className="path-note">{t('settings.path', { path: databasePath || t('settings.loading') })}</small>
               <small className="path-note">{t('backup.rootNote')}</small>
+              <h3 className="save-key-title"><Icon name="shield" size={14} />{t('saveKey.title')}</h3>
+              <SaveKeySection language={language} />
             </>
           )}
         </div>

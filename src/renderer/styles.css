@@ -892,3 +892,10 @@ button.ghost.pressed { border-color: var(--accent); background: var(--accent-sof
 .news-tab-icon { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 18px; background: var(--accent-soft); color: var(--accent-hover); }
 :root[data-motion='off'] .news-tab-item:hover { transform: none; }
 @media (prefers-reduced-motion: reduce) { .news-tab-item, .news-tab-item:hover { transition: none; transform: none; } }
+
+/* The family's save key (Nebula Hub ADR-040). */
+.save-key-title { display: flex; align-items: center; gap: 0.4rem; margin: 1rem 0 0; font-size: 0.8rem; }
+.save-key-code { display: grid; gap: 0.4rem; margin: 0 0 0.7rem; }
+.save-key-code code { word-break: break-all; letter-spacing: 0.04em; font-size: 0.78rem; }
+.save-key-input { flex: 1 1 280px; min-width: 0; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.save-key-warning { display: flex; align-items: center; gap: 0.35rem; color: var(--warning); }

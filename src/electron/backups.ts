@@ -10,6 +10,10 @@ import type { PendingBackup } from '../shared/types';
  */
 export type BackupSummary = PendingBackup;
 
+/** Gives the plain bytes of a save, sealed (ADR-040) or older plain; throws when it cannot be opened. */
+export type OpenSave = (bytes: Buffer) => Promise<Buffer>;
+const asIs: OpenSave = async (bytes) => bytes;
+
 const pad = (value: number) => String(value).padStart(2, '0');
 
 function stamp(date: Date): string {
@@ -35,11 +39,11 @@ export async function rotateExisting(file: string): Promise<void> {
 }
 
 /** Reads a backup's summary, or null when it is missing, too large or not a Finterest backup. */
-export async function readBackupSummary(file: string, maxBytes: number): Promise<BackupSummary | null> {
+export async function readBackupSummary(file: string, maxBytes: number, open: OpenSave = asIs): Promise<BackupSummary | null> {
   try {
     const stats = await fs.stat(file);
     if (!stats.isFile() || stats.size > maxBytes) return null;
-    const parsed = JSON.parse((await fs.readFile(file, 'utf8')).replace(/^﻿/, '')) as Record<string, unknown>;
+    const parsed = JSON.parse((await open(await fs.readFile(file))).toString('utf8').replace(/^\uFEFF/, '')) as Record<string, unknown>;
     if (!parsed || parsed.app !== 'Finterest' || parsed.version !== 1) return null;
     const accounts = Array.isArray(parsed.accounts)
       ? parsed.accounts.map((account) => (account && typeof account === 'object' ? String((account as Record<string, unknown>).name ?? '').trim() : '')).filter(Boolean)
@@ -54,7 +58,7 @@ export async function readBackupSummary(file: string, maxBytes: number): Promise
 }
 
 /** The most recent valid backup of the root folder, or null. */
-export async function latestBackup(dir: string, maxBytes: number): Promise<BackupSummary | null> {
+export async function latestBackup(dir: string, maxBytes: number, open: OpenSave = asIs): Promise<BackupSummary | null> {
   let names: string[];
   try {
     names = (await fs.readdir(dir)).filter((name) => name.toLowerCase().endsWith('.json'));
@@ -63,7 +67,7 @@ export async function latestBackup(dir: string, maxBytes: number): Promise<Backu
   }
   const dated = await Promise.all(names.map(async (name) => ({ name, mtime: await fs.stat(path.join(dir, name)).then((stats) => stats.mtimeMs, () => 0) })));
   for (const { name } of dated.sort((a, b) => b.mtime - a.mtime)) {
-    const summary = await readBackupSummary(path.join(dir, name), maxBytes);
+    const summary = await readBackupSummary(path.join(dir, name), maxBytes, open);
     if (summary) return summary;
   }
   return null;

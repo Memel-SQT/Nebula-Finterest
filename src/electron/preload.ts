@@ -66,6 +66,8 @@ contextBridge.exposeInMainWorld('finterest', {
   openNebulaHub: () => ipcRenderer.invoke('nebula:openHub'),
   getFinanceNews: () => ipcRenderer.invoke('nebula:getFinanceNews'),
   getFinanceArticles: () => ipcRenderer.invoke('nebula:getFinanceArticles'),
+  getSaveRecoveryCode: () => ipcRenderer.invoke('saves:recoveryCode'),
+  importSaveRecoveryCode: (code: string) => ipcRenderer.invoke('saves:importRecoveryCode', code),
   setNewsFinance: (enabled: boolean) => ipcRenderer.invoke('nebula:setNewsFinance', enabled),
   openNewsLink: (deepLink: string) => ipcRenderer.invoke('nebula:openNewsLink', deepLink),
   isDocked: () => ipcRenderer.invoke('nebula:isDocked'),

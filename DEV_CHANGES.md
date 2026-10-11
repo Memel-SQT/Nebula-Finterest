@@ -1,3 +1,14 @@
+## [2026-10-11] - Nebula Finterest Change Session #53
+- Files added: `src/electron/saves.ts`, `src/renderer/components/SaveKeySection.tsx`, `tests/electron/sealed-saves.test.ts`.
+- Files modified: `package.json` / `package-lock.json` (0.1.45, `@nebula/link` 1.3.0), `src/electron/{main,preload,accounts,backups,sync}.ts`, `src/shared/global.d.ts`, `src/renderer/{i18n.ts,styles.css}`, `src/renderer/components/SettingsPanel.tsx`, `README.md`, `CLAUDE.md`, `DEV_CHANGES.md`.
+- **Sealed saves** (user request: no save may stay in clear text, and the update must fix older ones; Nebula Hub ADR-040, NEBULA_LINK.md § 19):
+  - `saves.ts`: `FamilySaveKey` (the family save key through the SDK, cached; a throwaway data folder gets its own key file), `sealFolder` (retroactive, in place, date kept).
+  - Written sealed: the pre-uninstall / Hub backup (nothing is written if the key cannot be used, so the uninstaller and the Hub ask the user), the export, and every file of the sync folder (manifest, databases, avatars).
+  - Read sealed or plain: backup summaries, `--import-backup=`, the latest-backup offer, file import (`ERR_BACKUP_KEY_UNKNOWN` for another computer's key), sync manifest and restores. A manifest sealed with an unknown key is never overwritten (`ERR_SYNC_KEY_UNKNOWN`).
+  - Retroactive: at startup, the plain Finterest backups of the root folder; on loading or choosing the sync folder, its plain copies (same date, so nothing is copied again).
+  - Settings → Data: the recovery key, shown on request (unlocked real profile only), and another computer's key added.
+- **Verification**: typecheck, lint, 216 tests (+6: sealed backup read only with the key, plain still read; retroactive sealing once with the date kept; throwaway key file; sealed sync copies opened back; older plain copies sealed and kept in step; another computer's manifest never overwritten).
+
 ## [2026-10-10] - Nebula Finterest Change Session #52
 - Files added: `src/shared/packs.ts` (+ test), `src/electron/packs.ts`, `src/renderer/packTheme.ts`.
 - Files modified: `package.json` / `package-lock.json` (0.1.44, `@nebula/link` 1.2.0), `src/electron/{main,preload}.ts`, `src/shared/global.d.ts`, `src/renderer/{App,nebula,nebula.test,i18n}.ts*`, `src/renderer/components/{Sidebar,SettingsPanel}.tsx`, `README.md`, `DEV_CHANGES.md`.

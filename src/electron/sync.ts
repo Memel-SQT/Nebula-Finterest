@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { SyncStatus } from '../shared/types';
 import { decideFileSync, isSyncManifest, mirrorManifestRecords, restorableRecords, type SyncableRecord, type SyncManifest } from '../shared/sync';
 import { statMtimeMs, writeFileAtomic } from './fsutil';
+import { sealFolder, type SaveSealer } from './saves';
 
 /** Subfolder created inside the directory the user picks, so the app never scatters files in, say, the root of their OneDrive. */
 export const SYNC_SUBFOLDER = 'Nebula Finterest';
@@ -20,6 +21,11 @@ interface SyncSettings {
  * only offered (`listRestorable`), and added on the user's request (`pullFile`, never over an
  * existing local file). A copy failure is recorded in the status and never blocks or fails a local
  * save.
+ *
+ * Since v0.1.45 (Nebula Hub ADR-040) every file written in the folder is sealed with the family's
+ * save key; older plain copies are still read, and sealed where they are when the folder is loaded.
+ * A manifest sealed with a key this computer does not know is never overwritten: the status says
+ * so until that computer's recovery key is added.
  */
 export class SyncManager {
   private settings: SyncSettings = { directory: null };
@@ -28,6 +34,7 @@ export class SyncManager {
   constructor(
     private readonly settingsPath: string,
     private readonly onStatus: (status: SyncStatus) => void = () => undefined,
+    private readonly sealer: SaveSealer | null = null,
   ) {}
 
   async load(): Promise<void> {
@@ -38,6 +45,13 @@ export class SyncManager {
       this.settings = { directory: null };
     }
     this.setStatus({ directory: this.settings.directory, state: this.settings.directory ? 'idle' : 'disabled' });
+    await this.sealExisting();
+  }
+
+  /** Seals, where they are, the plain copies an older version left in the folder (retroactive). */
+  async sealExisting(): Promise<number> {
+    if (!this.sealer || !this.settings.directory) return 0;
+    return sealFolder(this.sealer, path.join(this.settings.directory, SYNC_SUBFOLDER), 'sync-copy', (file) => !file.endsWith('.tmp'), 1);
   }
 
   isEnabled(): boolean {
@@ -55,6 +69,7 @@ export class SyncManager {
     this.settings = { directory };
     await writeFileAtomic(this.settingsPath, JSON.stringify(this.settings, null, 2));
     this.setStatus({ directory, state: directory ? 'idle' : 'disabled' });
+    await this.sealExisting();
   }
 
   remotePath(fileName: string): string {
@@ -68,8 +83,22 @@ export class SyncManager {
     if (!this.isEnabled()) {
       return null;
     }
+    let bytes: Buffer;
     try {
-      const parsed = JSON.parse(await fs.readFile(this.remotePath(MANIFEST_FILE), 'utf8'));
+      bytes = await fs.readFile(this.remotePath(MANIFEST_FILE));
+    } catch {
+      return null;
+    }
+    let plain: Buffer;
+    try {
+      plain = await this.open(bytes);
+    } catch (error) {
+      // Another computer's key: its records must not be overwritten by this one.
+      if (error instanceof Error && error.message === 'ERR_SAVE_KEY_UNKNOWN') throw new Error('ERR_SYNC_KEY_UNKNOWN');
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(plain.toString('utf8'));
       return isSyncManifest(parsed) ? (parsed as SyncManifest<T>) : null;
     } catch {
       return null;
@@ -95,13 +124,13 @@ export class SyncManager {
         accounts: mirrorManifestRecords(local, remote?.accounts ?? [], deletedIds),
         deletedIds,
       };
-      await writeFileAtomic(this.remotePath(MANIFEST_FILE), JSON.stringify(manifest, null, 2));
+      await writeFileAtomic(this.remotePath(MANIFEST_FILE), await this.seal(JSON.stringify(manifest, null, 2)));
     }, undefined);
   }
 
   /** Profiles in the folder that this computer does not have (with their database present there). */
   async listRestorable<T extends SyncableRecord>(localIds: string[], databaseFileName: (id: string) => string): Promise<T[]> {
-    const remote = await this.readManifest<T>();
+    const remote = await this.readManifest<T>().catch(() => null);
     if (!remote) {
       return [];
     }
@@ -125,7 +154,7 @@ export class SyncManager {
       const remotePath = this.remotePath(fileName);
       const action = decideFileSync(await statMtimeMs(localPath), await statMtimeMs(remotePath));
       if (action === 'push') {
-        await this.copyPreservingMtime(localPath, remotePath);
+        await this.copyPreservingMtime(localPath, remotePath, 'seal');
         return 'push' as const;
       }
       return action === 'pull' && (await statMtimeMs(localPath)) !== null ? ('newer-elsewhere' as const) : ('none' as const);
@@ -141,7 +170,7 @@ export class SyncManager {
       const remotePath = this.remotePath(fileName);
       if ((await statMtimeMs(remotePath)) === null) return false;
       await fs.mkdir(path.dirname(localPath), { recursive: true });
-      await this.copyPreservingMtime(remotePath, localPath);
+      await this.copyPreservingMtime(remotePath, localPath, 'open');
       return true;
     }, false);
   }
@@ -153,15 +182,24 @@ export class SyncManager {
     }
     await this.guard(async () => {
       const remotePath = this.remotePath(fileName);
-      await writeFileAtomic(remotePath, data);
+      await writeFileAtomic(remotePath, await this.seal(data));
       await this.alignMtime(localPath, remotePath);
     }, undefined);
   }
 
-  private async copyPreservingMtime(source: string, destination: string): Promise<void> {
+  /** Into the folder: sealed. Out of it: opened (a sealed copy that cannot be opened is never written locally). */
+  private async copyPreservingMtime(source: string, destination: string, direction: 'seal' | 'open'): Promise<void> {
     const data = await fs.readFile(source);
-    await writeFileAtomic(destination, data);
+    await writeFileAtomic(destination, direction === 'seal' ? await this.seal(data) : await this.open(data));
     await this.alignMtime(source, destination);
+  }
+
+  private async seal(data: Uint8Array | string): Promise<Uint8Array | string> {
+    return this.sealer ? this.sealer.seal(data, 'sync-copy') : data;
+  }
+
+  private async open(data: Buffer): Promise<Buffer> {
+    return this.sealer ? this.sealer.open(data) : data;
   }
 
   /** Gives both copies the same mtime, so the next comparison sees them as in sync instead of ping-ponging. */

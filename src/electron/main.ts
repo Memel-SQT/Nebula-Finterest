@@ -6,6 +6,7 @@ import { autoUpdater } from 'electron-updater';
 import { AccountManager } from './accounts';
 import { backupFileName, readBackupSummary, latestBackup, rotateExisting, type BackupSummary } from './backups';
 import { packChrome, readPackViews } from './packs';
+import { FamilySaveKey, sealFolder } from './saves';
 import type { PackView } from '../shared/packs';
 import { NebulaIntegration } from './nebula';
 import type { SyncStatus, UpdateStatus } from '../shared/types';
@@ -25,7 +26,10 @@ const MAX_BACKUP_FILE_BYTES = 50 * 1024 * 1024;
 const isBackupRun = process.argv.some((arg) => arg.startsWith(BACKUP_BEFORE_UNINSTALL_FLAG));
 
 let mainWindow: BrowserWindow | null = null;
-const accountManager = new AccountManager((status) => sendSyncStatus(status));
+/** Every save written outside the app's data is sealed with the family's save key (Nebula Hub ADR-040). */
+const saveKey = new FamilySaveKey();
+const openSave = (bytes: Buffer) => saveKey.open(bytes);
+const accountManager = new AccountManager((status) => sendSyncStatus(status), saveKey);
 /** A backup waiting for the user's confirmation (from `--import-backup=` or "import the latest"). */
 let pendingImport: BackupSummary | null = null;
 
@@ -75,6 +79,7 @@ if (!isBackupRun && !app.requestSingleInstanceLock()) {
 
     registerIpcHandlers();
     await accountManager.initialize();
+    void sealOldBackups();
     refreshPacks();
     app.on('browser-window-focus', () => refreshPacks());
     await createWindow();
@@ -313,17 +318,23 @@ async function runPreUninstallBackup(backupPath: string): Promise<void> {
     await rotateExisting(backupPath);
     await accountManager.initialize({ withSync: false });
     const backup = await accountManager.exportAllForBackup();
-    await fs.writeFile(backupPath, JSON.stringify(backup, null, 2), 'utf8');
+    // Sealed or nothing: without the key no file is written, so the uninstaller and the Hub ask the user.
+    await fs.writeFile(backupPath, await saveKey.seal(JSON.stringify(backup, null, 2), 'backup'));
   } catch {
     // Best-effort safety net: never block or fail the uninstall over a backup error.
   }
+}
+
+/** Retroactive (ADR-040): the plain backups of the root folder are sealed where they are, once. */
+async function sealOldBackups(): Promise<void> {
+  await sealFolder(saveKey, backupRoot(), 'backup', async (file) => file.toLowerCase().endsWith('.json') && (await readBackupSummary(file, MAX_BACKUP_FILE_BYTES)) !== null);
 }
 
 /** `--import-backup=<file>`: checks the file and asks the renderer to confirm (never a silent import). */
 async function offerImportFromArgv(argv: readonly string[]): Promise<void> {
   const flag = argv.find((arg) => arg.startsWith(IMPORT_BACKUP_FLAG));
   if (!flag) return;
-  const summary = await readBackupSummary(flag.slice(IMPORT_BACKUP_FLAG.length), MAX_BACKUP_FILE_BYTES);
+  const summary = await readBackupSummary(flag.slice(IMPORT_BACKUP_FLAG.length), MAX_BACKUP_FILE_BYTES, openSave);
   if (!summary) return;
   pendingImport = summary;
   // The renderer may not be listening yet: it also asks for the pending import when it starts.
@@ -366,9 +377,16 @@ async function readBackupFile(filePath: string): Promise<unknown> {
   if (stats.size > MAX_BACKUP_FILE_BYTES) {
     throw new Error('ERR_INVALID_BACKUP');
   }
+  let plain: Buffer;
+  try {
+    plain = await saveKey.open(await fs.readFile(filePath));
+  } catch (error) {
+    // Sealed on another computer: its recovery key has to be added first.
+    throw new Error(error instanceof Error && error.message === 'ERR_SAVE_KEY_UNKNOWN' ? 'ERR_BACKUP_KEY_UNKNOWN' : 'ERR_INVALID_BACKUP');
+  }
   try {
     // Strip a UTF-8 BOM: files re-saved with Windows Notepad start with one and JSON.parse rejects it.
-    return JSON.parse((await fs.readFile(filePath, 'utf8')).replace(/^﻿/, ''));
+    return JSON.parse(plain.toString('utf8').replace(/^\uFEFF/, ''));
   } catch {
     throw new Error('ERR_INVALID_BACKUP');
   }
@@ -465,7 +483,7 @@ function registerIpcHandlers(): void {
       return;
     }
 
-    await fs.writeFile(result.filePath, JSON.stringify(backup, null, 2), 'utf8');
+    await fs.writeFile(result.filePath, await saveKey.seal(JSON.stringify(backup, null, 2), 'export'));
   });
   ipcMain.handle('budget:importBackupFromFile', async () => {
     const options: Electron.OpenDialogOptions = {
@@ -489,10 +507,19 @@ function registerIpcHandlers(): void {
   ipcMain.handle('sync:listRestorable', async () => accountManager.listRestorable());
   ipcMain.handle('sync:restore', async (_event, ids: unknown) => accountManager.restoreFromCopy(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : []));
 
+  // The family's save key (ADR-040): the recovery key only for an open profile (never a guest).
+  ipcMain.handle('saves:recoveryCode', async () => (accountManager.getActive() && !accountManager.isActiveGuest() ? saveKey.recoveryCode() : null));
+  ipcMain.handle('saves:importRecoveryCode', async (_event, code: unknown) => {
+    if (typeof code !== 'string' || code.length > 200 || !accountManager.getActive() || accountManager.isActiveGuest()) return false;
+    const added = await saveKey.importRecoveryCode(code);
+    if (added) void accountManager.syncNow().catch(() => undefined);
+    return added;
+  });
+
   // Backups waiting for a confirmation (`--import-backup=`, or the latest one after a reinstall).
   ipcMain.handle('backup:getPending', () => pendingImport);
   ipcMain.handle('backup:offerLatest', async () => {
-    pendingImport = await latestBackup(backupRoot(), MAX_BACKUP_FILE_BYTES);
+    pendingImport = await latestBackup(backupRoot(), MAX_BACKUP_FILE_BYTES, openSave);
     return pendingImport;
   });
   ipcMain.handle('backup:dismissPending', () => {
